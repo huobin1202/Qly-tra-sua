@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.sql.*; // Thêm import này
 
 interface Inhapxuat {
 
@@ -127,160 +128,146 @@ class Milktea extends Drink implements Inhapxuat {
 }
 
 class DSDrink implements IQuanLy {
-    private Drink[] dsdrink;
-    private int n;
+    // ...bỏ mảng dsdrink và biến n nếu không cần lưu tạm...
 
-    public DSDrink() {
-        n = 0;
-        dsdrink = new Drink[0];
-    }
-
-    public DSDrink(int n, Drink[] dsDrink) {
-        this.n = n;
-        this.dsdrink = dsDrink;
-    }
-
-    public void nhap() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Nhập số lượng đồ uống:");
-        n = rd.nextInt();
-        dsdrink = new Drink[n];
-        for (int i = 0; i < n; i++) {
-            System.out.println("Nhap loai do uong: ");
-            System.out.println(" 1.Tra sua    2.Tra trai cay");
-            int x = rd.nextInt();
-
-            while (x != 1 && x != 2) {
-                System.out.println("Khong hop le, nhap lai!");
-                x = rd.nextInt();
-            }
-            if (x == 1) {
-                dsdrink[i] = new Milktea();
-            } else if (x == 2) {
-                dsdrink[i] = new Fruittea();
-            }
-            dsdrink[i].nhap();
-        }
-    }
-
-    public void xuat() {
-        for (int i = 0; i < n; i++) {
-            dsdrink[i].xuat();
-        }
-    }
-
+    // Thêm đồ uống vào database
     public void them() {
-        dsdrink = Arrays.copyOf(dsdrink, n + 1);
-
+        Scanner rd = new Scanner(System.in);
         System.out.println("Nhap loai do uong: 1.Tra sua 2.Tra trai cay");
-        Scanner rd = new Scanner(System.in);
         int x = rd.nextInt();
-        while (x != 1 && x != 2) {
-            System.out.println("Ko hop le nhap lai!");
-            x = rd.nextInt();
-        }
+        rd.nextLine();
+        String ten, topping = null, traicay = null, loai;
+        int gia;
+        System.out.print("Nhập tên đồ uống: ");
+        ten = rd.nextLine();
+        System.out.print("Nhập giá: ");
+        gia = rd.nextInt();
+        rd.nextLine();
         if (x == 1) {
-            dsdrink[n] = new Milktea();
-        } else if (x == 2) {
-            dsdrink[n] = new Fruittea();
+            loai = "Milktea";
+            System.out.print("Nhập topping: ");
+            topping = rd.nextLine();
+        } else {
+            loai = "Fruittea";
+            System.out.print("Nhập loại trái cây: ");
+            traicay = rd.nextLine();
         }
-
-        dsdrink[n].nhap();
-        n++;
-    }
-
-    public void xoa() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("ten do uong can xoa: ");
-        String tenDrink = rd.nextLine();
-        xoa(tenDrink);
-    }
-
-    public void xoa(String tenDrink) {
-        for (int i = 0; i < n; i++) {
-            if (dsdrink[i].getTen().equals(tenDrink)) {
-                for (int j = i; j < n - 1; j++) {
-                    dsdrink[j] = dsdrink[j + 1];
-                }
-                dsdrink = Arrays.copyOf(dsdrink, n - 1);
-                n--;
-                break;
-            }
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO drinks (ten, gia, loai, topping, traicay) VALUES (?, ?, ?, ?, ?)")) {
+            ps.setString(1, ten);
+            ps.setInt(2, gia);
+            ps.setString(3, loai);
+            ps.setString(4, topping);
+            ps.setString(5, traicay);
+            ps.executeUpdate();
+            System.out.println("Đã thêm đồ uống vào database.");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
-    public void timkiem() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Nhap ten do uong can tim: ");
-        String tenDrink = rd.nextLine();
-        timkiem(tenDrink);
-    }
-
-    public void timkiem(String tenDrink) {
-        boolean x = false;
-        for (int i = 0; i < n; i++) {
-            if (dsdrink[i].getTen().equals(tenDrink)) {
-                dsdrink[i].xuat();
-                x = true;
-            }
-        }
-        if (x == false) {
-            System.out.println("Khong tim thay");
-        }
-    }
-
+    // Sửa thông tin đồ uống trong database
     public void sua() {
         Scanner rd = new Scanner(System.in);
-        System.out.println("Nhap ten do uong can sua");
-        String tenDrink = rd.nextLine();
-        sua(tenDrink);
+        System.out.print("Nhập tên đồ uống cần sửa: ");
+        String ten = rd.nextLine();
+        System.out.print("Nhập giá mới: ");
+        int gia = rd.nextInt();
+        rd.nextLine();
+        System.out.print("Nhập topping mới (nếu là trà sữa, bỏ qua nếu không): ");
+        String topping = rd.nextLine();
+        System.out.print("Nhập loại trái cây mới (nếu là trà trái cây, bỏ qua nếu không): ");
+        String traicay = rd.nextLine();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "UPDATE drinks SET gia=?, topping=?, traicay=? WHERE ten=?")) {
+            ps.setInt(1, gia);
+            ps.setString(2, topping.isEmpty() ? null : topping);
+            ps.setString(3, traicay.isEmpty() ? null : traicay);
+            ps.setString(4, ten);
+            int rows = ps.executeUpdate();
+            if (rows > 0)
+                System.out.println("Đã sửa thông tin đồ uống.");
+            else
+                System.out.println("Không tìm thấy đồ uống để sửa.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void sua(String tenDrink) {
+    // Xóa đồ uống khỏi database
+    public void xoa() {
+        Scanner rd = new Scanner(System.in);
+        System.out.print("Nhập tên đồ uống cần xóa: ");
+        String ten = rd.nextLine();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "DELETE FROM drinks WHERE ten=?")) {
+            ps.setString(1, ten);
+            int rows = ps.executeUpdate();
+            if (rows > 0)
+                System.out.println("Đã xóa đồ uống.");
+            else
+                System.out.println("Không tìm thấy đồ uống để xóa.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Tìm kiếm đồ uống trong database
+    public void timkiem() {
+        Scanner rd = new Scanner(System.in);
+        System.out.print("Nhập tên đồ uống cần tìm: ");
+        String ten = rd.nextLine();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "SELECT * FROM drinks WHERE ten LIKE ?")) {
+            ps.setString(1, "%" + ten + "%");
+            ResultSet rs = ps.executeQuery();
+            boolean found = false;
+            while (rs.next()) {
+                found = true;
+                System.out.println("Tên: " + rs.getString("ten") +
+                                   ", Giá: " + rs.getInt("gia") +
+                                   ", Loại: " + rs.getString("loai") +
+                                   ", Topping: " + rs.getString("topping") +
+                                   ", Trái cây: " + rs.getString("traicay"));
+            }
+            if (!found) System.out.println("Không tìm thấy đồ uống.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    @Override
+    public void nhap() {
+        Scanner rd = new Scanner(System.in);
+        System.out.print("Nhập số lượng đồ uống muốn thêm: ");
+        int n = rd.nextInt();
+        rd.nextLine();
         for (int i = 0; i < n; i++) {
-            if (dsdrink[i].getTen().equals(tenDrink)) {
-
-                dsdrink[i].nhap();
-                break;
-            }
+            System.out.println("Đồ uống thứ " + (i + 1) + ":");
+            them();
         }
     }
-
-    public void ghiFile(String tenFile) {
-        try (FileWriter fw = new FileWriter(tenFile)) {
-            fw.write(n + "\n"); // Ghi số lượng phần tử vào file
-            for (int i = 0; i < n; i++) {
-                if (dsdrink[i] instanceof Milktea) {
-                    fw.write("Milktea," + dsdrink[i].getTen() + "," + dsdrink[i].getGia() + ","
-                            + ((Milktea) dsdrink[i]).getTopping() + "\n");
-                } else if (dsdrink[i] instanceof Fruittea) {
-                    fw.write("Fruittea," + dsdrink[i].getTen() + "," + dsdrink[i].getGia() + ","
-                            + ((Fruittea) dsdrink[i]).getTraicay() + "\n");
-                }
+    // Hiển thị tất cả đồ uống từ database
+    public void xuat() {
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM drinks")) {
+            while (rs.next()) {
+                System.out.println("Tên: " + rs.getString("ten") +
+                                   ", Giá: " + rs.getInt("gia") +
+                                   ", Loại: " + rs.getString("loai") +
+                                   ", Topping: " + rs.getString("topping") +
+                                   ", Trái cây: " + rs.getString("traicay"));
             }
-        } catch (IOException e) {
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void docFile(String tenFile) {
-        try (BufferedReader br = new BufferedReader(new FileReader(tenFile))) {
-            n = Integer.parseInt(br.readLine()); // Đọc số lượng phần tử từ file
-            dsdrink = new Drink[n]; // Khởi tạo mảng với kích thước n
-            String line;
-            for (int i = 0; i < n; i++) {
-                line = br.readLine();
-                String[] parts = line.split(",");
-                if (parts[0].equals("Milktea")) {
-                    dsdrink[i] = new Milktea(parts[1], Integer.parseInt(parts[2]), parts[3]);
-                } else if (parts[0].equals("Fruittea")) {
-                    dsdrink[i] = new Fruittea(parts[1], Integer.parseInt(parts[2]), parts[3]);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+    // Không cần ghiFile, docFile nữa
 }
 
 class Customer implements Inhapxuat {
@@ -318,132 +305,115 @@ class Customer implements Inhapxuat {
 }
 
 class CustomerList implements IQuanLy {
-    private Customer[] dscustomer;
-    private int n;
+    // Bỏ mảng dscustomer và biến n nếu không cần lưu tạm
 
-    public CustomerList() {
-        dscustomer = new Customer[0];
-        n = 0;
-    }
-
-    public CustomerList(Customer[] dscustomer, int n) {
-        this.dscustomer = dscustomer;
-        this.n = n;
-    }
-
-    public void nhap() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("nhap so luong KH:");
-        n = rd.nextInt();
-        dscustomer = new Customer[n];
-        for (int i = 0; i < n; i++) {
-            dscustomer[i] = new Customer();
-            dscustomer[i].nhap();
-        }
-    }
-
-    public void xuat() {
-        for (int i = 0; i < n; i++) {
-            dscustomer[i].xuat();
-        }
-    }
-
-    public void timkiem() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("nhập tên khách cần tìm");
-        String name = rd.nextLine();
-        timKiemKhachHang(name);
-    }
-
-    // Tìm kiếm khách hàng theo tên
-    public void timKiemKhachHang(String tenKH) {
-        boolean x = false;
-        for (int i = 0; i < n; i++) {
-            if (dscustomer[i].gettenKH().equals(tenKH)) {
-                dscustomer[i].xuat();
-                x = true;
-            }
-        }
-        if (x == false) {
-            System.out.println("Không tìm thấy khách hàng.");
-        }
-    }
-
+    // Thêm khách hàng vào database
     public void them() {
-        dscustomer = Arrays.copyOf(dscustomer, n + 1);
-        dscustomer[n] = new Customer();
-        dscustomer[n].nhap();
-        n++;
+        Scanner rd = new Scanner(System.in);
+        System.out.print("Nhập tên khách hàng: ");
+        String ten = rd.nextLine();
+        System.out.print("Nhập số điện thoại: ");
+        String sdt = rd.nextLine();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "INSERT INTO customers (ten, sdt) VALUES (?, ?)")) {
+            ps.setString(1, ten);
+            ps.setString(2, sdt);
+            ps.executeUpdate();
+            System.out.println("Đã thêm khách hàng vào database.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
+    // Sửa thông tin khách hàng trong database
     public void sua() {
         Scanner rd = new Scanner(System.in);
-        System.out.println("nhập tên khách hàng cần sửa:");
-        String suatt = rd.nextLine();
-        sua(suatt);
+        System.out.print("Nhập tên khách hàng cần sửa: ");
+        String ten = rd.nextLine();
+        System.out.print("Nhập số điện thoại mới: ");
+        String sdt = rd.nextLine();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "UPDATE customers SET sdt=? WHERE ten=?")) {
+            ps.setString(1, sdt);
+            ps.setString(2, ten);
+            int rows = ps.executeUpdate();
+            if (rows > 0)
+                System.out.println("Đã sửa thông tin khách hàng.");
+            else
+                System.out.println("Không tìm thấy khách hàng để sửa.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void sua(String suatt) {
-        boolean x = false;
-        for (int i = 0; i < n; i++) {
-            if (dscustomer[i].gettenKH().equals(suatt)) {
-                dscustomer[i] = new Customer();
-                dscustomer[i].nhap();
-                x = true;
-                break;
-            }
-        }
-        if (x == false) {
-            System.out.println("ko tìm thấy");
-        }
-    }
-
+    // Xóa khách hàng khỏi database
     public void xoa() {
         Scanner rd = new Scanner(System.in);
-        System.out.println("nhập tên khách hàng");
-        String nn = rd.nextLine();
-        xoaKhachHang(nn);
+        System.out.print("Nhập tên khách hàng cần xóa: ");
+        String ten = rd.nextLine();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "DELETE FROM customers WHERE ten=?")) {
+            ps.setString(1, ten);
+            int rows = ps.executeUpdate();
+            if (rows > 0)
+                System.out.println("Đã xóa khách hàng.");
+            else
+                System.out.println("Không tìm thấy khách hàng để xóa.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    // Xóa khách hàng khỏi danh sách
-    public void xoaKhachHang(String nn) {
+    // Tìm kiếm khách hàng trong database
+    public void timkiem() {
+        Scanner rd = new Scanner(System.in);
+        System.out.print("Nhập tên khách hàng cần tìm: ");
+        String ten = rd.nextLine();
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                "SELECT * FROM customers WHERE ten LIKE ?")) {
+            ps.setString(1, "%" + ten + "%");
+            ResultSet rs = ps.executeQuery();
+            boolean found = false;
+            while (rs.next()) {
+                found = true;
+                System.out.println("Tên: " + rs.getString("ten") +
+                                   ", SĐT: " + rs.getString("sdt"));
+            }
+            if (!found) System.out.println("Không tìm thấy khách hàng.");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Hiển thị tất cả khách hàng từ database
+    public void xuat() {
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM customers")) {
+            while (rs.next()) {
+                System.out.println("Tên: " + rs.getString("ten") +
+                                   ", SĐT: " + rs.getString("sdt"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Không cần ghiFile, docFile nữa
+
+    @Override
+    public void nhap() {
+        Scanner rd = new Scanner(System.in);
+        System.out.print("Nhập số lượng khách hàng muốn thêm: ");
+        int n = rd.nextInt();
+        rd.nextLine();
         for (int i = 0; i < n; i++) {
-            if (dscustomer[i].gettenKH().equals(nn)) {
-                for (int j = i; j < n - 1; j++) {
-                    dscustomer[j] = dscustomer[j + 1];
-                }
-                dscustomer[n - 1] = null;
-                n--;
-                System.out.println("Đã xóa khách hàng: " + nn);
-                return;
-            }
-        }
-        System.out.println("Khách hàng không tồn tại.");
-    }
-
-    public void ghiFile(String tenFile) {
-        try (FileWriter fw = new FileWriter(tenFile)) {
-            fw.write(n + "\n"); // Ghi số lượng khách hàng
-            for (int i = 0; i < n; i++) {
-                fw.write(dscustomer[i].gettenKH() + "," + dscustomer[i].getSdtKH() + "\n");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void docFile(String tenFile) {
-        try (BufferedReader br = new BufferedReader(new FileReader(tenFile))) {
-            n = Integer.parseInt(br.readLine()); // Đọc số lượng khách hàng
-            dscustomer = new Customer[n];
-            String line;
-            for (int i = 0; i < n; i++) {
-                line = br.readLine();
-                String[] parts = line.split(",");
-                dscustomer[i] = new Customer(parts[0], parts[1]);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Khách hàng thứ " + (i + 1) + ":");
+            them();
         }
     }
 }
@@ -619,27 +589,6 @@ class DSHoaDon implements IQuanLy {
         }
     }
 
-    public void docFile(String tenFile) {
-        try (BufferedReader br = new BufferedReader(new FileReader(tenFile))) {
-            n = Integer.parseInt(br.readLine()); // Đọc số lượng hóa đơn
-            dsbill = new HoaDon[n];
-            String line;
-            for (int i = 0; i < n; i++) {
-                line = br.readLine();
-                String[] parts = line.split(",");
-                Customer kh = new Customer(parts[0], parts[1]);
-                Drink nuoc;
-                if (parts[2].equals("Milktea")) {
-                    nuoc = new Milktea(parts[3], Integer.parseInt(parts[4]), parts[5]);
-                } else {
-                    nuoc = new Fruittea(parts[3], Integer.parseInt(parts[4]), parts[5]);
-                }
-                dsbill[i] = new HoaDon(nuoc, kh);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public void doanhthu() {
         int tong1, tong2, tong3, tong4;
@@ -722,17 +671,8 @@ public class BanTS {
                             case 6:
                                 dsDoUong.timkiem();
                                 break;
+                     
                             case 7:
-                                System.out.print("Nhap ten file de doc: ");
-                                String fileDoUongDoc = scanner.nextLine();
-                                dsDoUong.docFile(fileDoUongDoc);
-                                break;
-                            case 8:
-                                System.out.print("Nhap ten file de ghi: ");
-                                String fileDoUongGhi = scanner.nextLine();
-                                dsDoUong.ghiFile(fileDoUongGhi);
-                                break;
-                            case 9:
                                 System.out.println("Tro ve menu chinh.");
                                 break;
                             default:
@@ -777,17 +717,8 @@ public class BanTS {
                             case 6:
                                 dsKhachHang.timkiem();
                                 break;
+                    
                             case 7:
-                                System.out.print("Nhap ten file de doc: ");
-                                String fileKhachHangDoc = scanner.nextLine();
-                                dsKhachHang.docFile(fileKhachHangDoc);
-                                break;
-                            case 8:
-                                System.out.print("Nhap ten file de ghi: ");
-                                String fileKhachHangGhi = scanner.nextLine();
-                                dsKhachHang.ghiFile(fileKhachHangGhi);
-                                break;
-                            case 9:
                                 System.out.println("Tro ve menu chinh.");
                                 break;
                             default:
@@ -837,20 +768,11 @@ public class BanTS {
                             case 6:
                                 dsHoaDon.timkiem();
                                 break;
+                 
                             case 7:
-                                System.out.print("Nhap ten file de doc: ");
-                                String fileHoaDonDoc = scanner.nextLine();
-                                dsHoaDon.docFile(fileHoaDonDoc);
-                                break;
-                            case 8:
-                                System.out.print("Nhap ten file de ghi: ");
-                                String fileHoaDonGhi = scanner.nextLine();
-                                dsHoaDon.ghiFile(fileHoaDonGhi);
-                                break;
-                            case 10:
                                 dsHoaDon.doanhthu();
                                 break;
-                            case 9:
+                            case 8:
                                 System.out.println("Tro ve menu chinh.");
                                 break;
                             default:
