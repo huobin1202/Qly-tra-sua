@@ -10,5 +10,4 @@
    ```
 2. Mở xampp và vào trang http://localhost/phpmyadmin/ tạo 1 database mới có tên là bants và import cơ sở dữ liệu trong folder db trong source code.
 
-3. Sử dụng netbeans để chạy source code.
 
