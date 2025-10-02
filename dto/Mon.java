@@ -1,3 +1,4 @@
+package dto;
 public class Mon {
     int id;
     String ten;

@@ -1,6 +1,9 @@
+package dao;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.Scanner;
+
+import db.DBUtil;
 
 public class DSNhanVien {
     public void them() {

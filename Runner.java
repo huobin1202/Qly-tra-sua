@@ -1,24 +1,18 @@
 import java.util.Scanner;
+
+import dao.CustomerList;
+import dao.DSLoaiMon;
+import dao.DSMon;
+import dao.DSNhanVien;
+import dao.DSQuanLyBan;
+import dao.DSQuanLyDonDatHang;
+
 import java.sql.*; // Thêm import này
 
-interface Inhapxuat {
-    void nhap();
-    void xuat();
-}
-
-interface IQuanLy extends Inhapxuat {
-
-    void them(); // Thêm đối tượng vào danh sách
-
-    void sua(); // Sửa đối tượng
-
-    void xoa(); // Xóa đối tượng
-
-    void timkiem(); // Tìm kiếm đối tượng
-}
 
 
-public class BanTS {
+
+public class Runner {
     public static boolean dangNhap(Scanner sc) {
         System.out.println("===== ĐĂNG NHẬP =====");
         System.out.print("Tên tài khoản: ");

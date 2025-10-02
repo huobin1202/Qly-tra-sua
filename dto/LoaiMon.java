@@ -1,3 +1,4 @@
+package dto;
 public class LoaiMon {
     int ma;
     String ten;

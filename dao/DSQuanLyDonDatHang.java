@@ -1,5 +1,8 @@
+package dao;
 import java.sql.*;
 import java.util.Scanner;
+
+import db.DBUtil;
 
 public class DSQuanLyDonDatHang {
     public void them() {

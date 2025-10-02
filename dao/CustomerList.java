@@ -1,4 +1,9 @@
+package dao;
 import java.util.Scanner;
+
+import db.DBUtil;
+import dto.IQuanLy;
+
 import java.sql.*; // Thêm import này
 public class CustomerList implements IQuanLy {
     // Thêm khách hàng vào database

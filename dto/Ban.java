@@ -1,3 +1,4 @@
+package dto;
 public class Ban {
     private int id;
     private String tenBan;

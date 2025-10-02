@@ -1,3 +1,4 @@
+package dto;
 import java.util.Scanner;
 public class Customer implements Inhapxuat {
     private String maKH;
