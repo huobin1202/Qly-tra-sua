@@ -5,7 +5,7 @@ import db.DBUtil;
 import dto.IQuanLy;
 
 import java.sql.*; // Thêm import này
-public class CustomerList implements IQuanLy {
+public class DSCustomer implements IQuanLy {
     // Thêm khách hàng vào database
     public void them() {
         Scanner rd = new Scanner(System.in);

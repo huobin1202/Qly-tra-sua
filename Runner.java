@@ -1,16 +1,18 @@
 import java.util.Scanner;
 
-import dao.CustomerList;
+import dao.DSCustomer;
 import dao.DSLoaiMon;
 import dao.DSMon;
 import dao.DSNhanVien;
-import dao.DSQuanLyBan;
-import dao.DSQuanLyDonDatHang;
+import dao.DSBan;
+import dao.DSDonDatHang;
+import view.NhanVienView;
+import view.HangHoaView;
+import view.KhachHangView;
+import view.BanView;
+import view.DatHangView;
 
 import java.sql.*; // Thêm import này
-
-
-
 
 public class Runner {
     public static boolean dangNhap(Scanner sc) {
@@ -61,12 +63,12 @@ public class Runner {
             return;
         }
 
-        CustomerList dsKhachHang = new CustomerList();
+        DSCustomer dsKhachHang = new DSCustomer();
         DSLoaiMon dsLoaiMon = new DSLoaiMon();
         DSMon dsMon = new DSMon();
         DSNhanVien dsNhanVien = new DSNhanVien();
-        DSQuanLyBan dsBan = new DSQuanLyBan();
-        DSQuanLyDonDatHang dsDonDatHang = new DSQuanLyDonDatHang();
+        DSBan dsBan = new DSBan();
+        DSDonDatHang dsDonDatHang = new DSDonDatHang();
 
         while (true) {
             System.out.println("\n╔══════════════════════════════════════════════╗");
@@ -76,7 +78,12 @@ public class Runner {
             System.out.println("║ 2. Quản lý khách hàng                       ║");
             System.out.println("║ 3. Quản lý nhân viên                        ║");
             System.out.println("║ 4. Quản lý đặt hàng                         ║");
-            System.out.println("║ 5. Thoát                                    ║");
+            //System.out.println("║ 4. Quản lý nhà cung cấp                     ║");
+            //System.out.println("║ 4. Quản lý kho                     ║");
+            //System.out.println("║ 4. Phiếu nhập                     ║");
+            //System.out.println("║ 4. Phiếu xuất                     ║");
+            System.out.println("║ 5. Thống kê                                 ║");
+            System.out.println("║ 6. Thoát                                    ║");
             System.out.println("╚══════════════════════════════════════════════╝");
             System.out.print("Chọn chức năng: ");
             int chon = sc.nextInt();
@@ -84,175 +91,22 @@ public class Runner {
 
             switch (chon) {
                 case 1:
-                    while (true) {
-                        System.out.println("\n*** Quan ly hang hoa ***");
-                        System.out.println("1. Loai mon");
-                        System.out.println("2. Mon");
-                        System.out.println("3. Tro ve menu chinh");
-                        System.out.print("Chon chuc nang: ");
-                        int chonHH = sc.nextInt();
-                        sc.nextLine();
-                        if (chonHH == 1) {
-                            while (true) {
-                                System.out.println("\n--- Loai mon ---");
-                                System.out.println("1. Them loai mon");
-                                System.out.println("2. Sua loai mon");
-                                System.out.println("3. Xoa loai mon");
-                                System.out.println("4. Xem danh sach loai mon");
-                                System.out.println("5. Quay lai");
-                                System.out.print("Chon chuc nang: ");
-                                int chonLM = sc.nextInt();
-                                sc.nextLine();
-                                if (chonLM == 1) dsLoaiMon.them();
-                                else if (chonLM == 2) dsLoaiMon.sua();
-                                else if (chonLM == 3) dsLoaiMon.xoa();
-                                else if (chonLM == 4) dsLoaiMon.xuat();
-                                else if (chonLM == 5) break;
-                                else System.out.println("Chuc nang khong hop le.");
-                            }
-                        } else if (chonHH == 2) {
-                            while (true) {
-                                System.out.println("\n--- Mon ---");
-                                System.out.println("1. Them mon");
-                                System.out.println("2. Sua mon");
-                                System.out.println("3. Xoa mon");
-                                System.out.println("4. Xem danh sach mon");
-                                System.out.println("5. Tim kiem mon");
-                                System.out.println("6. Quay lai");
-                                System.out.print("Chon chuc nang: ");
-                                int chonMon = sc.nextInt();
-                                sc.nextLine();
-                                if (chonMon == 1) dsMon.them();
-                                else if (chonMon == 2) dsMon.sua();
-                                else if (chonMon == 3) dsMon.xoa();
-                                else if (chonMon == 4) dsMon.xuat();
-                                else if (chonMon == 5) dsMon.timkiem();
-                                else if (chonMon == 6) break;
-                                else System.out.println("Chuc nang khong hop le.");
-                            }
-                        } else if (chonHH == 3) {
-                            break;
-                        }
-                    }
+                    HangHoaView.menu(dsLoaiMon, dsMon, sc);
                     break;
-                case 2: // Quản lý khách hàng
-                    int chonKhachHang;
-                    do {
-                        System.out.println("\n*** Quan ly khach hang *");
-                        System.out.println("1. Xuat danh sach khach hang");
-                        System.out.println("2. Them khach hang");
-                        System.out.println("3. Sua thong tin khach hang");
-                        System.out.println("4. Xoa khach hang");
-                        System.out.println("5. Tim kiem khach hang");
-                        System.out.println("6. Tro ve menu chinh");
-                        System.out.print("Chon chuc nang: ");
-                        chonKhachHang = sc.nextInt();
-                        sc.nextLine();
-
-                        switch (chonKhachHang) {
-                            case 1:
-                                dsKhachHang.xuat();
-                                break;
-                            case 2:
-                                dsKhachHang.them();
-                                break;
-                            case 3:
-                                dsKhachHang.sua();
-                                break;
-                            case 4:
-                                dsKhachHang.xoa();
-                                break;
-                            case 5:
-                                dsKhachHang.timkiem();
-                                break;
-                            case 6:
-                                System.out.println("Tro ve menu chinh.");
-                                break;
-                            default:
-                                System.out.println("Chuc nang khong hop le. Vui long chon lai.");
-                        }
-                    } while (chonKhachHang != 7);
+                case 2:
+                    KhachHangView.menu(dsKhachHang, sc);
                     break;
-
-                case 3: // Quản lý nhân viên
-                    while (true) {
-                        System.out.println("\n╔══════════════════════════════════════════════╗");
-                        System.out.println("║           QUẢN LÝ NHÂN VIÊN                 ║");
-                        System.out.println("╠══════════════════════════════════════════════╣");
-                        System.out.println("║ 1. Thêm nhân viên                           ║");
-                        System.out.println("║ 2. Sửa nhân viên                            ║");
-                        System.out.println("║ 3. Xóa nhân viên                            ║");
-                        System.out.println("║ 4. Xem danh sách nhân viên                  ║");
-                        System.out.println("║ 5. Tìm kiếm nhân viên                       ║");
-                        System.out.println("║ 6. Quay lại                                 ║");
-                        System.out.println("╚══════════════════════════════════════════════╝");
-                        System.out.print("Chọn chức năng: ");
-                        int chonNV = sc.nextInt();
-                        sc.nextLine();
-                        if (chonNV == 1) dsNhanVien.them();
-                        else if (chonNV == 2) dsNhanVien.sua();
-                        else if (chonNV == 3) dsNhanVien.xoa();
-                        else if (chonNV == 4) dsNhanVien.xuat();
-                        else if (chonNV == 5) dsNhanVien.timkiem();
-                        else if (chonNV == 6) break;
-                        else System.out.println("Chức năng không hợp lệ.");
-                    }
+                case 3:
+                    NhanVienView.menu(dsNhanVien, sc);
                     break;
-                case 4: // Quản lý đặt hàng
-                    while (true) {
-                        System.out.println("\n╔══════════════════════════════════════════════╗");
-                        System.out.println("║             QUẢN LÝ ĐẶT HÀNG                ║");
-                        System.out.println("╠══════════════════════════════════════════════╣");
-                        System.out.println("║ 1. Quản lý bàn                              ║");
-                        System.out.println("║ 2. Quản lý đơn đặt hàng                     ║");
-                        System.out.println("║ 3. Quay lại                                 ║");
-                        System.out.println("╚══════════════════════════════════════════════╝");
-                        System.out.print("Chọn chức năng: ");
-                        int chonDH = sc.nextInt();
-                        sc.nextLine();
-                        if (chonDH == 1) {
-                            while (true) {
-                                System.out.println("\n--- Quản lý bàn ---");
-                                System.out.println("1. Thêm bàn");
-                                System.out.println("2. Sửa bàn");
-                                System.out.println("3. Xóa bàn");
-                                System.out.println("4. Xem danh sách bàn");
-                                System.out.println("5. Quay lại");
-                                System.out.print("Chọn chức năng: ");
-                                int chonBan = sc.nextInt();
-                                sc.nextLine();
-                                if (chonBan == 1) dsBan.them();
-                                else if (chonBan == 2) dsBan.sua();
-                                else if (chonBan == 3) dsBan.xoa();
-                                else if (chonBan == 4) dsBan.xuat();
-                                else if (chonBan == 5) break;
-                                else System.out.println("Chức năng không hợp lệ.");
-                            }
-                        } else if (chonDH == 2) {
-                            while (true) {
-                                System.out.println("\n--- Quản lý đơn đặt hàng ---");
-                                System.out.println("1. Thêm đơn đặt hàng");
-                                System.out.println("2. Sửa đơn đặt hàng");
-                                System.out.println("3. Xóa đơn đặt hàng");
-                                System.out.println("4. Xem danh sách đơn đặt hàng");
-                                System.out.println("5. Tìm kiếm đơn đặt hàng");
-                                System.out.println("6. Quay lại");
-                                System.out.print("Chọn chức năng: ");
-                                int chonDon = sc.nextInt();
-                                sc.nextLine();
-                                if (chonDon == 1) dsDonDatHang.them();
-                                else if (chonDon == 2) dsDonDatHang.sua();
-                                else if (chonDon == 3) dsDonDatHang.xoa();
-                                else if (chonDon == 4) dsDonDatHang.xuat();
-                                else if (chonDon == 5) dsDonDatHang.timkiem();
-                                else if (chonDon == 6) break;
-                                else System.out.println("Chức năng không hợp lệ.");
-                            }
-                        } else if (chonDH == 3) break;
-                        else System.out.println("Chức năng không hợp lệ.");
-                    }
+                case 4:
+                    DatHangView.menu(dsBan, dsDonDatHang, sc);
                     break;
                 case 5:
+                    System.out.println("Thoát chương trình.");
+                    sc.close();
+                    return;
+                case 6:
                     System.out.println("Thoát chương trình.");
                     sc.close();
                     return;
