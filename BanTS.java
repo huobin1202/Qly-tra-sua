@@ -1,15 +1,8 @@
-import java.util.Arrays;
 import java.util.Scanner;
-import java.io.FileReader;
-import java.io.BufferedReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.sql.*; // Thêm import này
 
 interface Inhapxuat {
-
     void nhap();
-
     void xuat();
 }
 
@@ -24,770 +17,253 @@ interface IQuanLy extends Inhapxuat {
     void timkiem(); // Tìm kiếm đối tượng
 }
 
-abstract class Drink {
-    protected String tenDrink;
-    protected int gia;
-
-    public Drink() {
-        tenDrink = "";
-        gia = 0;
-    }
-
-    public Drink(String tenDrink, int gia) {
-        this.tenDrink = tenDrink;
-        this.gia = gia;
-    }
-
-    public int getGia() {
-        return gia;
-    }
-
-    public String getTen() {
-        return tenDrink;
-    }
-
-    public abstract int getCost();
-
-    public abstract void nhap();
-
-    public abstract void xuat();
-}
-
-class Fruittea extends Drink implements Inhapxuat {
-    private String traicay;
-
-    public Fruittea() {
-        super();
-        traicay = "";
-    }
-
-    public Fruittea(String tenDrink, int gia, String traicay) {
-        super(tenDrink, gia);
-        this.traicay = traicay;
-    }
-
-    public String getTraicay() {
-        return traicay;
-    }
-
-    public int getCost() {
-        return gia * 10 / 100;
-    }
-
-    @Override
-    public void nhap() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Nhap ten tra trai cay, gia, loai trai cay: ");
-        tenDrink = rd.nextLine();
-        gia = rd.nextInt();
-        traicay = rd.nextLine();
-    }
-
-    @Override
-    public void xuat() {
-        System.out.println("Tên tra trai cay: " + tenDrink + ", Giá: " + gia + ", loai trái cây: " + traicay);
-    }
-
-}
-
-class Milktea extends Drink implements Inhapxuat {
-    private String topping;
-
-    public Milktea() {
-        super();
-        topping = "";
-    }
-
-    public Milktea(String tenDrink, int gia, String topping) {
-        super(tenDrink, gia);
-        this.topping = topping;
-    }
-
-    public String getTopping() {
-        return topping;
-    }
-
-    public int getCost() {
-        return gia * 20 / 100;
-    }
-
-
-    @Override
-    public void nhap() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Nhap ten tra sua, gia, loai topping: ");
-        tenDrink = rd.nextLine();
-        gia = rd.nextInt();
-        topping = rd.nextLine();
-    }
-
-    @Override
-    public void xuat() {
-        System.out.println("Tên trà sua: " + tenDrink + ", Giá: " + gia + ", Topping: " + topping);
-    }
-}
-
-class DSDrink implements IQuanLy {
-    // ...bỏ mảng dsdrink và biến n nếu không cần lưu tạm...
-
-    // Thêm đồ uống vào database
-    public void them() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Nhap loai do uong: 1.Tra sua 2.Tra trai cay");
-        int x = rd.nextInt();
-        rd.nextLine();
-        String ten, topping = null, traicay = null, loai;
-        int gia;
-        System.out.print("Nhập tên đồ uống: ");
-        ten = rd.nextLine();
-        System.out.print("Nhập giá: ");
-        gia = rd.nextInt();
-        rd.nextLine();
-        if (x == 1) {
-            loai = "Milktea";
-            System.out.print("Nhập topping: ");
-            topping = rd.nextLine();
-        } else {
-            loai = "Fruittea";
-            System.out.print("Nhập loại trái cây: ");
-            traicay = rd.nextLine();
-        }
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO drinks (ten, gia, loai, topping, traicay) VALUES (?, ?, ?, ?, ?)")) {
-            ps.setString(1, ten);
-            ps.setInt(2, gia);
-            ps.setString(3, loai);
-            ps.setString(4, topping);
-            ps.setString(5, traicay);
-            ps.executeUpdate();
-            System.out.println("Đã thêm đồ uống vào database.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Sửa thông tin đồ uống trong database
-    public void sua() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập tên đồ uống cần sửa: ");
-        String ten = rd.nextLine();
-        System.out.print("Nhập giá mới: ");
-        int gia = rd.nextInt();
-        rd.nextLine();
-        System.out.print("Nhập topping mới (nếu là trà sữa, bỏ qua nếu không): ");
-        String topping = rd.nextLine();
-        System.out.print("Nhập loại trái cây mới (nếu là trà trái cây, bỏ qua nếu không): ");
-        String traicay = rd.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "UPDATE drinks SET gia=?, topping=?, traicay=? WHERE ten=?")) {
-            ps.setInt(1, gia);
-            ps.setString(2, topping.isEmpty() ? null : topping);
-            ps.setString(3, traicay.isEmpty() ? null : traicay);
-            ps.setString(4, ten);
-            int rows = ps.executeUpdate();
-            if (rows > 0)
-                System.out.println("Đã sửa thông tin đồ uống.");
-            else
-                System.out.println("Không tìm thấy đồ uống để sửa.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Xóa đồ uống khỏi database
-    public void xoa() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập tên đồ uống cần xóa: ");
-        String ten = rd.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "DELETE FROM drinks WHERE ten=?")) {
-            ps.setString(1, ten);
-            int rows = ps.executeUpdate();
-            if (rows > 0)
-                System.out.println("Đã xóa đồ uống.");
-            else
-                System.out.println("Không tìm thấy đồ uống để xóa.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Tìm kiếm đồ uống trong database
-    public void timkiem() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập tên đồ uống cần tìm: ");
-        String ten = rd.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "SELECT * FROM drinks WHERE ten LIKE ?")) {
-            ps.setString(1, "%" + ten + "%");
-            ResultSet rs = ps.executeQuery();
-            boolean found = false;
-            while (rs.next()) {
-                found = true;
-                System.out.println("Tên: " + rs.getString("ten") +
-                                   ", Giá: " + rs.getInt("gia") +
-                                   ", Loại: " + rs.getString("loai") +
-                                   ", Topping: " + rs.getString("topping") +
-                                   ", Trái cây: " + rs.getString("traicay"));
-            }
-            if (!found) System.out.println("Không tìm thấy đồ uống.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-    @Override
-    public void nhap() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập số lượng đồ uống muốn thêm: ");
-        int n = rd.nextInt();
-        rd.nextLine();
-        for (int i = 0; i < n; i++) {
-            System.out.println("Đồ uống thứ " + (i + 1) + ":");
-            them();
-        }
-    }
-    // Hiển thị tất cả đồ uống từ database
-    public void xuat() {
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM drinks")) {
-            while (rs.next()) {
-                System.out.println("Tên: " + rs.getString("ten") +
-                                   ", Giá: " + rs.getInt("gia") +
-                                   ", Loại: " + rs.getString("loai") +
-                                   ", Topping: " + rs.getString("topping") +
-                                   ", Trái cây: " + rs.getString("traicay"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Không cần ghiFile, docFile nữa
-}
-
-class Customer implements Inhapxuat {
-    private String tenKH;
-    private String sdtKH;
-
-    public Customer() {
-        tenKH = "";
-        sdtKH = "";
-    }
-
-    public Customer(String tenKH, String sdtKH) {
-        this.tenKH = tenKH;
-        this.sdtKH = sdtKH;
-    }
-
-    public String gettenKH() {
-        return tenKH;
-    }
-
-    public String getSdtKH() {
-        return sdtKH;
-    }
-
-    public void nhap() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("nhap ten khach hang, so dien thoai: ");
-        tenKH = rd.nextLine();
-        sdtKH = rd.nextLine();
-    }
-
-    public void xuat() {
-        System.out.println("tên khách hàng: " + tenKH + ", so dien thoai: " + sdtKH);
-    }
-}
-
-class CustomerList implements IQuanLy {
-    // Bỏ mảng dscustomer và biến n nếu không cần lưu tạm
-
-    // Thêm khách hàng vào database
-    public void them() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập tên khách hàng: ");
-        String ten = rd.nextLine();
-        System.out.print("Nhập số điện thoại: ");
-        String sdt = rd.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO customers (ten, sdt) VALUES (?, ?)")) {
-            ps.setString(1, ten);
-            ps.setString(2, sdt);
-            ps.executeUpdate();
-            System.out.println("Đã thêm khách hàng vào database.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Sửa thông tin khách hàng trong database
-    public void sua() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập tên khách hàng cần sửa: ");
-        String ten = rd.nextLine();
-        System.out.print("Nhập số điện thoại mới: ");
-        String sdt = rd.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "UPDATE customers SET sdt=? WHERE ten=?")) {
-            ps.setString(1, sdt);
-            ps.setString(2, ten);
-            int rows = ps.executeUpdate();
-            if (rows > 0)
-                System.out.println("Đã sửa thông tin khách hàng.");
-            else
-                System.out.println("Không tìm thấy khách hàng để sửa.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Xóa khách hàng khỏi database
-    public void xoa() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập tên khách hàng cần xóa: ");
-        String ten = rd.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "DELETE FROM customers WHERE ten=?")) {
-            ps.setString(1, ten);
-            int rows = ps.executeUpdate();
-            if (rows > 0)
-                System.out.println("Đã xóa khách hàng.");
-            else
-                System.out.println("Không tìm thấy khách hàng để xóa.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Tìm kiếm khách hàng trong database
-    public void timkiem() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập tên khách hàng cần tìm: ");
-        String ten = rd.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "SELECT * FROM customers WHERE ten LIKE ?")) {
-            ps.setString(1, "%" + ten + "%");
-            ResultSet rs = ps.executeQuery();
-            boolean found = false;
-            while (rs.next()) {
-                found = true;
-                System.out.println("Tên: " + rs.getString("ten") +
-                                   ", SĐT: " + rs.getString("sdt"));
-            }
-            if (!found) System.out.println("Không tìm thấy khách hàng.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Hiển thị tất cả khách hàng từ database
-    public void xuat() {
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM customers")) {
-            while (rs.next()) {
-                System.out.println("Tên: " + rs.getString("ten") +
-                                   ", SĐT: " + rs.getString("sdt"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // Không cần ghiFile, docFile nữa
-
-    @Override
-    public void nhap() {
-        Scanner rd = new Scanner(System.in);
-        System.out.print("Nhập số lượng khách hàng muốn thêm: ");
-        int n = rd.nextInt();
-        rd.nextLine();
-        for (int i = 0; i < n; i++) {
-            System.out.println("Khách hàng thứ " + (i + 1) + ":");
-            them();
-        }
-    }
-}
-
-class HoaDon implements Inhapxuat {
-    private Drink nuoc;
-    private Customer khach;
-    public static int slnuoc = 0;
-
-    public HoaDon() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Chọn loại đồ uống: 1. Trà sua 2. Trà trái cây");
-        int choice = rd.nextInt();
-        rd.nextLine(); // Đọc bỏ dòng mới
-        if (choice == 1) {
-            nuoc = new Milktea();
-        } else if (choice == 2) {
-            nuoc = new Fruittea();
-        } else {
-            System.out.println("lua chon khong hop le , mac dinh se chon tra sua");
-            nuoc = new Milktea();
-        }
-        khach = new Customer();
-        slnuoc++;
-    }
-
-    public HoaDon(Drink nuoc, Customer khach) {
-        this.nuoc = nuoc;
-        this.khach = khach;
-        slnuoc++;
-    }
-
-    public static void howmanyNuoc() {
-        System.out.println("so luong nuoc ban ra: " + slnuoc);
-    }
-
-    public Drink getNuoc() {
-        return nuoc;
-    }
-
-    public Customer getKhach() {
-        return khach;
-    }
-
-    public void nhap() {
-        System.out.println("Nhập thông tin khách hàng:");
-        khach.nhap();
-        System.out.println("Nhập thông tin đồ uống:");
-        nuoc.nhap();
-    }
-
-    public void xuat() {
-        System.out.println("Thông tin hóa don:");
-        khach.xuat();
-        nuoc.xuat();
-    }
-
-}
-
-class DSHoaDon implements IQuanLy {
-    private HoaDon[] dsbill;
-    private int n;
-
-    public DSHoaDon() {
-        n = 0;
-        dsbill = new HoaDon[0];
-    }
-
-    public DSHoaDon(HoaDon[] dsbill, int n) {
-        this.n = n;
-        this.dsbill = dsbill;
-    }
-
-    public void nhap() {
-        dsbill = new HoaDon[n];
-        for (int i = 0; i < n; i++) {
-            dsbill[i] = new HoaDon();
-            dsbill[i].nhap();
-        }
-    }
-
-    public void xuat() {
-        for (int i = 0; i < n; i++) {
-            dsbill[i].xuat();
-        }
-    }
-
-    public void them() {
-        dsbill = Arrays.copyOf(dsbill, n + 1);
-        dsbill[n] = new HoaDon();
-        dsbill[n].nhap();
-        n++;
-    }
-
-    public void xoa() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("nhập ten khách hàng: ");
-        String sdt = rd.nextLine();
-        xoa(sdt);
-    }
-
-    public void xoa(String sdt) {
-        for (int i = 0; i < n; i++) {
-            if (dsbill[i].getKhach().gettenKH().equals(sdt)) {
-                for (int j = i; j < n - 1; j++) {
-                    dsbill[j] = dsbill[j + 1];
-                }
-                dsbill = Arrays.copyOf(dsbill, n - 1);
-                n--;
-                break;
-            }
-        }
-    }
-
-    // Hàm sửa hóa đơn không tham số
-    public void sua() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Nhập tên khách hàng cần sửa: ");
-        String tenkhach = rd.nextLine();
-        sua(tenkhach);
-    }
-
-    // Hàm sửa hóa đơn có tham số
-    public void sua(String tenkhach) {
-        for (int i = 0; i < n; i++) {
-            if (dsbill[i].getKhach().gettenKH().equals(tenkhach)) {
-                System.out.println("Sửa thông tin khách hàng và đồ uống:");
-                dsbill[i].nhap();
-                return;
-            }
-        }
-        System.out.println("Khong tim thay: " + tenkhach);
-    }
-
-    public void timkiem() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("nhap ten KH can tim: ");
-        String sdt = rd.nextLine();
-        timkiem(sdt);
-    }
-
-    public void timkiem(String sdt) {
-        boolean found = false;
-        for (int i = 0; i < n; i++) {
-            if (dsbill[i].getKhach().gettenKH().equals(sdt)) {
-                System.out.println("tim thay hoa don:");
-                dsbill[i].xuat();
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            System.out.println("Khong tim thay: " + sdt);
-        }
-    }
-
-    public void ghiFile(String tenFile) {
-        try (FileWriter fw = new FileWriter(tenFile)) {
-            fw.write(n + "\n"); // Ghi số lượng hóa đơn
-            for (int i = 0; i < n; i++) {
-                HoaDon hd = dsbill[i];
-                fw.write(hd.getKhach().gettenKH() + "," + hd.getKhach().getSdtKH() + "," +
-                        hd.getNuoc().getClass().getSimpleName() + "," +
-                        hd.getNuoc().getTen() + "," + hd.getNuoc().getGia() + ",");
-                if (hd.getNuoc() instanceof Milktea) {
-                    fw.write(((Milktea) hd.getNuoc()).getTopping() + "\n");
-                } else if (hd.getNuoc() instanceof Fruittea) {
-                    fw.write(((Fruittea) hd.getNuoc()).getTraicay() + "\n");
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public void doanhthu() {
-        int tong1, tong2, tong3, tong4;
-        tong1 = tong2 = tong3 = tong4 = 0;
-
-        for (int i = 0; i < n; i++) {
-            if (dsbill[i].getNuoc() instanceof Milktea) {
-                tong1 += dsbill[i].getNuoc().getGia();
-                tong3 += dsbill[i].getNuoc().getCost();
-            } else {
-                tong2 += dsbill[i].getNuoc().getGia();
-                tong4 += dsbill[i].getNuoc().getCost();
-            }
-        }
-        int tong = tong1 + tong2;
-        int cost = tong3 + tong4;
-        HoaDon.howmanyNuoc();
-        System.out.println("Doanh thu cua tra sua: " + tong1);
-        System.out.println("Doanh thu cua tra trai cay: " + tong2);
-        System.out.println("chi phí tra sua: " + tong3);
-        System.out.println("chi phi tra trai cay " + tong4);
-        System.out.println("Tong doanh thu: " + tong);
-        System.out.println("Tong chi phi: " + cost);
-        System.out.println("Loi nhuan: " + (tong - cost));
-    }
-
-}
 
 public class BanTS {
+    public static boolean dangNhap(Scanner sc) {
+        System.out.println("===== ĐĂNG NHẬP =====");
+        System.out.print("Tên tài khoản: ");
+        String user = sc.nextLine();
+        System.out.print("Mật khẩu: ");
+        String pass = sc.nextLine();
+
+        // Kết nối CSDL kiểm tra tài khoản
+        try (
+            Connection conn = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/bants", "root", ""); // sửa user/pass nếu cần
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT * FROM nhanvien WHERE tentaikhoan=? AND matkhau=?")
+        ) {
+            ps.setString(1, user);
+            ps.setString(2, pass);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                System.out.println("Đăng nhập thành công!");
+                return true;
+            } else {
+                System.out.println("Sai tài khoản hoặc mật khẩu!");
+                return false;
+            }
+        } catch (Exception e) {
+            System.out.println("Lỗi kết nối CSDL: " + e.getMessage());
+            return false;
+        }
+    }
+
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        DSDrink dsDoUong = new DSDrink();
+        Scanner sc = new Scanner(System.in);
+
+        // Đăng nhập trước khi vào hệ thống
+        boolean loginSuccess = false;
+        for (int i = 0; i < 3; i++) {
+            if (dangNhap(sc)) {
+                loginSuccess = true;
+                break;
+            }
+            System.out.println("Bạn còn " + (2 - i) + " lần thử.");
+        }
+        if (!loginSuccess) {
+            System.out.println("Đăng nhập thất bại. Thoát chương trình.");
+            sc.close();
+            return;
+        }
+
         CustomerList dsKhachHang = new CustomerList();
-        DSHoaDon dsHoaDon = new DSHoaDon();
+        DSLoaiMon dsLoaiMon = new DSLoaiMon();
+        DSMon dsMon = new DSMon();
+        DSNhanVien dsNhanVien = new DSNhanVien();
+        DSQuanLyBan dsBan = new DSQuanLyBan();
+        DSQuanLyDonDatHang dsDonDatHang = new DSQuanLyDonDatHang();
 
         while (true) {
-            System.out.println("\n===== MENU =====");
-            System.out.println("1. Quan ly do uong");
-            System.out.println("2. Quan ly khach hang");
-            System.out.println("3. Quan ly hoa don");
-            System.out.println("4. Thoat");
-            System.out.print("Chon chuc nang: ");
-            int chon = scanner.nextInt();
-            scanner.nextLine(); // Bỏ dòng trống
+            System.out.println("\n╔══════════════════════════════════════════════╗");
+            System.out.println("║                MENU HỆ THỐNG                ║");
+            System.out.println("╠══════════════════════════════════════════════╣");
+            System.out.println("║ 1. Quản lý hàng hóa                         ║");
+            System.out.println("║ 2. Quản lý khách hàng                       ║");
+            System.out.println("║ 3. Quản lý nhân viên                        ║");
+            System.out.println("║ 4. Quản lý đặt hàng                         ║");
+            System.out.println("║ 5. Thoát                                    ║");
+            System.out.println("╚══════════════════════════════════════════════╝");
+            System.out.print("Chọn chức năng: ");
+            int chon = sc.nextInt();
+            sc.nextLine();
 
             switch (chon) {
-                case 1: // Quản lý đồ uống
-                    int chonDoUong;
-                    do {
-                        System.out.println("\n*** Quan ly do uong *");
-                        System.out.println("1. Nhap danh sach do uong");
-                        System.out.println("2. Xuat danh sach do uong");
-                        System.out.println("3. Them do uong");
-                        System.out.println("4. Sua do uong");
-                        System.out.println("5. Xoa do uong");
-                        System.out.println("6. Tim kiem do uong");
-                        System.out.println("7. Doc danh sach tu file");
-                        System.out.println("8. Ghi danh sach vao file");
-                        System.out.println("9. Tro ve menu chinh");
+                case 1:
+                    while (true) {
+                        System.out.println("\n*** Quan ly hang hoa ***");
+                        System.out.println("1. Loai mon");
+                        System.out.println("2. Mon");
+                        System.out.println("3. Tro ve menu chinh");
                         System.out.print("Chon chuc nang: ");
-                        chonDoUong = scanner.nextInt();
-                        scanner.nextLine();
-
-                        switch (chonDoUong) {
-                            case 1:
-                                dsDoUong.nhap();
-                                break;
-                            case 2:
-                                dsDoUong.xuat();
-                                break;
-                            case 3:
-                                dsDoUong.them();
-                                break;
-                            case 4:
-                                dsDoUong.sua();
-                                break;
-                            case 5:
-                                dsDoUong.xoa();
-                                break;
-                            case 6:
-                                dsDoUong.timkiem();
-                                break;
-                     
-                            case 7:
-                                System.out.println("Tro ve menu chinh.");
-                                break;
-                            default:
-                                System.out.println("Chuc nang khong hop le. Vui long chon lai.");
+                        int chonHH = sc.nextInt();
+                        sc.nextLine();
+                        if (chonHH == 1) {
+                            while (true) {
+                                System.out.println("\n--- Loai mon ---");
+                                System.out.println("1. Them loai mon");
+                                System.out.println("2. Sua loai mon");
+                                System.out.println("3. Xoa loai mon");
+                                System.out.println("4. Xem danh sach loai mon");
+                                System.out.println("5. Quay lai");
+                                System.out.print("Chon chuc nang: ");
+                                int chonLM = sc.nextInt();
+                                sc.nextLine();
+                                if (chonLM == 1) dsLoaiMon.them();
+                                else if (chonLM == 2) dsLoaiMon.sua();
+                                else if (chonLM == 3) dsLoaiMon.xoa();
+                                else if (chonLM == 4) dsLoaiMon.xuat();
+                                else if (chonLM == 5) break;
+                                else System.out.println("Chuc nang khong hop le.");
+                            }
+                        } else if (chonHH == 2) {
+                            while (true) {
+                                System.out.println("\n--- Mon ---");
+                                System.out.println("1. Them mon");
+                                System.out.println("2. Sua mon");
+                                System.out.println("3. Xoa mon");
+                                System.out.println("4. Xem danh sach mon");
+                                System.out.println("5. Tim kiem mon");
+                                System.out.println("6. Quay lai");
+                                System.out.print("Chon chuc nang: ");
+                                int chonMon = sc.nextInt();
+                                sc.nextLine();
+                                if (chonMon == 1) dsMon.them();
+                                else if (chonMon == 2) dsMon.sua();
+                                else if (chonMon == 3) dsMon.xoa();
+                                else if (chonMon == 4) dsMon.xuat();
+                                else if (chonMon == 5) dsMon.timkiem();
+                                else if (chonMon == 6) break;
+                                else System.out.println("Chuc nang khong hop le.");
+                            }
+                        } else if (chonHH == 3) {
+                            break;
                         }
-                    } while (chonDoUong != 9);
+                    }
                     break;
-
                 case 2: // Quản lý khách hàng
                     int chonKhachHang;
                     do {
                         System.out.println("\n*** Quan ly khach hang *");
-                        System.out.println("1. Nhap danh sach khach hang");
-                        System.out.println("2. Xuat danh sach khach hang");
-                        System.out.println("3. Them khach hang");
-                        System.out.println("4. Sua thong tin khach hang");
-                        System.out.println("5. Xoa khach hang");
-                        System.out.println("6. Tim kiem khach hang");
-                        System.out.println("7. Doc danh sach tu file");
-                        System.out.println("8. Ghi danh sach vao file");
-                        System.out.println("9. Tro ve menu chinh");
+                        System.out.println("1. Xuat danh sach khach hang");
+                        System.out.println("2. Them khach hang");
+                        System.out.println("3. Sua thong tin khach hang");
+                        System.out.println("4. Xoa khach hang");
+                        System.out.println("5. Tim kiem khach hang");
+                        System.out.println("6. Tro ve menu chinh");
                         System.out.print("Chon chuc nang: ");
-                        chonKhachHang = scanner.nextInt();
-                        scanner.nextLine();
+                        chonKhachHang = sc.nextInt();
+                        sc.nextLine();
 
                         switch (chonKhachHang) {
                             case 1:
-                                dsKhachHang.nhap();
-                                break;
-                            case 2:
                                 dsKhachHang.xuat();
                                 break;
-                            case 3:
+                            case 2:
                                 dsKhachHang.them();
                                 break;
-                            case 4:
+                            case 3:
                                 dsKhachHang.sua();
                                 break;
-                            case 5:
+                            case 4:
                                 dsKhachHang.xoa();
                                 break;
-                            case 6:
+                            case 5:
                                 dsKhachHang.timkiem();
                                 break;
-                    
-                            case 7:
-                                System.out.println("Tro ve menu chinh.");
-                                break;
-                            default:
-                                System.out.println("Chuc nang khong hop le. Vui long chon lai.");
-                        }
-                    } while (chonKhachHang != 9);
-                    break;
-
-                case 3: // Quản lý hóa đơn
-                    int chonHoaDon;
-                    do {
-                        System.out.println("\n*** Quan ly hoa don *");
-                        System.out.println("1. Nhap danh sach hoa don");
-                        System.out.println("2. Xuat danh sach hoa don");
-                        System.out.println("3. Them hoa don");
-                        System.out.println("4. Sua hoa don");
-                        System.out.println("5. Xoa hoa don");
-                        System.out.println("6. Tim kiem hoa don");
-                        System.out.println("7. Doc danh sach tu file");
-                        System.out.println("8. Ghi danh sach vao file");
-                        System.out.println("9. Tro ve menu chinh");
-                        System.out.println("10. Xem doanh thu");
-                        System.out.print("Chon chuc nang: ");
-                        chonHoaDon = scanner.nextInt();
-                        scanner.nextLine();
-
-                        switch (chonHoaDon) {
-                            case 1:
-                                System.out.print("Nhap so luong hoa don: ");
-                                int soLuongHD = scanner.nextInt();
-                                scanner.nextLine();
-                                dsHoaDon = new DSHoaDon(new HoaDon[soLuongHD], soLuongHD);
-                                dsHoaDon.nhap();
-                                break;
-                            case 2:
-                                dsHoaDon.xuat();
-                                break;
-                            case 3:
-                                dsHoaDon.them();
-                                break;
-                            case 4:
-                                dsHoaDon.sua();
-                                break;
-                            case 5:
-                                dsHoaDon.xoa();
-                                break;
                             case 6:
-                                dsHoaDon.timkiem();
-                                break;
-                 
-                            case 7:
-                                dsHoaDon.doanhthu();
-                                break;
-                            case 8:
                                 System.out.println("Tro ve menu chinh.");
                                 break;
                             default:
                                 System.out.println("Chuc nang khong hop le. Vui long chon lai.");
                         }
-                    } while (chonHoaDon != 9);
+                    } while (chonKhachHang != 7);
                     break;
 
-                case 4: // Thoát
-                    System.out.println("Thoat chuong trinh.");
-                    scanner.close();
+                case 3: // Quản lý nhân viên
+                    while (true) {
+                        System.out.println("\n╔══════════════════════════════════════════════╗");
+                        System.out.println("║           QUẢN LÝ NHÂN VIÊN                 ║");
+                        System.out.println("╠══════════════════════════════════════════════╣");
+                        System.out.println("║ 1. Thêm nhân viên                           ║");
+                        System.out.println("║ 2. Sửa nhân viên                            ║");
+                        System.out.println("║ 3. Xóa nhân viên                            ║");
+                        System.out.println("║ 4. Xem danh sách nhân viên                  ║");
+                        System.out.println("║ 5. Tìm kiếm nhân viên                       ║");
+                        System.out.println("║ 6. Quay lại                                 ║");
+                        System.out.println("╚══════════════════════════════════════════════╝");
+                        System.out.print("Chọn chức năng: ");
+                        int chonNV = sc.nextInt();
+                        sc.nextLine();
+                        if (chonNV == 1) dsNhanVien.them();
+                        else if (chonNV == 2) dsNhanVien.sua();
+                        else if (chonNV == 3) dsNhanVien.xoa();
+                        else if (chonNV == 4) dsNhanVien.xuat();
+                        else if (chonNV == 5) dsNhanVien.timkiem();
+                        else if (chonNV == 6) break;
+                        else System.out.println("Chức năng không hợp lệ.");
+                    }
+                    break;
+                case 4: // Quản lý đặt hàng
+                    while (true) {
+                        System.out.println("\n╔══════════════════════════════════════════════╗");
+                        System.out.println("║             QUẢN LÝ ĐẶT HÀNG                ║");
+                        System.out.println("╠══════════════════════════════════════════════╣");
+                        System.out.println("║ 1. Quản lý bàn                              ║");
+                        System.out.println("║ 2. Quản lý đơn đặt hàng                     ║");
+                        System.out.println("║ 3. Quay lại                                 ║");
+                        System.out.println("╚══════════════════════════════════════════════╝");
+                        System.out.print("Chọn chức năng: ");
+                        int chonDH = sc.nextInt();
+                        sc.nextLine();
+                        if (chonDH == 1) {
+                            while (true) {
+                                System.out.println("\n--- Quản lý bàn ---");
+                                System.out.println("1. Thêm bàn");
+                                System.out.println("2. Sửa bàn");
+                                System.out.println("3. Xóa bàn");
+                                System.out.println("4. Xem danh sách bàn");
+                                System.out.println("5. Quay lại");
+                                System.out.print("Chọn chức năng: ");
+                                int chonBan = sc.nextInt();
+                                sc.nextLine();
+                                if (chonBan == 1) dsBan.them();
+                                else if (chonBan == 2) dsBan.sua();
+                                else if (chonBan == 3) dsBan.xoa();
+                                else if (chonBan == 4) dsBan.xuat();
+                                else if (chonBan == 5) break;
+                                else System.out.println("Chức năng không hợp lệ.");
+                            }
+                        } else if (chonDH == 2) {
+                            while (true) {
+                                System.out.println("\n--- Quản lý đơn đặt hàng ---");
+                                System.out.println("1. Thêm đơn đặt hàng");
+                                System.out.println("2. Sửa đơn đặt hàng");
+                                System.out.println("3. Xóa đơn đặt hàng");
+                                System.out.println("4. Xem danh sách đơn đặt hàng");
+                                System.out.println("5. Tìm kiếm đơn đặt hàng");
+                                System.out.println("6. Quay lại");
+                                System.out.print("Chọn chức năng: ");
+                                int chonDon = sc.nextInt();
+                                sc.nextLine();
+                                if (chonDon == 1) dsDonDatHang.them();
+                                else if (chonDon == 2) dsDonDatHang.sua();
+                                else if (chonDon == 3) dsDonDatHang.xoa();
+                                else if (chonDon == 4) dsDonDatHang.xuat();
+                                else if (chonDon == 5) dsDonDatHang.timkiem();
+                                else if (chonDon == 6) break;
+                                else System.out.println("Chức năng không hợp lệ.");
+                            }
+                        } else if (chonDH == 3) break;
+                        else System.out.println("Chức năng không hợp lệ.");
+                    }
+                    break;
+                case 5:
+                    System.out.println("Thoát chương trình.");
+                    sc.close();
                     return;
-
                 default:
-                    System.out.println("Chuc nang khong hop le. Vui long chon lai.");
+                    System.out.println("Chức năng không hợp lệ. Vui lòng chọn lại.");
             }
         }
     }

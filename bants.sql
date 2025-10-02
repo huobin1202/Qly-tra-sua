@@ -43,35 +43,6 @@ INSERT INTO `customers` (`id`, `ten`, `sdt`) VALUES
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `drinks`
---
-
-CREATE TABLE `drinks` (
-  `id` int(11) NOT NULL,
-  `ten` varchar(100) NOT NULL,
-  `gia` int(11) NOT NULL,
-  `loai` enum('Milktea','Fruittea') NOT NULL,
-  `topping` varchar(100) DEFAULT NULL,
-  `traicay` varchar(100) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `drinks`
---
-
-INSERT INTO `drinks` (`id`, `ten`, `gia`, `loai`, `topping`, `traicay`) VALUES
-(1, 'Trà sữa truyền thống', 25000, 'Milktea', 'Trân châu', NULL),
-(2, 'Trà sữa matcha', 30000, 'Milktea', 'Thạch dừa', NULL),
-(3, 'Trà đào cam sả', 28000, 'Fruittea', NULL, 'Đào'),
-(4, 'Trà chanh leo', 27000, 'Fruittea', NULL, 'Chanh leo');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `hoadon`
---
-
 CREATE TABLE `hoadon` (
   `id` int(11) NOT NULL,
   `customer_id` int(11) DEFAULT NULL,
@@ -138,6 +109,100 @@ INSERT INTO `mon` (`id`, `ten`, `mota`, `anh`, `tendv`, `gia`, `dv`, `ma_loai`) 
 (3, 'Cà phê đen', 'Cà phê đen đá', 'capheden.jpg', 'Ly', 18000, 'ly', 3),
 (4, 'Trân châu', 'Topping trân châu', 'tranchau.jpg', 'Phần', 5000, 'phan', 4);
 
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `taikhoan`
+--
+
+CREATE TABLE `taikhoan` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tentaikhoan` varchar(50) NOT NULL,
+  `matkhau` varchar(100) NOT NULL,
+  `chucvu` enum('quanly','nhanvien') NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tentaikhoan` (`tentaikhoan`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `taikhoan`
+--
+
+INSERT INTO `taikhoan` (`id`, `tentaikhoan`, `matkhau`, `chucvu`) VALUES
+(1, 'admin', '123456', 'quanly'),
+(2, 'nhanvien1', '123456', 'nhanvien');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `nhanvien`
+--
+
+CREATE TABLE `nhanvien` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `tentaikhoan` varchar(50) NOT NULL,
+  `matkhau` varchar(100) NOT NULL,
+  `sdt` varchar(20),
+  `ngayvaolam` date,
+  `chucvu` varchar(50),
+  `luong` double,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `nhanvien`
+--
+
+INSERT INTO `nhanvien` (`id`, `tentaikhoan`, `matkhau`, `sdt`, `ngayvaolam`, `chucvu`, `luong`) VALUES
+(1, 'admin', '123456', '0909999999', '2023-01-01', 'quanly', 15000000),
+(2, 'nhanvien1', '123456', '0911111111', '2024-06-01', 'nhanvien', 7000000);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ban`
+--
+
+CREATE TABLE `ban` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `tenban` VARCHAR(50) NOT NULL,
+    `trangthai` VARCHAR(20) DEFAULT 'Trống'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ban`
+--
+
+INSERT INTO `ban` (`tenban`, `trangthai`) VALUES
+('Bàn 1', 'Trống'),
+('Bàn 2', 'Đang sử dụng');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `dondathang`
+--
+
+CREATE TABLE `dondathang` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `nguoilap` VARCHAR(50),
+    `ban_id` INT,
+    `trangthai` VARCHAR(50),
+    `ngaylap` DATE,
+    `ngaythanhtoan` DATE,
+    `dathanhtoan` DOUBLE,
+    `tongtien` DOUBLE,
+    FOREIGN KEY (`ban_id`) REFERENCES `ban` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `dondathang`
+--
+
+INSERT INTO `dondathang` (`nguoilap`, `ban_id`, `trangthai`, `ngaylap`, `ngaythanhtoan`, `dathanhtoan`, `tongtien`) VALUES
+('admin', 1, 'Đã thanh toán', '2024-10-01', '2024-10-01', 50000, 50000),
+('nhanvien1', 2, 'Chưa thanh toán', '2024-10-02', NULL, 0, 30000);
+
 --
 -- Indexes for dumped tables
 --
@@ -176,6 +241,32 @@ ALTER TABLE `mon`
   ADD KEY `ma_loai` (`ma_loai`);
 
 --
+-- Indexes for table `taikhoan`
+--
+ALTER TABLE `taikhoan`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `tentaikhoan` (`tentaikhoan`);
+
+--
+-- Indexes for table `nhanvien`
+--
+ALTER TABLE `nhanvien`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `ban`
+--
+ALTER TABLE `ban`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `dondathang`
+--
+ALTER TABLE `dondathang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ban_id` (`ban_id`);
+
+--
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -208,6 +299,30 @@ ALTER TABLE `loaimon`
 --
 ALTER TABLE `mon`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `taikhoan`
+--
+ALTER TABLE `taikhoan`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `nhanvien`
+--
+ALTER TABLE `nhanvien`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `ban`
+--
+ALTER TABLE `ban`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `dondathang`
+--
+ALTER TABLE `dondathang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
