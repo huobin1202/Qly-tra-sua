@@ -13,6 +13,9 @@ import view.BanView;
 import view.DatHangView;
 
 import java.sql.*; // Thêm import này
+import javax.swing.SwingUtilities;
+import view.gui.MainFrame;
+import view.gui.LoginDialog;
 
 public class Runner {
     public static boolean dangNhap(Scanner sc) {
@@ -46,6 +49,25 @@ public class Runner {
     }
 
     public static void main(String[] args) {
+        // Nếu có tham số --gui thì khởi động giao diện đồ họa
+        if (args != null && args.length > 0 && "--gui".equalsIgnoreCase(args[0])) {
+            SwingUtilities.invokeLater(() -> {
+                LoginDialog login = new LoginDialog(null);
+                login.setVisible(true);
+                if (login.isAuthenticated()) {
+                    new MainFrame().setVisible(true);
+                } else {
+                    System.out.println("Đăng nhập GUI thất bại. Mở giao diện dòng lệnh.");
+                    runCli();
+                }
+            });
+            return;
+        }
+
+        runCli();
+    }
+
+    private static void runCli() {
         Scanner sc = new Scanner(System.in);
 
         // Đăng nhập trước khi vào hệ thống
