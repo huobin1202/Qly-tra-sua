@@ -2,10 +2,13 @@
 # Quản lý quán trà sữa
 Đồ án môn Phân tích thiết kế hệ thống thông tin
 # Thành viên trong nhóm
-| First Header  | Second Header |
-| ------------- | ------------- |
-| Content Cell  | Content Cell  |
-| Content Cell  | Content Cell  |
+| Họ Tên  | MSSV | % Công việc |
+| ------------- | ------------- | ------------- | 
+| Hồ Phạm Hữu Bình  | 3123411033  | |
+| Nguyễn Văn Phát  | 3123411220  | |
+| Nguyễn Minh  | 3123411---  | |
+| Võ Lê Chí Dũng  | 3123411---  | |
+
 ## Getting Started
 
 1. Tải source code về:
