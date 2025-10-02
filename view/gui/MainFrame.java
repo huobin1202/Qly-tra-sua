@@ -9,7 +9,7 @@ public class MainFrame extends JFrame {
     public MainFrame() {
         setTitle("Trang quản lý");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1100, 700);
+        setSize(1400, 700);
         setLocationRelativeTo(null);
 
         JPanel sidebar = new JPanel(new GridLayout(0, 1, 8, 8));

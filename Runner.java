@@ -49,8 +49,8 @@ public class Runner {
     }
 
     public static void main(String[] args) {
-        // Nếu có tham số --gui thì khởi động giao diện đồ họa
-        if (args != null && args.length > 0 && "--gui".equalsIgnoreCase(args[0])) {
+        // Mặc định mở GUI. Dùng --cli để chạy giao diện dòng lệnh
+        if (args == null || args.length == 0 || "--gui".equalsIgnoreCase(args[0])) {
             SwingUtilities.invokeLater(() -> {
                 LoginDialog login = new LoginDialog(null);
                 login.setVisible(true);
@@ -58,12 +58,16 @@ public class Runner {
                     new MainFrame().setVisible(true);
                 } else {
                     System.out.println("Đăng nhập GUI thất bại. Mở giao diện dòng lệnh.");
-                    runCli();
+                    new Thread(Runner::runCli).start();
                 }
             });
             return;
         }
-
+        if ("--cli".equalsIgnoreCase(args[0])) {
+            runCli();
+            return;
+        }
+        // Tham số không hợp lệ -> fallback CLI
         runCli();
     }
 
