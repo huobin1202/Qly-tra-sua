@@ -22,6 +22,8 @@ public class DSMon {
         String dv = sc.nextLine();
         System.out.print("Mã loại món (1: Đồ ăn, 2: Trà sữa, 3: Cà phê, 4: Topping): ");
         int ma_loai = sc.nextInt();
+        //System.out.print("Số lượng: ");
+        //int soluong = sc.nextInt();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
                 "INSERT INTO mon (ten, mota, anh, tendv, gia, dv, ma_loai) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
