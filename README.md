@@ -1,6 +1,7 @@
 <!-- author: hgbaodev -->
 # Quản lý quán trà sữa
 Đồ án môn Phân tích thiết kế hệ thống thông tin
+Sử dụng ngôn ngữ: Java
 # Thành viên trong nhóm
 | Họ Tên  | MSSV | % Công việc |
 | ------------- | ------------- | ------------- | 
@@ -32,7 +33,7 @@ java Runner --gui
 - Đăng nhập bằng tài khoản trong bảng `nhanvien`.
 - Màn hình `Quản lý hàng hóa` hỗ trợ: tìm kiếm, thêm, sửa, xóa, đồng bộ danh sách từ DB.
 
-Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
+### Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
     Quản lý hàng hóa: món, loại món
     Quản lý đặt hàng: quản lý bàn, đơn đặt hàng, quản lý giao hàng
