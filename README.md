@@ -31,6 +31,15 @@ java Runner --gui
 
 - Đăng nhập bằng tài khoản trong bảng `nhanvien`.
 - Màn hình `Quản lý hàng hóa` hỗ trợ: tìm kiếm, thêm, sửa, xóa, đồng bộ danh sách từ DB.
-- Các mục còn lại tạm thời là placeholder; vẫn có thể dùng menu CLI như trước nếu muốn.
+
+Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
+
+    Quản lý hàng hóa: Món, loại món
+    Quản lý nhập/xuất hàng, bán hàng
+    Quản lý nhà cung cấp
+    Quản lý khách hàng, nhân viên
+    Quản lý tài khoản (login, phân quyền)
+    Thống kê từng mục
+
 
 
