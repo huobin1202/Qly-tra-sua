@@ -65,13 +65,14 @@ public class Runner {
             return;
         }
 
-        KhachHangDAO dsKhachHang = new KhachHangDAO();
-        LoaiMonDAO dsLoaiMon = new LoaiMonDAO();
-        MonDAO dsMon = new MonDAO();
-        NhanVienDAO dsNhanVien = new NhanVienDAO();
-        BanDAO dsBan = new BanDAO();
-        DonDatHangDAO dsDonDatHang = new DonDatHangDAO();
-        NhaCungCapDAO dsNhaCungCap = new NhaCungCapDAO();
+        KhachHangDAO KhachHang = new KhachHangDAO();
+        LoaiMonDAO LoaiMon = new LoaiMonDAO();
+        MonDAO Mon = new MonDAO();
+        NhanVienDAO NhanVien = new NhanVienDAO();
+        BanDAO Ban = new BanDAO();
+        DonDatHangDAO DonDatHang = new DonDatHangDAO();
+        NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
+        GiaoHangDAO GiaoHang = new GiaoHangDAO();
 
         while (true) {
             System.out.println("\n╔══════════════════════════════════════════════╗");
@@ -94,19 +95,19 @@ public class Runner {
 
             switch (chon) {
                 case 1:
-                    HangHoaView.menu(dsLoaiMon, dsMon, sc);
+                    HangHoaView.menu(LoaiMon, Mon, sc);
                     break;
                 case 2:
-                    KhachHangView.menu(dsKhachHang, sc);
+                    KhachHangView.menu(KhachHang, sc);
                     break;
                 case 3:
-                    NhanVienView.menu(dsNhanVien, sc);
+                    NhanVienView.menu(NhanVien, sc);
                     break;
                 case 4:
-                    DatHangView.menu(dsBan, dsDonDatHang, sc);
+                    DatHangView.menu(Ban, DonDatHang, GiaoHang, sc);
                     break;
                 case 5:
-                    NhaCungCapView.menu(dsNhaCungCap, sc);
+                    NhaCungCapView.menu(NhaCungCap, sc);
                     return;
                 case 6:
                     System.out.println("Thoát chương trình.");
