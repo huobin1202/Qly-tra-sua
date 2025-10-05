@@ -1,17 +1,17 @@
 package dto;
 import java.time.LocalDate;
 
-public class DonDatHang {
+public class DonDatHangDTO {
     private int id;
     private String nguoiLap;
-    private Ban ban;
+    private BanDTO ban;
     private String trangThai;
     private LocalDate ngayLap;
     private LocalDate ngayThanhToan;
     private double daThanhToan; // số tiền đã trả
     private double tongTien;    // số tiền phải trả
 
-    public DonDatHang(int id, String nguoiLap, Ban ban, String trangThai, LocalDate ngayLap, LocalDate ngayThanhToan, double daThanhToan, double tongTien) {
+    public DonDatHangDTO(int id, String nguoiLap, BanDTO ban, String trangThai, LocalDate ngayLap, LocalDate ngayThanhToan, double daThanhToan, double tongTien) {
         this.id = id;
         this.nguoiLap = nguoiLap;
         this.ban = ban;
@@ -26,8 +26,8 @@ public class DonDatHang {
     public void setId(int id) { this.id = id; }
     public String getNguoiLap() { return nguoiLap; }
     public void setNguoiLap(String nguoiLap) { this.nguoiLap = nguoiLap; }
-    public Ban getBan() { return ban; }
-    public void setBan(Ban ban) { this.ban = ban; }
+    public BanDTO getBan() { return ban; }
+    public void setBan(BanDTO ban) { this.ban = ban; }
     public String getTrangThai() { return trangThai; }
     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
     public LocalDate getNgayLap() { return ngayLap; }

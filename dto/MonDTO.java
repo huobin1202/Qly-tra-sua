@@ -1,5 +1,5 @@
 package dto;
-public class Mon {
+public class MonDTO {
     int id;
     String ten;
     String mota;
@@ -9,7 +9,7 @@ public class Mon {
     String dv;
     int ma_loai;
 
-    public Mon(int id, String ten, String mota, String anh, String tendv, int gia, String dv, int ma_loai) {
+    public MonDTO(int id, String ten, String mota, String anh, String tendv, int gia, String dv, int ma_loai) {
         this.id = id;
         this.ten = ten;
         this.mota = mota;

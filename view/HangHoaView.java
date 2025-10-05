@@ -1,11 +1,11 @@
 package view;
 
 import java.util.Scanner;
-import dao.DSLoaiMon;
-import dao.DSMon;
+import dao.LoaiMonDAO;
+import dao.MonDAO;
 
 public class HangHoaView {
-    public static void menu(DSLoaiMon dsLoaiMon, DSMon dsMon, Scanner sc) {
+    public static void menu(LoaiMonDAO dsLoaiMon, MonDAO dsMon, Scanner sc) {
         while (true) {
             System.out.println("\n╔══════════════════════════════════════════════╗");
             System.out.println("║           QUẢN LÝ HÀNG HÓA                  ║");

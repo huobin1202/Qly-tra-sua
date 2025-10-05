@@ -1,15 +1,15 @@
 package dto;
 import java.util.Scanner;
-public class Customer implements Inhapxuat {
+public class KhachHangDTO implements Inhapxuat {
     private String maKH;
     private String tenKH;
     private String sdt;
     private String diaChi;
 
-    public Customer() {
+    public KhachHangDTO() {
     }
 
-    public Customer(String maKH, String tenKH, String sdt, String diaChi) {
+    public KhachHangDTO(String maKH, String tenKH, String sdt, String diaChi) {
         this.maKH = maKH;
         this.tenKH = tenKH;
         this.sdt = sdt;

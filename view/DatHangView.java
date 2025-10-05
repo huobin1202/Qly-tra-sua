@@ -2,11 +2,11 @@ package view;
 
 import java.util.Scanner;
 
-import dao.DSBan;
-import dao.DSDonDatHang;
+import dao.BanDAO;
+import dao.DonDatHangDAO;
 
 public class DatHangView {
-    public static void menu(DSBan dsQuanLyBan,DSDonDatHang dsDonDatHang, Scanner sc) {
+    public static void menu(BanDAO dsQuanLyBan,DonDatHangDAO dsDonDatHang, Scanner sc) {
 
         while (true) {
             System.out.println("\n╔══════════════════════════════════════════════╗");

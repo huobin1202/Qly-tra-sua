@@ -1,10 +1,10 @@
 package view;
 
 import java.util.Scanner;
-import dao.DSCustomer;
+import dao.KhachHangDAO;
 
 public class KhachHangView {
-    public static void menu(DSCustomer dsKhachHang, Scanner sc) {
+    public static void menu(KhachHangDAO dsKhachHang, Scanner sc) {
         while (true) {
             System.out.println("\n╔══════════════════════════════════════════════╗");
             System.out.println("║           QUẢN LÝ KHÁCH HÀNG                ║");

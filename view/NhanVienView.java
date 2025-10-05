@@ -1,10 +1,10 @@
 package view;
 
 import java.util.Scanner;
-import dao.DSNhanVien;
+import dao.NhanVienDAO;
 
 public class NhanVienView {
-    public static void menu(DSNhanVien dsNhanVien, Scanner sc) {
+    public static void menu(NhanVienDAO dsNhanVien, Scanner sc) {
         while (true) {
             System.out.println("\n╔══════════════════════════════════════════════╗");
             System.out.println("║           QUẢN LÝ NHÂN VIÊN                 ║");

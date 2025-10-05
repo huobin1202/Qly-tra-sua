@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import db.DBUtil;
 
-public class DSDonDatHang {
+public class DonDatHangDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
         System.out.print("Người lập: ");

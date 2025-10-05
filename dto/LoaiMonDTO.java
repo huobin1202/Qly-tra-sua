@@ -1,9 +1,9 @@
 package dto;
-public class LoaiMon {
+public class LoaiMonDTO {
     int ma;
     String ten;
 
-    public LoaiMon(int ma, String ten) {
+    public LoaiMonDTO(int ma, String ten) {
         this.ma = ma;
         this.ten = ten;
     }

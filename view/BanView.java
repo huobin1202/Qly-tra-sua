@@ -1,10 +1,10 @@
 package view;
 
 import java.util.Scanner;
-import dao.DSBan;
+import dao.BanDAO;
 
 public class BanView {
-    public static void menu(DSBan dsBan, Scanner sc) {
+    public static void menu(BanDAO dsBan, Scanner sc) {
         while (true) {
             System.out.println("\n╔════════════════════════════════════╗");
             System.out.println("║           QUẢN LÝ BÀN             ║");

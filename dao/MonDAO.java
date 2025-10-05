@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import db.DBUtil;
 
-public class DSMon {
+public class MonDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
         System.out.print("Tên món: ");

@@ -1,10 +1,10 @@
 package dto;
-public class Ban {
+public class BanDTO {
     private int id;
     private String tenBan;
     private String trangThai; // VD: "Trống", "Đang sử dụng"
 
-    public Ban(int id, String tenBan, String trangThai) {
+    public BanDTO(int id, String tenBan, String trangThai) {
         this.id = id;
         this.tenBan = tenBan;
         this.trangThai = trangThai;

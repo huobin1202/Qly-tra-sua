@@ -1,7 +1,7 @@
 package dto;
 import java.time.LocalDate;
 
-public class NhanVien {
+public class NhanVienDTO {
     private int id;
     private String tenTaiKhoan;
     private String matKhau;
@@ -10,7 +10,7 @@ public class NhanVien {
     private String chucVu;
     private double luong;
 
-    public NhanVien(int id, String tenTaiKhoan, String matKhau, String soDienThoai, LocalDate ngayVaoLam, String chucVu, double luong) {
+    public NhanVienDTO(int id, String tenTaiKhoan, String matKhau, String soDienThoai, LocalDate ngayVaoLam, String chucVu, double luong) {
         this.id = id;
         this.tenTaiKhoan = tenTaiKhoan;
         this.matKhau = matKhau;

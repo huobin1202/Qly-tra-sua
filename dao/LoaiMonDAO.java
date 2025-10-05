@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import db.DBUtil;
 
-public class DSLoaiMon {
+public class LoaiMonDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
         System.out.print("Nhập tên loại món mới: ");
