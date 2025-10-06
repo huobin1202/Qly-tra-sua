@@ -1,3 +1,5 @@
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import dao.KhachHangDAO;
@@ -7,6 +9,7 @@ import dao.NhanVienDAO;
 import dao.BanDAO;
 import dao.DonDatHangDAO;
 import dao.NhaCungCapDAO;
+import dao.GiaoHangDAO;
 import view.NhanVienView;
 import view.HangHoaView;
 import view.KhachHangView;
@@ -47,9 +50,9 @@ public class Runner {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        // Ép input luôn UTF-8
         Scanner sc = new Scanner(System.in);
-
         // Đăng nhập trước khi vào hệ thống
         boolean loginSuccess = false;
         for (int i = 0; i < 3; i++) {
@@ -83,11 +86,11 @@ public class Runner {
             System.out.println("║ 3. Quản lý nhân viên                        ║");
             System.out.println("║ 4. Quản lý đặt hàng                         ║");
             System.out.println("║ 5. Quản lý nhà cung cấp                     ║");
-            System.out.println("║ 7. Nhập hàng                                ║");
-            System.out.println("║ 8. Quản lý kho                              ║");
-            System.out.println("║ 9. Xuất hàng                                ║");
+            //System.out.println("║ 7. Nhập hàng                                ║");
+            //System.out.println("║ 8. Quản lý kho                              ║");
+            //System.out.println("║ 9. Xuất hàng                                ║");
             //System.out.println("║ 10. Thống kê                                 ║");
-            //System.out.println("║ 11. Thoát                                    ║");
+            //System.out.println("║ 0. Thoát                                    ║");
             System.out.println("╚══════════════════════════════════════════════╝");
             System.out.print("Chọn chức năng: ");
             int chon = sc.nextInt();
@@ -109,7 +112,7 @@ public class Runner {
                 case 5:
                     NhaCungCapView.menu(NhaCungCap, sc);
                     return;
-                case 6:
+                case 0:
                     System.out.println("Thoát chương trình.");
                     sc.close();
                     return;

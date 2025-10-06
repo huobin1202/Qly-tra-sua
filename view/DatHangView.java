@@ -4,6 +4,7 @@ import java.util.Scanner;
 
 import dao.BanDAO;
 import dao.DonDatHangDAO;
+import dao.GiaoHangDAO;
 
 public class DatHangView {
     public static void menu(BanDAO QuanLyBan,DonDatHangDAO DonDatHang,GiaoHangDAO GiaoHang, Scanner sc) {

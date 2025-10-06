@@ -1,7 +1,7 @@
 package dto;
 import java.time.LocalDate;
 
-public class DonDatHangDTO {
+public class GiaoHangDTO {
     private int id;
     private String tenKH;
     private String diaChi;
@@ -12,7 +12,7 @@ public class DonDatHangDTO {
     private LocalDate ngayBatDau;
     private LocalDate ngayKetThuc;
 
-    public DonDatHangDTO(int id, String tenKH, String diaChi, String sdtShipper, double giaShip, String trangThai, LocalDate ngayBatDau, LocalDate ngayKetThuc) {
+    public GiaoHangDTO(int id, String tenKH, String diaChi, String tenShipper, int sdtShipper, double giaShip, String trangThai, LocalDate ngayBatDau, LocalDate ngayKetThuc) {
         this.id = id;
         this.tenKH = tenKH;
         this.diaChi = diaChi;
@@ -31,8 +31,8 @@ public class DonDatHangDTO {
     public String getDiaChi() { return diaChi; }
     public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
     public String getTenShipper() { return tenShipper; }
-    public void setTentShipper(String tenShipper) { this.Shipper = tenShipper; }
-    public String getSdtShipper() { return sdtShipper; }
+    public void setTenShipper(String tenShipper) { this.tenShipper = tenShipper; }
+    public int getSdtShipper() { return sdtShipper; }
     public void setSdtShipper(int sdtShipper) { this.sdtShipper = sdtShipper; }
     public double getGiaShip() { return giaShip; }
     public void setGiaShip(double giaShip) { this.giaShip = giaShip; }
