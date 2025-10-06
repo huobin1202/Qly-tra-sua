@@ -83,9 +83,9 @@ public class Runner {
             System.out.println("║ 3. Quản lý nhân viên                        ║");
             System.out.println("║ 4. Quản lý đặt hàng                         ║");
             System.out.println("║ 5. Quản lý nhà cung cấp                     ║");
-           //System.out.println("║ 7. Nhập hàng                                ║");
-            //System.out.println("║ 8. Quản lý kho                              ║");
-            //System.out.println("║ 9. Xuất hàng                                ║");
+            System.out.println("║ 7. Nhập hàng                                ║");
+            System.out.println("║ 8. Quản lý kho                              ║");
+            System.out.println("║ 9. Xuất hàng                                ║");
             //System.out.println("║ 10. Thống kê                                 ║");
             //System.out.println("║ 11. Thoát                                    ║");
             System.out.println("╚══════════════════════════════════════════════╝");
