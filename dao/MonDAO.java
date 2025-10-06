@@ -3,6 +3,7 @@ import java.sql.*;
 import java.util.Scanner;
 
 import db.DBUtil;
+import view.ConsoleUI;
 
 public class MonDAO {
     public void them() {
@@ -100,40 +101,86 @@ public class MonDAO {
     }
 
     public void xuat() {
+        ConsoleUI.printHeader("DANH SÁCH MÓN");
+        System.out.println("┌────┬────────────────────┬────────────────────┬────────────┬────────────┬──────┬────┬────────────┐");
+        System.out.println("│ ID │ Tên                │ Mô tả              │ Ảnh        │ Tên DV     │ Giá  │ ĐV │ Loại       │");
+        System.out.println("├────┼────────────────────┼────────────────────┼────────────┼────────────┼──────┼────┼────────────┤");
+        boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(
-                "SELECT mon.*, loaimon.ten as ten_loai FROM mon LEFT JOIN loaimon ON mon.ma_loai = loaimon.ma")) {
-            System.out.println("Danh sách món:");
+                "SELECT mon.*, loaimon.ten as ten_loai FROM mon LEFT JOIN loaimon ON mon.ma_loai = loaimon.ma ORDER BY mon.id")) {
             while (rs.next()) {
-                System.out.printf("ID: %d | Tên: %s | Mô tả: %s | Ảnh: %s | Tên DV: %s | Giá: %d | ĐV: %s | Loại: %s\n",
+                any = true;
+                System.out.printf("│ %-2d │ %-18s │ %-18s │ %-10s │ %-10s │ %-4d │ %-2s │ %-10s │\n",
                     rs.getInt("id"), rs.getString("ten"), rs.getString("mota"), rs.getString("anh"),
                     rs.getString("tendv"), rs.getInt("gia"), rs.getString("dv"), rs.getString("ten_loai"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        if (!any) System.out.println("│ Không có dữ liệu                                                                               │");
+        System.out.println("└────┴────────────────────┴────────────────────┴────────────┴────────────┴──────┴────┴────────────┘");
+        ConsoleUI.printFooter();
     }
 
     public void timkiem() {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Nhập tên món cần tìm: ");
-        String ten = sc.nextLine();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "SELECT mon.*, loaimon.ten as ten_loai FROM mon LEFT JOIN loaimon ON mon.ma_loai = loaimon.ma WHERE mon.ten LIKE ?")) {
-            ps.setString(1, "%" + ten + "%");
-            ResultSet rs = ps.executeQuery();
-            boolean found = false;
-            while (rs.next()) {
-                found = true;
-                System.out.printf("ID: %d | Tên: %s | Mô tả: %s | Ảnh: %s | Tên DV: %s | Giá: %d | ĐV: %s | Loại: %s\n",
-                    rs.getInt("id"), rs.getString("ten"), rs.getString("mota"), rs.getString("anh"),
-                    rs.getString("tendv"), rs.getInt("gia"), rs.getString("dv"), rs.getString("ten_loai"));
-            }
-            if (!found) System.out.println("Không tìm thấy món.");
-        } catch (SQLException e) {
-            e.printStackTrace();
+        System.out.println("Tìm theo: 1.ID  2.Tên");
+        System.out.print("Chọn: ");
+        String chooseStr = sc.nextLine();
+        int choose;
+        try {
+            choose = Integer.parseInt(chooseStr.trim());
+        } catch (NumberFormatException e) {
+            System.out.println("Vui lòng nhập số hợp lệ.");
+            return;
         }
+        String sql;
+        boolean byId = choose == 1;
+        if (byId) {
+            System.out.print("Nhập ID: ");
+            String idStr = sc.nextLine();
+            int id;
+            try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
+            sql = "SELECT mon.*, loaimon.ten as ten_loai FROM mon LEFT JOIN loaimon ON mon.ma_loai = loaimon.ma WHERE mon.id = ?";
+            try (Connection conn = DBUtil.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    printMonTable(rs);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.print("Nhập tên: ");
+            String ten = sc.nextLine();
+            sql = "SELECT mon.*, loaimon.ten as ten_loai FROM mon LEFT JOIN loaimon ON mon.ma_loai = loaimon.ma WHERE mon.ten LIKE ?";
+            try (Connection conn = DBUtil.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, "%" + ten + "%");
+                try (ResultSet rs = ps.executeQuery()) {
+                    printMonTable(rs);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void printMonTable(ResultSet rs) throws SQLException {
+        System.out.println("\n╔════╦════════════════════╦════════════════════╦════════════╦════════════╦══════╦════╦════════════╗");
+        System.out.println("║ ID ║ Tên               ║ Mô tả              ║ Ảnh        ║ Tên DV     ║ Giá  ║ ĐV ║ Loại       ║");
+        System.out.println("╠════╬════════════════════╬════════════════════╬════════════╬════════════╬══════╬════╬════════════╣");
+        boolean any = false;
+        while (rs.next()) {
+            any = true;
+            System.out.printf("║ %-2d ║ %-18s ║ %-18s ║ %-10s ║ %-10s ║ %-4d ║ %-2s ║ %-10s ║\n",
+                rs.getInt("id"), rs.getString("ten"), rs.getString("mota"), rs.getString("anh"),
+                rs.getString("tendv"), rs.getInt("gia"), rs.getString("dv"), rs.getString("ten_loai"));
+        }
+        if (!any) System.out.println("║ Không có kết quả                                                             ║");
+        System.out.println("╚════╩════════════════════╩════════════════════╩════════════╩════════════╩══════╩════╩════════════╝");
     }
 }

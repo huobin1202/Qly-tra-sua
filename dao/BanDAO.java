@@ -3,6 +3,7 @@ import java.sql.*;
 import java.util.Scanner;
 
 import db.DBUtil;
+import view.ConsoleUI;
 
 public class BanDAO {
     public void them() {
@@ -61,14 +62,17 @@ public class BanDAO {
     }
 
     public void xuat() {
-        System.out.println("\n╔════╦════════════╦════════════════════╗");
-        System.out.println("║ ID ║  Tên bàn   ║    Trạng thái     ║");
-        System.out.println("╠════╬════════════╬════════════════════╣");
+        ConsoleUI.printHeader("DANH SÁCH BÀN");
+        System.out.println("┌────┬────────────┬────────────────────┐");
+        System.out.println("│ ID │ Tên bàn    │ Trạng thái         │");
+        System.out.println("├────┼────────────┼────────────────────┤");
+        boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM ban")) {
+             ResultSet rs = st.executeQuery("SELECT * FROM ban ORDER BY id")) {
             while (rs.next()) {
-                System.out.printf("║ %-2d ║ %-10s ║ %-16s ║\n",
+                any = true;
+                System.out.printf("│ %-2d │ %-10s │ %-18s │\n",
                     rs.getInt("id"),
                     rs.getString("tenban"),
                     rs.getString("trangthai")
@@ -77,6 +81,8 @@ public class BanDAO {
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
         }
-        System.out.println("╚════╩════════════╩════════════════════╝");
+        if (!any) System.out.println("│ Không có dữ liệu            │");
+        System.out.println("└────┴────────────┴────────────────────┘");
+        ConsoleUI.printFooter();
     }
 }

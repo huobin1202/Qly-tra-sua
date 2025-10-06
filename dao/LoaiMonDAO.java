@@ -3,6 +3,7 @@ import java.sql.*;
 import java.util.Scanner;
 
 import db.DBUtil;
+import view.ConsoleUI;
 
 public class LoaiMonDAO {
     public void them() {
@@ -58,15 +59,23 @@ public class LoaiMonDAO {
     }
 
     public void xuat() {
+        ConsoleUI.printHeader("DANH SÁCH LOẠI MÓN");
+        System.out.println("┌────┬────────────────────────────┐");
+        System.out.println("│ Mã │ Tên loại                   │");
+        System.out.println("├────┼────────────────────────────┤");
+        boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM loaimon")) {
-            System.out.println("Danh sách loại món:");
+             ResultSet rs = st.executeQuery("SELECT * FROM loaimon ORDER BY ma")) {
             while (rs.next()) {
-                System.out.println(rs.getInt("ma") + ". " + rs.getString("ten"));
+                any = true;
+                System.out.printf("│ %-2d │ %-26s │\n", rs.getInt("ma"), rs.getString("ten"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        if (!any) System.out.println("│ Không có dữ liệu                │");
+        System.out.println("└────┴────────────────────────────┘");
+        ConsoleUI.printFooter();
     }
 }

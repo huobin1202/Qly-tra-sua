@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.Scanner;
 
 import db.DBUtil;
+import view.ConsoleUI;
 
 public class NhanVienDAO {
     public void them() {
@@ -81,14 +82,17 @@ public class NhanVienDAO {
     }
 
     public void xuat() {
-        System.out.println("\n╔════╦════════════╦══════════╦══════════════╦════════════╦══════════╦══════════════╗");
-        System.out.println("║ ID ║ Tài khoản  ║ Mật khẩu ║  SĐT        ║ Ngày vào   ║ Chức vụ  ║    Lương     ║");
-        System.out.println("╠════╬════════════╬══════════╬══════════════╬════════════╬══════════╬══════════════╣");
+        ConsoleUI.printHeader("DANH SÁCH NHÂN VIÊN");
+        System.out.println("┌────┬────────────┬──────────┬──────────────┬────────────┬──────────┬──────────────┐");
+        System.out.println("│ ID │ Tài khoản  │ Mật khẩu │ SĐT          │ Ngày vào   │ Chức vụ  │ Lương        │");
+        System.out.println("├────┼────────────┼──────────┼──────────────┼────────────┼──────────┼──────────────┤");
+        boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM nhanvien")) {
+             ResultSet rs = st.executeQuery("SELECT * FROM nhanvien ORDER BY id")) {
             while (rs.next()) {
-                System.out.printf("║ %-2d ║ %-10s ║ %-8s ║ %-12s ║ %-10s ║ %-8s ║ %-12.0f ║\n",
+                any = true;
+                System.out.printf("│ %-2d │ %-10s │ %-8s │ %-12s │ %-10s │ %-8s │ %-12.0f │\n",
                     rs.getInt("id"),
                     rs.getString("tentaikhoan"),
                     rs.getString("matkhau"),
@@ -97,6 +101,46 @@ public class NhanVienDAO {
                     rs.getString("chucvu"),
                     rs.getDouble("luong")
                 );
+            }
+        } catch (SQLException e) {
+            System.out.println("Lỗi: " + e.getMessage());
+        }
+        if (!any) System.out.println("│ Không có dữ liệu                                                              │");
+        System.out.println("└────┴────────────┴──────────┴──────────────┴────────────┴──────────┴──────────────┘");
+        ConsoleUI.printFooter();
+    }
+
+    public void timkiem() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Tìm theo: 1.ID  2.Tài khoản/SĐT");
+        System.out.print("Chọn: ");
+        String choiceStr = sc.nextLine();
+        int choice;
+        try { choice = Integer.parseInt(choiceStr.trim()); } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); return; }
+        String sql;
+        boolean byId = choice == 1;
+        System.out.println("\n╔════╦════════════╦══════════╦══════════════╦════════════╦══════════╦══════════════╗");
+        System.out.println("║ ID ║ Tài khoản  ║ Mật khẩu ║  SĐT        ║ Ngày vào   ║ Chức vụ  ║    Lương     ║");
+        System.out.println("╠════╬════════════╬══════════╬══════════════╬════════════╬══════════╬══════════════╣");
+        try (Connection conn = DBUtil.getConnection()) {
+            if (byId) {
+                System.out.print("Nhập ID: ");
+                String idStr = sc.nextLine();
+                int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
+                sql = "SELECT * FROM nhanvien WHERE id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) { printNhanVienTable(rs); }
+                }
+            } else {
+                System.out.print("Nhập từ khóa: ");
+                String key = sc.nextLine();
+                sql = "SELECT * FROM nhanvien WHERE tentaikhoan LIKE ? OR sdt LIKE ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, "%" + key + "%");
+                    ps.setString(2, "%" + key + "%");
+                    try (ResultSet rs = ps.executeQuery()) { printNhanVienTable(rs); }
+                }
             }
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
@@ -104,33 +148,20 @@ public class NhanVienDAO {
         System.out.println("╚════╩════════════╩══════════╩══════════════╩════════════╩══════════╩══════════════╝");
     }
 
-    public void timkiem() {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Nhập tên tài khoản hoặc SĐT cần tìm: ");
-        String key = sc.nextLine();
-        System.out.println("\n╔════╦════════════╦══════════╦══════════════╦════════════╦══════════╦══════════════╗");
-        System.out.println("║ ID ║ Tài khoản  ║ Mật khẩu ║  SĐT        ║ Ngày vào   ║ Chức vụ  ║    Lương     ║");
-        System.out.println("╠════╬════════════╬══════════╬══════════════╬════════════╬══════════╬══════════════╣");
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "SELECT * FROM nhanvien WHERE tentaikhoan LIKE ? OR sdt LIKE ?")) {
-            ps.setString(1, "%" + key + "%");
-            ps.setString(2, "%" + key + "%");
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                System.out.printf("║ %-2d ║ %-10s ║ %-8s ║ %-12s ║ %-10s ║ %-8s ║ %-12.0f ║\n",
-                    rs.getInt("id"),
-                    rs.getString("tentaikhoan"),
-                    rs.getString("matkhau"),
-                    rs.getString("sdt"),
-                    rs.getString("ngayvaolam"),
-                    rs.getString("chucvu"),
-                    rs.getDouble("luong")
-                );
-            }
-        } catch (SQLException e) {
-            System.out.println("Lỗi: " + e.getMessage());
+    private void printNhanVienTable(ResultSet rs) throws SQLException {
+        boolean any = false;
+        while (rs.next()) {
+            any = true;
+            System.out.printf("║ %-2d ║ %-10s ║ %-8s ║ %-12s ║ %-10s ║ %-8s ║ %-12.0f ║\n",
+                rs.getInt("id"),
+                rs.getString("tentaikhoan"),
+                rs.getString("matkhau"),
+                rs.getString("sdt"),
+                rs.getString("ngayvaolam"),
+                rs.getString("chucvu"),
+                rs.getDouble("luong")
+            );
         }
-        System.out.println("╚════╩════════════╩══════════╩══════════════╩════════════╩══════════╩══════════════╝");
+        if (!any) System.out.println("║ Không có kết quả                                                             ║");
     }
 }

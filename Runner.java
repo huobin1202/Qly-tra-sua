@@ -21,11 +21,24 @@ import java.sql.*; // Thêm import này
 
 public class Runner {
     public static boolean dangNhap(Scanner sc) {
-        System.out.println("===== ĐĂNG NHẬP =====");
-        System.out.print("Tên tài khoản: ");
+        System.out.println("╔══════════════════════════════════════════════════╗");
+        System.out.println("║                                                  ║");
+        System.out.println("║     🌸 CHÀO MỪNG ĐẾN VỚI HỆ THỐNG 🌸               ║");
+        System.out.println("║       💖 QUẢN LÝ QUÁN TRÀ SỮA 💖                   ║");
+        System.out.println("║                                                  ║");
+        System.out.println("╚══════════════════════════════════════════════════╝");
+        System.out.println();
+        System.out.println("╔══════════════════════════════════════════════════╗");
+        System.out.println("║               🔐 ĐĂNG NHẬP HỆ THỐNG               ║");
+        System.out.println("╠══════════════════════════════════════════════════╣");
+        System.out.print ("║ 👤 Tên tài khoản: ");
         String user = sc.nextLine();
-        System.out.print("Mật khẩu: ");
+        System.out.print ("║ 🔒 Mật khẩu: ");
         String pass = sc.nextLine();
+        System.out.println("╚══════════════════════════════════════════════════╝");
+        System.out.println("⏳ Đang kiểm tra thông tin đăng nhập...");
+        
+
 
         // Kết nối CSDL kiểm tra tài khoản
         try (
@@ -78,23 +91,27 @@ public class Runner {
         GiaoHangDAO GiaoHang = new GiaoHangDAO();
 
         while (true) {
-            System.out.println("\n╔══════════════════════════════════════════════╗");
-            System.out.println("║                MENU HỆ THỐNG                ║");
-            System.out.println("╠══════════════════════════════════════════════╣");
-            System.out.println("║ 1. Quản lý hàng hóa                         ║");
-            System.out.println("║ 2. Quản lý khách hàng                       ║");
-            System.out.println("║ 3. Quản lý nhân viên                        ║");
-            System.out.println("║ 4. Quản lý đặt hàng                         ║");
-            System.out.println("║ 5. Quản lý nhà cung cấp                     ║");
-            //System.out.println("║ 7. Nhập hàng                                ║");
-            //System.out.println("║ 8. Quản lý kho                              ║");
-            //System.out.println("║ 9. Xuất hàng                                ║");
-            //System.out.println("║ 10. Thống kê                                 ║");
-            //System.out.println("║ 0. Thoát                                    ║");
-            System.out.println("╚══════════════════════════════════════════════╝");
-            System.out.print("Chọn chức năng: ");
-            int chon = sc.nextInt();
-            sc.nextLine();
+            view.ConsoleUI.printHeader("MENU HỆ THỐNG");
+            view.ConsoleUI.printSection("KHU VỰC QUẢN LÝ");
+            System.out.println("│ 1. Quản lý hàng hóa                          │");
+            System.out.println("│ 2. Quản lý khách hàng                        │");
+            System.out.println("│ 3. Quản lý nhân viên                         │");
+            System.out.println("│ 4. Quản lý đặt hàng                          │");
+            System.out.println("│ 5. Quản lý nhà cung cấp                      │");
+            view.ConsoleUI.printSection("THỐNG KÊ (đang cập nhật)");
+            System.out.println("│ 9. Thống kê doanh thu                        │");
+            view.ConsoleUI.printSection("HỆ THỐNG");
+            System.out.println("│ 0. Thoát                                     │");
+            view.ConsoleUI.printFooter();
+            System.out.print(view.ConsoleUI.promptLabel("Chọn chức năng"));
+            String chonStr = sc.nextLine();
+            int chon;
+            try {
+                chon = Integer.parseInt(chonStr.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Vui lòng nhập số hợp lệ.");
+                continue;
+            }
 
             switch (chon) {
                 case 1:

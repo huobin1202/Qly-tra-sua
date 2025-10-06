@@ -3,6 +3,7 @@ import java.sql.*;
 import java.util.Scanner;
 
 import db.DBUtil;
+import view.ConsoleUI;
 
 public class DonDatHangDAO {
     public void them() {
@@ -86,16 +87,19 @@ public class DonDatHangDAO {
     }
 
     public void xuat() {
-        System.out.println("\n╔════╦════════════╦══════╦════════════╦════════════╦════════════╦════════════╦════════════╗");
-        System.out.println("║ ID ║ Người lập  ║ Bàn  ║ Trạng thái ║ Ngày lập   ║ Ngày TT    ║ Đã TT      ║ Tổng tiền ║");
-        System.out.println("╠════╬════════════╬══════╬════════════╬════════════╬════════════╬════════════╬════════════╣");
+        ConsoleUI.printHeader("DANH SÁCH ĐƠN ĐẶT HÀNG");
+        System.out.println("┌────┬────────────┬──────┬────────────┬────────────┬────────────┬────────────┬────────────┐");
+        System.out.println("│ ID │ Người lập  │ Bàn  │ Trạng thái │ Ngày lập   │ Ngày TT    │ Đã TT      │ Tổng tiền  │");
+        System.out.println("├────┼────────────┼──────┼────────────┼────────────┼────────────┼────────────┼────────────┤");
+        boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(
                 "SELECT d.id, d.nguoilap, b.tenban, d.trangthai, d.ngaylap, d.ngaythanhtoan, d.dathanhtoan, d.tongtien " +
-                "FROM dondathang d JOIN ban b ON d.ban_id = b.id")) {
+                "FROM dondathang d JOIN ban b ON d.ban_id = b.id ORDER BY d.id")) {
             while (rs.next()) {
-                System.out.printf("║ %-2d ║ %-10s ║ %-4s ║ %-10s ║ %-10s ║ %-10s ║ %-10.0f ║ %-10.0f ║\n",
+                any = true;
+                System.out.printf("│ %-2d │ %-10s │ %-4s │ %-10s │ %-10s │ %-10s │ %-10.0f │ %-10.0f │\n",
                     rs.getInt("id"),
                     rs.getString("nguoilap"),
                     rs.getString("tenban"),
@@ -105,6 +109,44 @@ public class DonDatHangDAO {
                     rs.getDouble("dathanhtoan"),
                     rs.getDouble("tongtien")
                 );
+            }
+        } catch (SQLException e) {
+            System.out.println("Lỗi: " + e.getMessage());
+        }
+        if (!any) System.out.println("│ Không có dữ liệu                                                               │");
+        System.out.println("└────┴────────────┴──────┴────────────┴────────────┴────────────┴────────────┴────────────┘");
+        ConsoleUI.printFooter();
+    }
+
+    public void timkiem() {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Tìm theo: 1.ID  2.Người lập/Trạng thái");
+        System.out.print("Chọn: ");
+        String chStr = sc.nextLine();
+        int ch; try { ch = Integer.parseInt(chStr.trim()); } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); return; }
+        String sql;
+        System.out.println("\n╔════╦════════════╦══════╦════════════╦════════════╦════════════╦════════════╦════════════╗");
+        System.out.println("║ ID ║ Người lập  ║ Bàn  ║ Trạng thái ║ Ngày lập   ║ Ngày TT    ║ Đã TT      ║ Tổng tiền ║");
+        System.out.println("╠════╬════════════╬══════╬════════════╬════════════╬════════════╬════════════╬════════════╣");
+        try (Connection conn = DBUtil.getConnection()) {
+            if (ch == 1) {
+                System.out.print("Nhập ID: ");
+                String idStr = sc.nextLine();
+                int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
+                sql = "SELECT d.id, d.nguoilap, b.tenban, d.trangthai, d.ngaylap, d.ngaythanhtoan, d.dathanhtoan, d.tongtien FROM dondathang d JOIN ban b ON d.ban_id = b.id WHERE d.id = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) { printDDH(rs); }
+                }
+            } else {
+                System.out.print("Nhập từ khóa: ");
+                String key = sc.nextLine();
+                sql = "SELECT d.id, d.nguoilap, b.tenban, d.trangthai, d.ngaylap, d.ngaythanhtoan, d.dathanhtoan, d.tongtien FROM dondathang d JOIN ban b ON d.ban_id = b.id WHERE d.nguoilap LIKE ? OR d.trangthai LIKE ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, "%" + key + "%");
+                    ps.setString(2, "%" + key + "%");
+                    try (ResultSet rs = ps.executeQuery()) { printDDH(rs); }
+                }
             }
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
@@ -112,35 +154,21 @@ public class DonDatHangDAO {
         System.out.println("╚════╩════════════╩══════╩════════════╩════════════╩════════════╩════════════╩════════════╝");
     }
 
-    public void timkiem() {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Nhập tên người lập hoặc trạng thái cần tìm: ");
-        String key = sc.nextLine();
-        System.out.println("\n╔════╦════════════╦══════╦════════════╦════════════╦════════════╦════════════╦════════════╗");
-        System.out.println("║ ID ║ Người lập  ║ Bàn  ║ Trạng thái ║ Ngày lập   ║ Ngày TT    ║ Đã TT      ║ Tổng tiền ║");
-        System.out.println("╠════╬════════════╬══════╬════════════╬════════════╬════════════╬════════════╬════════════╣");
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "SELECT d.id, d.nguoilap, b.tenban, d.trangthai, d.ngaylap, d.ngaythanhtoan, d.dathanhtoan, d.tongtien " +
-                "FROM dondathang d JOIN ban b ON d.ban_id = b.id WHERE d.nguoilap LIKE ? OR d.trangthai LIKE ?")) {
-            ps.setString(1, "%" + key + "%");
-            ps.setString(2, "%" + key + "%");
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                System.out.printf("║ %-2d ║ %-10s ║ %-4s ║ %-10s ║ %-10s ║ %-10s ║ %-10.0f ║ %-10.0f ║\n",
-                    rs.getInt("id"),
-                    rs.getString("nguoilap"),
-                    rs.getString("tenban"),
-                    rs.getString("trangthai"),
-                    rs.getString("ngaylap"),
-                    rs.getString("ngaythanhtoan") == null ? "" : rs.getString("ngaythanhtoan"),
-                    rs.getDouble("dathanhtoan"),
-                    rs.getDouble("tongtien")
-                );
-            }
-        } catch (SQLException e) {
-            System.out.println("Lỗi: " + e.getMessage());
+    private void printDDH(ResultSet rs) throws SQLException {
+        boolean any = false;
+        while (rs.next()) {
+            any = true;
+            System.out.printf("║ %-2d ║ %-10s ║ %-4s ║ %-10s ║ %-10s ║ %-10s ║ %-10.0f ║ %-10.0f ║\n",
+                rs.getInt("id"),
+                rs.getString("nguoilap"),
+                rs.getString("tenban"),
+                rs.getString("trangthai"),
+                rs.getString("ngaylap"),
+                rs.getString("ngaythanhtoan") == null ? "" : rs.getString("ngaythanhtoan"),
+                rs.getDouble("dathanhtoan"),
+                rs.getDouble("tongtien")
+            );
         }
-        System.out.println("╚════╩════════════╩══════╩════════════╩════════════╩════════════╩════════════╩════════════╝");
+        if (!any) System.out.println("║ Không có kết quả                                                             ║");
     }
 }
