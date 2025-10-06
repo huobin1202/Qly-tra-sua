@@ -4,11 +4,11 @@ import java.util.Scanner;
 
 import db.DBUtil;
 
-public class DonDatHangDAO {
+public class GiaoHangDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
         System.out.print("Tên khách hàng: ");
-        String nguoiLap = sc.nextLine();
+        String tenKh = sc.nextLine();
         System.out.print("Địa chỉ: ");
         String diaChi = sc.nextLine();
         System.out.print("Tên shipper: ");
@@ -19,26 +19,26 @@ public class DonDatHangDAO {
         String giaShip = sc.nextLine();
         System.out.print("Trạng thái: ");
         String trangThai = sc.nextLine();
-        System.out.print("Ngày lập (yyyy-mm-dd): ");
-        String ngayLap = sc.nextLine();
         System.out.print("Ngày bắt đầu (yyyy-mm-dd, có thể để trống): ");
-        String ngayThanhToan = sc.nextLine();
+        String ngayBatDau = sc.nextLine();
         System.out.print("Ngày kết thúc: ");
-        double daThanhToan = sc.nextDouble();
+        double ngayKetThuc = sc.nextDouble();
         sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO giaohang (nguoilap, ban_id, trangthai, ngaylap, ngaythanhtoan, dathanhtoan, tongtien) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-            ps.setString(1, nguoiLap);
-            ps.setInt(2, banId);
-            ps.setString(3, trangThai);
-            ps.setString(4, ngayLap);
-            if (ngayThanhToan.isEmpty()) ps.setNull(5, Types.DATE);
-            else ps.setString(5, ngayThanhToan);
-            ps.setDouble(6, daThanhToan);
-            ps.setDouble(7, tongTien);
+                "INSERT INTO giaohang (tenkh, diachi,tenshipper, sdtshipper, trangthai, ngaybatdau, ngayketthuc) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+            ps.setString(1, tenKh);
+            ps.setString(2, diaChi);
+            ps.setString(3, tenShipper);
+            ps.setString(4, sdtShipper);
+            ps.setString(5, giaShip);
+            ps.setString(5, trangThai);
+            if (ngayBatDau.isEmpty()) ps.setNull(6, Types.DATE);
+            else ps.setString(6, ngayBatDau);
+            ps.setDouble(7, ngayKetThuc);
+         
             ps.executeUpdate();
-            System.out.println("Thêm đơn đặt hàng thành công!");
+            System.out.println("Thêm lịch giao hàng thành công!");
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
         }
