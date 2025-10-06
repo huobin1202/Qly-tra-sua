@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 06, 2025 at 06:30 PM
+-- Generation Time: Oct 06, 2025 at 07:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -27,17 +27,16 @@ SET time_zone = "+00:00";
 -- Table structure for table `ban`
 --
 
+CREATE TABLE `ban` (
+  `id` int(11) NOT NULL,
+  `tenban` varchar(50) NOT NULL,
+  `trangthai` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `ban`
 --
-CREATE TABLE `ban` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `tenban` VARCHAR(50) NOT NULL,
-  `trangthai` VARCHAR(50) NOT NULL
-);
 
---
 INSERT INTO `ban` (`id`, `tenban`, `trangthai`) VALUES
 (1, 'Bàn 1', 'Trống'),
 (2, 'Bàn 2', 'Đang sử dụng');
@@ -96,6 +95,30 @@ INSERT INTO `dondathang` (`id`, `nguoilap`, `ban_id`, `trangthai`, `ngaylap`, `n
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `giaohang`
+--
+
+CREATE TABLE `giaohang` (
+  `id` int(11) NOT NULL,
+  `dondathang_id` int(11) NOT NULL,
+  `tenshipper` varchar(100) DEFAULT NULL,
+  `sdtshipper` varchar(20) DEFAULT NULL,
+  `phiship` double DEFAULT NULL,
+  `trangthai` varchar(50) DEFAULT NULL,
+  `ngaybatdau` date DEFAULT NULL,
+  `ngayketthuc` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `giaohang`
+--
+
+INSERT INTO `giaohang` (`id`, `dondathang_id`, `tenshipper`, `sdtshipper`, `phiship`, `trangthai`, `ngaybatdau`, `ngayketthuc`) VALUES
+(1, 1, 'Shipper A', '0903333333', 15000, 'Đang giao', '2024-10-01', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `hoadon`
 --
 
@@ -129,7 +152,7 @@ CREATE TABLE `loaimon` (
 --
 
 INSERT INTO `loaimon` (`ma`, `ten`) VALUES
-(1, 'Đồ ăn'),
+(1, '345'),
 (2, 'Trà sữa'),
 (3, 'PO'),
 (4, 'Topping');
@@ -165,6 +188,27 @@ INSERT INTO `mon` (`id`, `ten`, `mota`, `anh`, `tendv`, `gia`, `dv`, `ma_loai`) 
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `nhacungcap`
+--
+
+CREATE TABLE `nhacungcap` (
+  `id` int(11) NOT NULL,
+  `ten` varchar(100) NOT NULL,
+  `sdt` varchar(20) DEFAULT NULL,
+  `diachi` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `nhacungcap`
+--
+
+INSERT INTO `nhacungcap` (`id`, `ten`, `sdt`, `diachi`) VALUES
+(1, 'NCC A', '0901111111', 'HCM'),
+(2, 'NCC B', '0902222222', 'HN');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `nhanvien`
 --
 
@@ -185,41 +229,6 @@ CREATE TABLE `nhanvien` (
 INSERT INTO `nhanvien` (`id`, `tentaikhoan`, `matkhau`, `sdt`, `ngayvaolam`, `chucvu`, `luong`) VALUES
 (1, 'admin', '123456', '0909999999', '2023-01-01', 'quanly', 15000000),
 (2, 'nhanvien1', '123456', '0911111111', '2024-06-01', 'nhanvien', 7000000);
-
--- --------------------------------------------------------
-
--- Table structure for table `nhacungcap`
-
-CREATE TABLE IF NOT EXISTS `nhacungcap` (
-  `id` int(11) NOT NULL,
-  `ten` varchar(100) NOT NULL,
-  `sdt` varchar(20) DEFAULT NULL,
-  `diachi` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Sample data for `nhacungcap`
-INSERT INTO `nhacungcap` (`id`, `ten`, `sdt`, `diachi`) VALUES
-(1, 'NCC A', '0901111111', 'HCM'),
-(2, 'NCC B', '0902222222', 'HN');
-
--- --------------------------------------------------------
-
--- Table structure for table `giaohang`
-
-CREATE TABLE IF NOT EXISTS `giaohang` (
-  `id` int(11) NOT NULL,
-  `dondathang_id` int(11) NOT NULL,
-  `tenshipper` varchar(100) DEFAULT NULL,
-  `sdtshipper` varchar(20) DEFAULT NULL,
-  `phiship` double DEFAULT NULL,
-  `trangthai` varchar(50) DEFAULT NULL,
-  `ngaybatdau` date DEFAULT NULL,
-  `ngayketthuc` date DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Sample data for `giaohang`
-INSERT INTO `giaohang` (`id`, `dondathang_id`, `tenshipper`, `sdtshipper`, `phiship`, `trangthai`, `ngaybatdau`, `ngayketthuc`) VALUES
-(1, 1, 'Shipper A', '0903333333', 15000, 'Đang giao', '2024-10-01', NULL);
 
 --
 -- Indexes for dumped tables
@@ -245,6 +254,13 @@ ALTER TABLE `dondathang`
   ADD KEY `ban_id` (`ban_id`);
 
 --
+-- Indexes for table `giaohang`
+--
+ALTER TABLE `giaohang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `dondathang_id` (`dondathang_id`);
+
+--
 -- Indexes for table `hoadon`
 --
 ALTER TABLE `hoadon`
@@ -266,19 +282,16 @@ ALTER TABLE `mon`
   ADD KEY `ma_loai` (`ma_loai`);
 
 --
+-- Indexes for table `nhacungcap`
+--
+ALTER TABLE `nhacungcap`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `nhanvien`
 --
 ALTER TABLE `nhanvien`
   ADD PRIMARY KEY (`id`);
-
--- Indexes for table `nhacungcap`
-ALTER TABLE `nhacungcap`
-  ADD PRIMARY KEY (`id`);
-
--- Indexes for table `giaohang`
-ALTER TABLE `giaohang`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `dondathang_id` (`dondathang_id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -303,6 +316,12 @@ ALTER TABLE `dondathang`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `giaohang`
+--
+ALTER TABLE `giaohang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `hoadon`
 --
 ALTER TABLE `hoadon`
@@ -321,28 +340,26 @@ ALTER TABLE `mon`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `nhacungcap`
+--
+ALTER TABLE `nhacungcap`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT for table `nhanvien`
 --
 ALTER TABLE `nhanvien`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
--- AUTO_INCREMENT for table `nhacungcap`
-ALTER TABLE `nhacungcap`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
--- AUTO_INCREMENT for table `giaohang`
-ALTER TABLE `giaohang`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
 --
 
 --
--- Constraints for table `dondathang`
+-- Constraints for table `giaohang`
 --
-ALTER TABLE `dondathang`
-  ADD CONSTRAINT `dondathang_ibfk_1` FOREIGN KEY (`ban_id`) REFERENCES `ban` (`id`);
+ALTER TABLE `giaohang`
+  ADD CONSTRAINT `giaohang_ibfk_1` FOREIGN KEY (`dondathang_id`) REFERENCES `dondathang` (`id`);
 
 --
 -- Constraints for table `hoadon`
@@ -356,10 +373,6 @@ ALTER TABLE `hoadon`
 --
 ALTER TABLE `mon`
   ADD CONSTRAINT `mon_ibfk_1` FOREIGN KEY (`ma_loai`) REFERENCES `loaimon` (`ma`);
-
--- Constraints for table `giaohang`
-ALTER TABLE `giaohang`
-  ADD CONSTRAINT `giaohang_ibfk_1` FOREIGN KEY (`dondathang_id`) REFERENCES `dondathang` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
