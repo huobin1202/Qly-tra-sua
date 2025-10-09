@@ -13,6 +13,7 @@ import view.HangHoaView;
 import view.KhachHangView;
 import view.DatHangView;
 import view.NhaCungCapView;
+import view.ConsoleUI;
 
 import java.sql.*; // Thêm import này
 
@@ -20,13 +21,13 @@ public class Runner {
     public static boolean dangNhap(Scanner sc) {
         System.out.println("╔══════════════════════════════════════════════════╗");
         System.out.println("║                                                  ║");
-        System.out.println("║     🌸 CHÀO MỪNG ĐẾN VỚI HỆ THỐNG 🌸               ║");
-        System.out.println("║       💖 QUẢN LÝ QUÁN TRÀ SỮA 💖                   ║");
+        System.out.println("║            CHÀO MỪNG ĐẾN VỚI HỆ THỐNG            ║");
+        System.out.println("║               QUẢN LÝ QUÁN TRÀ SỮA               ║");
         System.out.println("║                                                  ║");
         System.out.println("╚══════════════════════════════════════════════════╝");
         System.out.println();
         System.out.println("╔══════════════════════════════════════════════════╗");
-        System.out.println("║               🔐 ĐĂNG NHẬP HỆ THỐNG               ║");
+        System.out.println("║                ĐĂNG NHẬP HỆ THỐNG                ║");
         System.out.println("╠══════════════════════════════════════════════════╣");
         System.out.print ("║ 👤 Tên tài khoản: ");
         String user = sc.nextLine();
@@ -48,6 +49,8 @@ public class Runner {
             ps.setString(2, pass);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
+                db.Session.currentMaNV = rs.getInt("MaNV");
+                db.Session.currentTaiKhoan = rs.getString("TaiKhoan");
                 System.out.println("Đăng nhập thành công!");
                 return true;
             } else {
@@ -97,6 +100,9 @@ public class Runner {
             System.out.println("│ 3. Quản lý nhân viên                         │");
             System.out.println("│ 4. Quản lý đặt hàng                          │");
             System.out.println("│ 5. Quản lý nhà cung cấp                      │");
+            System.out.println("│ 6. Quản lý phiếu nhập                        │");
+            System.out.println("│ 7. Tồn kho                                   │");
+            System.out.println("│ 8. Quản lý phiếu xuất                        │");
             view.ConsoleUI.printSection("THỐNG KÊ (đang cập nhật)");
             System.out.println("│ 9. Thống kê doanh thu                        │");
             view.ConsoleUI.printSection("HỆ THỐNG");
@@ -128,6 +134,15 @@ public class Runner {
                 case 5:
                     NhaCungCapView.menu(NhaCungCap, sc);
                     return;
+                case 6:
+                    view.KhoHangView.menu(sc); // reuse view to create and later list
+                    break;
+                case 7:
+                    view.KhoHangView.menu(sc);
+                    break;
+                case 8:
+                    view.KhoHangView.menu(sc); // reuse view for export management
+                    break;
                 case 0:
                     System.out.println("Thoát chương trình.");
                     sc.close();

@@ -119,14 +119,20 @@ public class NhanVienDAO {
         try { choice = Integer.parseInt(choiceStr.trim()); } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); return; }
         String sql;
         boolean byId = choice == 1;
-        System.out.println("\n╔════╦════════════╦══════════╦══════════════╦════════════╦══════════╦══════════════╗");
-        System.out.println("║ ID ║ Tài khoản  ║ Mật khẩu ║  SĐT        ║ Ngày vào   ║ Chức vụ  ║    Lương     ║");
-        System.out.println("╠════╬════════════╬══════════╬══════════════╬════════════╬══════════╬══════════════╣");
+    
         try (Connection conn = DBUtil.getConnection()) {
             if (byId) {
                 System.out.print("Nhập ID: ");
                 String idStr = sc.nextLine();
-                int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
+                int id; 
+                try { 
+                    id = Integer.parseInt(idStr.trim()); 
+                } 
+                catch (NumberFormatException e) { 
+                    System.out.println("ID không hợp lệ."); 
+                    return; 
+                }
+              
                 sql = "SELECT * FROM nhanvien WHERE MaNV = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setInt(1, id);
@@ -145,10 +151,14 @@ public class NhanVienDAO {
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
         }
+        
         System.out.println("╚════╩════════════╩══════════╩══════════════╩════════════╩══════════╩══════════════╝");
     }
 
     private void printNhanVienTable(ResultSet rs) throws SQLException {
+        System.out.println("\n╔════╦════════════╦══════════╦══════════════╦════════════╦══════════╦══════════════╗");
+        System.out.println("║ ID ║ Tài khoản  ║ Mật khẩu ║  SĐT        ║ Ngày vào   ║ Chức vụ  ║    Lương     ║");
+        System.out.println("╠════╬════════════╬══════════╬══════════════╬════════════╬══════════╬══════════════╣");
         boolean any = false;
         while (rs.next()) {
             any = true;

@@ -16,7 +16,7 @@ public class DatHangView {
             System.out.println("│ 2. Quản lý đơn đặt hàng                      │");
             System.out.println("│ 3. Quản lý giao hàng                         │");
             ConsoleUI.printSection("ĐIỀU HƯỚNG");
-            System.out.println("│ 4. Quay lại                                  │");
+            System.out.println("│ 0. Quay lại                                  │");
             ConsoleUI.printFooter();
             System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
             String chonDHStr = sc.nextLine();
@@ -31,12 +31,12 @@ public class DatHangView {
                 while (true) {
                     ConsoleUI.printHeader("QUẢN LÝ BÀN");
                     ConsoleUI.printSection("CHỨC NĂNG");
-                    System.out.println("│ 1. Thêm bàn                        │");
-                    System.out.println("│ 2. Sửa bàn                         │");
-                    System.out.println("│ 3. Xóa bàn                         │");
-                    System.out.println("│ 4. Xem danh sách bàn               │");
+                    System.out.println("│ 1. Xem danh sách bàn               │");
+                    System.out.println("│ 2. Thêm bàn                        │");
+                    System.out.println("│ 3. Sửa bàn                         │");
+                    System.out.println("│ 4. Xóa bàn                         │");
                     ConsoleUI.printSection("ĐIỀU HƯỚNG");
-                    System.out.println("│ 5. Quay lại                        │");
+                    System.out.println("│ 0. Quay lại                        │");
                     ConsoleUI.printFooter();
                     System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
                     String chonBanStr = sc.nextLine();
@@ -47,11 +47,11 @@ public class DatHangView {
                         System.out.println("Vui lòng nhập số hợp lệ.");
                         continue;
                     }
-                    if (chonBan == 1) QuanLyBan.them();
-                    else if (chonBan == 2) QuanLyBan.sua();
-                    else if (chonBan == 3) QuanLyBan.xoa();
-                    else if (chonBan == 4) QuanLyBan.xuat();
-                    else if (chonBan == 5) break;
+                    if (chonBan == 2) QuanLyBan.them();
+                    else if (chonBan == 3) QuanLyBan.sua();
+                    else if (chonBan == 4) QuanLyBan.xoa();
+                    else if (chonBan == 1) QuanLyBan.xuat();
+                    else if (chonBan == 0) break;
                     else System.out.println("Chức năng không hợp lệ.");
                 }
             } else if (chonDH == 2) {
@@ -64,7 +64,7 @@ public class DatHangView {
                     System.out.println("│ 4. Xóa đơn đặt hàng                          │");
                     System.out.println("│ 5. Tìm kiếm đơn đặt hàng                     │");
                     ConsoleUI.printSection("ĐIỀU HƯỚNG");
-                    System.out.println("│ 6. Quay lại                                  │");
+                    System.out.println("│ 0. Quay lại                                  │");
                     ConsoleUI.printFooter();
                     System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
                     String chonDonStr = sc.nextLine();
@@ -80,7 +80,7 @@ public class DatHangView {
                     else if (chonDon == 3) DonDatHang.sua();
                     else if (chonDon == 4) DonDatHang.xoa();
                     else if (chonDon == 5) DonDatHang.timkiem();
-                    else if (chonDon == 6) break;
+                    else if (chonDon == 0) break;
                     else System.out.println("Chức năng không hợp lệ.");
                 }
             } else if (chonDH == 3) {
@@ -92,7 +92,7 @@ public class DatHangView {
                     System.out.println("│ 3. Sửa giao hàng                              │");
                     System.out.println("│ 4. Xóa giao hàng                              │");
                     ConsoleUI.printSection("ĐIỀU HƯỚNG");
-                    System.out.println("│ 5. Quay lại                                   │");
+                    System.out.println("│ 0. Quay lại                                   │");
                     ConsoleUI.printFooter();
                     System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
                     String chonGiaoStr = sc.nextLine();
@@ -107,10 +107,10 @@ public class DatHangView {
                     else if (chonGiao == 2) GiaoHang.them();
                     else if (chonGiao == 3) GiaoHang.sua();
                     else if (chonGiao == 4) GiaoHang.xoa();
-                    else if (chonGiao == 5) break;
+                    else if (chonGiao == 0) break;
                     else System.out.println("Chức năng không hợp lệ.");
                 }
-            } else if (chonDH == 4) {
+            } else if (chonDH == 0) {
                 break;
             }
         }

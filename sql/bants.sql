@@ -106,6 +106,7 @@ CREATE TABLE `mon` (
   `MoTa` varchar(500) DEFAULT NULL,
   `TenDonVi` varchar(20) NOT NULL,
   `Gia` bigint(20) NOT NULL,
+  `SoLuong` int(11) NOT NULL DEFAULT 0,
   `MaLoai` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -383,3 +384,134 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+-- --------------------------------------------------------
+-- Inventory and Stock Flow Tables
+-- --------------------------------------------------------
+
+-- Table structure for table `khohang`
+-- Holds current on-hand quantity per `mon`
+CREATE TABLE IF NOT EXISTS `khohang` (
+  `MaMon` int(11) NOT NULL,
+  `SoLuong` int(11) NOT NULL DEFAULT 0,
+  `CapNhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for table `phieunhap`
+CREATE TABLE IF NOT EXISTS `phieunhap` (
+  `MaPN` int(11) NOT NULL,
+  `MaNV` int(11) NOT NULL,
+  `MaNCC` int(11) NOT NULL,
+  `Ngay` timestamp NOT NULL DEFAULT current_timestamp(),
+  `GhiChu` varchar(250) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Supplier products catalog and on-hand stock at supplier
+CREATE TABLE IF NOT EXISTS `nhacungcap` (
+  `MaNCC` int(11) NOT NULL,
+  `TenNCC` varchar(100) NOT NULL,
+  `SDT` varchar(20) DEFAULT NULL,
+  `DiaChi` varchar(200) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE IF NOT EXISTS `ncc_sanpham` (
+  `MaNCC` int(11) NOT NULL,
+  `MaMon` int(11) NOT NULL,
+  `SoLuong` int(11) NOT NULL DEFAULT 0,
+  `DonGia` bigint(20) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for table `chitietnhap`
+CREATE TABLE IF NOT EXISTS `chitietnhap` (
+  `MaPN` int(11) NOT NULL,
+  `MaMon` int(11) NOT NULL,
+  `SoLuong` int(11) NOT NULL,
+  `DonGia` bigint(20) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for table `phieuxuat`
+CREATE TABLE IF NOT EXISTS `phieuxuat` (
+  `MaPX` int(11) NOT NULL,
+  `MaNV` int(11) NOT NULL,
+  `Ngay` timestamp NOT NULL DEFAULT current_timestamp(),
+  `GhiChu` varchar(250) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Table structure for table `chitietxuat`
+CREATE TABLE IF NOT EXISTS `chitietxuat` (
+  `MaPX` int(11) NOT NULL,
+  `MaMon` int(11) NOT NULL,
+  `SoLuong` int(11) NOT NULL,
+  `DonGia` bigint(20) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Indexes
+ALTER TABLE `khohang`
+  ADD PRIMARY KEY (`MaMon`);
+
+ALTER TABLE `phieunhap`
+  ADD PRIMARY KEY (`MaPN`),
+  ADD KEY `fk_pn_nv` (`MaNV`),
+  ADD KEY `fk_pn_ncc` (`MaNCC`);
+
+ALTER TABLE `chitietnhap`
+  ADD PRIMARY KEY (`MaPN`,`MaMon`),
+  ADD KEY `fk_ctn_mon` (`MaMon`);
+
+ALTER TABLE `phieuxuat`
+  ADD PRIMARY KEY (`MaPX`),
+  ADD KEY `fk_px_nv` (`MaNV`);
+
+ALTER TABLE `chitietxuat`
+  ADD PRIMARY KEY (`MaPX`,`MaMon`),
+  ADD KEY `fk_ctx_mon` (`MaMon`);
+
+ALTER TABLE `nhacungcap`
+  ADD PRIMARY KEY (`MaNCC`);
+
+ALTER TABLE `ncc_sanpham`
+  ADD PRIMARY KEY (`MaNCC`,`MaMon`),
+  ADD KEY `fk_nccsp_mon` (`MaMon`);
+
+-- AUTO_INCREMENT
+ALTER TABLE `phieunhap`
+  MODIFY `MaPN` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+ALTER TABLE `phieuxuat`
+  MODIFY `MaPX` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+-- Foreign keys
+ALTER TABLE `khohang`
+  ADD CONSTRAINT `fk_kho_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE `phieunhap`
+  ADD CONSTRAINT `fk_pn_nv` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `phieunhap`
+  ADD CONSTRAINT `fk_pn_ncc` FOREIGN KEY (`MaNCC`) REFERENCES `nhacungcap` (`MaNCC`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `chitietnhap`
+  ADD CONSTRAINT `fk_ctn_pn` FOREIGN KEY (`MaPN`) REFERENCES `phieunhap` (`MaPN`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_ctn_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `phieuxuat`
+  ADD CONSTRAINT `fk_px_nv` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `chitietxuat`
+  ADD CONSTRAINT `fk_ctx_px` FOREIGN KEY (`MaPX`) REFERENCES `phieuxuat` (`MaPX`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_ctx_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `ncc_sanpham`
+  ADD CONSTRAINT `fk_nccsp_ncc` FOREIGN KEY (`MaNCC`) REFERENCES `nhacungcap` (`MaNCC`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_nccsp_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- Seed minimal supplier data
+INSERT INTO `nhacungcap` (`MaNCC`, `TenNCC`, `SDT`, `DiaChi`) VALUES
+  (1, 'NCC A', '0900000001', 'Hà Nội'),
+  (2, 'NCC B', '0900000002', 'Hồ Chí Minh');
+
+INSERT INTO `ncc_sanpham` (`MaNCC`, `MaMon`, `SoLuong`, `DonGia`) VALUES
+  (1, 2, 100, 9000),  -- Trân Châu Tuyết Sợi
+  (1, 3, 200, 8000),  -- Trân Châu Đen
+  (1, 4, 150, 8500),  -- Trân Châu Trắng
+  (2, 5, 300, 40000), -- Trà Sữa Trân Châu
+  (2, 8, 250, 38000); -- Sữa Tươi Trân Châu Đường Đen

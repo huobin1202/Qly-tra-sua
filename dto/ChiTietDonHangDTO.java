@@ -9,8 +9,7 @@ public class ChiTietDonHangDTO {
     private long giaTopping;
     private String ghiChu;
 
-    public ChiTietDonHangDTO(int maDon, int maMon, int maTopping, int soLuong, 
-                             long giaMon, long giaTopping, String ghiChu) {
+    public ChiTietDonHangDTO(int maDon, int maMon, int maTopping, int soLuong, long giaMon, long giaTopping, String ghiChu) {
         this.maDon = maDon;
         this.maMon = maMon;
         this.maTopping = maTopping;
