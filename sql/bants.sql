@@ -515,3 +515,4 @@ INSERT INTO `ncc_sanpham` (`MaNCC`, `MaMon`, `SoLuong`, `DonGia`) VALUES
   (1, 4, 150, 8500),  -- Trân Châu Trắng
   (2, 5, 300, 40000), -- Trà Sữa Trân Châu
   (2, 8, 250, 38000); -- Sữa Tươi Trân Châu Đường Đen
+
