@@ -3,15 +3,17 @@ import java.sql.*;
 import java.util.Scanner;
 
 import db.DBUtil;
+import view.ConsoleUI;
 
-public class DSLoaiMon {
+public class LoaiMonDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
         System.out.print("Nhập tên loại món mới: ");
         String ten = sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("INSERT INTO loaimon (ten) VALUES (?)")) {
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO loaimon (TenLoai, Slug) VALUES (?, ?)")) {
             ps.setString(1, ten);
+            ps.setString(2, ten.toLowerCase().replace(" ", "-"));
             ps.executeUpdate();
             System.out.println("Đã thêm loại món.");
         } catch (SQLException e) {
@@ -27,9 +29,10 @@ public class DSLoaiMon {
         System.out.print("Nhập tên loại món mới: ");
         String ten = sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("UPDATE loaimon SET ten=? WHERE ma=?")) {
+             PreparedStatement ps = conn.prepareStatement("UPDATE loaimon SET TenLoai=?, Slug=? WHERE MaLoai=?")) {
             ps.setString(1, ten);
-            ps.setInt(2, ma);
+            ps.setString(2, ten.toLowerCase().replace(" ", "-"));
+            ps.setInt(3, ma);
             int rows = ps.executeUpdate();
             if (rows > 0)
                 System.out.println("Đã sửa loại món.");
@@ -45,7 +48,7 @@ public class DSLoaiMon {
         System.out.print("Nhập mã loại món cần xóa: ");
         int ma = sc.nextInt();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM loaimon WHERE ma=?")) {
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM loaimon WHERE MaLoai=?")) {
             ps.setInt(1, ma);
             int rows = ps.executeUpdate();
             if (rows > 0)
@@ -58,15 +61,23 @@ public class DSLoaiMon {
     }
 
     public void xuat() {
+        ConsoleUI.printHeader("DANH SÁCH LOẠI MÓN");
+        System.out.println("┌────┬────────────────────────────┐");
+        System.out.println("│ Mã │ Tên loại                   │");
+        System.out.println("├────┼────────────────────────────┤");
+        boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM loaimon")) {
-            System.out.println("Danh sách loại món:");
+             ResultSet rs = st.executeQuery("SELECT * FROM loaimon ORDER BY MaLoai")) {
             while (rs.next()) {
-                System.out.println(rs.getInt("ma") + ". " + rs.getString("ten"));
+                any = true;
+                System.out.printf("│ %-2d │ %-26s │\n", rs.getInt("MaLoai"), rs.getString("TenLoai"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        if (!any) System.out.println("│ Không có dữ liệu                │");
+        System.out.println("└────┴────────────────────────────┘");
+        ConsoleUI.printFooter();
     }
 }

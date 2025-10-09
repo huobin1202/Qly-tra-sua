@@ -1,33 +1,48 @@
 import java.util.Scanner;
 
-import dao.DSCustomer;
-import dao.DSLoaiMon;
-import dao.DSMon;
-import dao.DSNhanVien;
-import dao.DSBan;
-import dao.DSDonDatHang;
+import dao.KhachHangDAO;
+import dao.LoaiMonDAO;
+import dao.MonDAO;
+import dao.NhanVienDAO;
+import dao.BanDAO;
+import dao.DonDatHangDAO;
+import dao.NhaCungCapDAO;
+import dao.GiaoHangDAO;
 import view.NhanVienView;
 import view.HangHoaView;
 import view.KhachHangView;
-import view.BanView;
 import view.DatHangView;
+import view.NhaCungCapView;
 
 import java.sql.*; // Thêm import này
 
 public class Runner {
     public static boolean dangNhap(Scanner sc) {
-        System.out.println("===== ĐĂNG NHẬP =====");
-        System.out.print("Tên tài khoản: ");
+        System.out.println("╔══════════════════════════════════════════════════╗");
+        System.out.println("║                                                  ║");
+        System.out.println("║     🌸 CHÀO MỪNG ĐẾN VỚI HỆ THỐNG 🌸               ║");
+        System.out.println("║       💖 QUẢN LÝ QUÁN TRÀ SỮA 💖                   ║");
+        System.out.println("║                                                  ║");
+        System.out.println("╚══════════════════════════════════════════════════╝");
+        System.out.println();
+        System.out.println("╔══════════════════════════════════════════════════╗");
+        System.out.println("║               🔐 ĐĂNG NHẬP HỆ THỐNG               ║");
+        System.out.println("╠══════════════════════════════════════════════════╣");
+        System.out.print ("║ 👤 Tên tài khoản: ");
         String user = sc.nextLine();
-        System.out.print("Mật khẩu: ");
+        System.out.print ("║ 🔒 Mật khẩu: ");
         String pass = sc.nextLine();
+        System.out.println("╚══════════════════════════════════════════════════╝");
+        System.out.println("⏳ Đang kiểm tra thông tin đăng nhập...");
+        
+
 
         // Kết nối CSDL kiểm tra tài khoản
         try (
             Connection conn = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/bants", "root", ""); // sửa user/pass nếu cần
             PreparedStatement ps = conn.prepareStatement(
-                "SELECT * FROM nhanvien WHERE tentaikhoan=? AND matkhau=?")
+                "SELECT * FROM nhanvien WHERE TaiKhoan=? AND MatKhau=?")
         ) {
             ps.setString(1, user);
             ps.setString(2, pass);
@@ -45,9 +60,9 @@ public class Runner {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        // Ép input luôn UTF-8
         Scanner sc = new Scanner(System.in);
-
         // Đăng nhập trước khi vào hệ thống
         boolean loginSuccess = false;
         for (int i = 0; i < 3; i++) {
@@ -63,50 +78,57 @@ public class Runner {
             return;
         }
 
-        DSCustomer dsKhachHang = new DSCustomer();
-        DSLoaiMon dsLoaiMon = new DSLoaiMon();
-        DSMon dsMon = new DSMon();
-        DSNhanVien dsNhanVien = new DSNhanVien();
-        DSBan dsBan = new DSBan();
-        DSDonDatHang dsDonDatHang = new DSDonDatHang();
+        KhachHangDAO KhachHang = new KhachHangDAO();
+        LoaiMonDAO LoaiMon = new LoaiMonDAO();
+        MonDAO Mon = new MonDAO();
+        NhanVienDAO NhanVien = new NhanVienDAO();
+        BanDAO Ban = new BanDAO();
+        DonDatHangDAO DonDatHang = new DonDatHangDAO();
+        NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
+        GiaoHangDAO GiaoHang = new GiaoHangDAO();
+
+        
 
         while (true) {
-            System.out.println("\n╔══════════════════════════════════════════════╗");
-            System.out.println("║                MENU HỆ THỐNG                ║");
-            System.out.println("╠══════════════════════════════════════════════╣");
-            System.out.println("║ 1. Quản lý hàng hóa                         ║");
-            System.out.println("║ 2. Quản lý khách hàng                       ║");
-            System.out.println("║ 3. Quản lý nhân viên                        ║");
-            System.out.println("║ 4. Quản lý đặt hàng                         ║");
-            //System.out.println("║ 4. Quản lý nhà cung cấp                     ║");
-            //System.out.println("║ 4. Quản lý kho                     ║");
-            //System.out.println("║ 4. Phiếu nhập                     ║");
-            //System.out.println("║ 4. Phiếu xuất                     ║");
-            System.out.println("║ 5. Thống kê                                 ║");
-            System.out.println("║ 6. Thoát                                    ║");
-            System.out.println("╚══════════════════════════════════════════════╝");
-            System.out.print("Chọn chức năng: ");
-            int chon = sc.nextInt();
-            sc.nextLine();
+            view.ConsoleUI.printHeader("MENU HỆ THỐNG");
+            view.ConsoleUI.printSection("KHU VỰC QUẢN LÝ");
+            System.out.println("│ 1. Quản lý hàng hóa                          │");
+            System.out.println("│ 2. Quản lý khách hàng                        │");
+            System.out.println("│ 3. Quản lý nhân viên                         │");
+            System.out.println("│ 4. Quản lý đặt hàng                          │");
+            System.out.println("│ 5. Quản lý nhà cung cấp                      │");
+            view.ConsoleUI.printSection("THỐNG KÊ (đang cập nhật)");
+            System.out.println("│ 9. Thống kê doanh thu                        │");
+            view.ConsoleUI.printSection("HỆ THỐNG");
+            System.out.println("│ 0. Thoát                                     │");
+            view.ConsoleUI.printFooter();
+            System.out.print(view.ConsoleUI.promptLabel("Chọn chức năng"));
+            String chonStr = sc.nextLine();
+            int chon;
+            try {
+                chon = Integer.parseInt(chonStr.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Vui lòng nhập số hợp lệ.");
+                continue;
+            }
 
             switch (chon) {
                 case 1:
-                    HangHoaView.menu(dsLoaiMon, dsMon, sc);
+                    HangHoaView.menu(LoaiMon, Mon, sc);
                     break;
                 case 2:
-                    KhachHangView.menu(dsKhachHang, sc);
+                    KhachHangView.menu(KhachHang, sc);
                     break;
                 case 3:
-                    NhanVienView.menu(dsNhanVien, sc);
+                    NhanVienView.menu(NhanVien, sc);
                     break;
                 case 4:
-                    DatHangView.menu(dsBan, dsDonDatHang, sc);
+                    DatHangView.menu(Ban, DonDatHang, GiaoHang, sc);
                     break;
                 case 5:
-                    System.out.println("Thoát chương trình.");
-                    sc.close();
+                    NhaCungCapView.menu(NhaCungCap, sc);
                     return;
-                case 6:
+                case 0:
                     System.out.println("Thoát chương trình.");
                     sc.close();
                     return;
