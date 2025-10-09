@@ -1,6 +1,5 @@
 package dao;
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.Scanner;
 
 import db.DBUtil;
@@ -24,13 +23,14 @@ public class NhanVienDAO {
         sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO nhanvien (tentaikhoan, matkhau, sdt, ngayvaolam, chucvu, luong) VALUES (?, ?, ?, ?, ?, ?)")) {
+                "INSERT INTO nhanvien (TaiKhoan, MatKhau, HoTen, SDT, NgayVaoLam, ChucVu, Luong) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
             ps.setString(1, tenTK);
             ps.setString(2, mk);
-            ps.setString(3, sdt);
-            ps.setString(4, ngay);
-            ps.setString(5, chucvu);
-            ps.setDouble(6, luong);
+            ps.setString(3, "Nhân viên"); // Tên mặc định
+            ps.setString(4, sdt);
+            ps.setTimestamp(5, java.sql.Timestamp.valueOf(ngay + " 10:00:00"));
+            ps.setString(6, chucvu);
+            ps.setInt(7, (int)luong);
             ps.executeUpdate();
             System.out.println("Thêm nhân viên thành công!");
         } catch (SQLException e) {
@@ -52,11 +52,11 @@ public class NhanVienDAO {
         double luong = sc.nextDouble(); sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "UPDATE nhanvien SET matkhau=?, sdt=?, chucvu=?, luong=? WHERE id=?")) {
+                "UPDATE nhanvien SET MatKhau=?, SDT=?, ChucVu=?, Luong=? WHERE MaNV=?")) {
             ps.setString(1, mk);
             ps.setString(2, sdt);
             ps.setString(3, chucvu);
-            ps.setDouble(4, luong);
+            ps.setInt(4, (int)luong);
             ps.setInt(5, id);
             int rows = ps.executeUpdate();
             if (rows > 0) System.out.println("Sửa thành công!");
@@ -71,7 +71,7 @@ public class NhanVienDAO {
         System.out.print("Nhập ID nhân viên cần xóa: ");
         int id = sc.nextInt(); sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM nhanvien WHERE id=?")) {
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM nhanvien WHERE MaNV=?")) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
             if (rows > 0) System.out.println("Xóa thành công!");
@@ -89,17 +89,17 @@ public class NhanVienDAO {
         boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM nhanvien ORDER BY id")) {
+             ResultSet rs = st.executeQuery("SELECT * FROM nhanvien ORDER BY MaNV")) {
             while (rs.next()) {
                 any = true;
-                System.out.printf("│ %-2d │ %-10s │ %-8s │ %-12s │ %-10s │ %-8s │ %-12.0f │\n",
-                    rs.getInt("id"),
-                    rs.getString("tentaikhoan"),
-                    rs.getString("matkhau"),
-                    rs.getString("sdt"),
-                    rs.getString("ngayvaolam"),
-                    rs.getString("chucvu"),
-                    rs.getDouble("luong")
+                System.out.printf("│ %-2d │ %-10s │ %-8s │ %-12s │ %-10s │ %-8s │ %-12d │\n",
+                    rs.getInt("MaNV"),
+                    rs.getString("TaiKhoan"),
+                    rs.getString("MatKhau"),
+                    rs.getString("SDT"),
+                    rs.getString("NgayVaoLam"),
+                    rs.getString("ChucVu"),
+                    rs.getInt("Luong")
                 );
             }
         } catch (SQLException e) {
@@ -127,7 +127,7 @@ public class NhanVienDAO {
                 System.out.print("Nhập ID: ");
                 String idStr = sc.nextLine();
                 int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
-                sql = "SELECT * FROM nhanvien WHERE id = ?";
+                sql = "SELECT * FROM nhanvien WHERE MaNV = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setInt(1, id);
                     try (ResultSet rs = ps.executeQuery()) { printNhanVienTable(rs); }
@@ -135,7 +135,7 @@ public class NhanVienDAO {
             } else {
                 System.out.print("Nhập từ khóa: ");
                 String key = sc.nextLine();
-                sql = "SELECT * FROM nhanvien WHERE tentaikhoan LIKE ? OR sdt LIKE ?";
+                sql = "SELECT * FROM nhanvien WHERE TaiKhoan LIKE ? OR SDT LIKE ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, "%" + key + "%");
                     ps.setString(2, "%" + key + "%");
@@ -152,14 +152,14 @@ public class NhanVienDAO {
         boolean any = false;
         while (rs.next()) {
             any = true;
-            System.out.printf("║ %-2d ║ %-10s ║ %-8s ║ %-12s ║ %-10s ║ %-8s ║ %-12.0f ║\n",
-                rs.getInt("id"),
-                rs.getString("tentaikhoan"),
-                rs.getString("matkhau"),
-                rs.getString("sdt"),
-                rs.getString("ngayvaolam"),
-                rs.getString("chucvu"),
-                rs.getDouble("luong")
+            System.out.printf("║ %-2d ║ %-10s ║ %-8s ║ %-12s ║ %-10s ║ %-8s ║ %-12d ║\n",
+                rs.getInt("MaNV"),
+                rs.getString("TaiKhoan"),
+                rs.getString("MatKhau"),
+                rs.getString("SDT"),
+                rs.getString("NgayVaoLam"),
+                rs.getString("ChucVu"),
+                rs.getInt("Luong")
             );
         }
         if (!any) System.out.println("║ Không có kết quả                                                             ║");

@@ -1,5 +1,3 @@
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import dao.KhachHangDAO;
@@ -13,7 +11,6 @@ import dao.GiaoHangDAO;
 import view.NhanVienView;
 import view.HangHoaView;
 import view.KhachHangView;
-import view.BanView;
 import view.DatHangView;
 import view.NhaCungCapView;
 
@@ -45,7 +42,7 @@ public class Runner {
             Connection conn = DriverManager.getConnection(
                 "jdbc:mysql://localhost:3306/bants", "root", ""); // sửa user/pass nếu cần
             PreparedStatement ps = conn.prepareStatement(
-                "SELECT * FROM nhanvien WHERE tentaikhoan=? AND matkhau=?")
+                "SELECT * FROM nhanvien WHERE TaiKhoan=? AND MatKhau=?")
         ) {
             ps.setString(1, user);
             ps.setString(2, pass);
@@ -89,6 +86,8 @@ public class Runner {
         DonDatHangDAO DonDatHang = new DonDatHangDAO();
         NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
         GiaoHangDAO GiaoHang = new GiaoHangDAO();
+
+        
 
         while (true) {
             view.ConsoleUI.printHeader("MENU HỆ THỐNG");

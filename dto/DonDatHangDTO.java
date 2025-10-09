@@ -1,40 +1,50 @@
 package dto;
-import java.time.LocalDate;
+import java.sql.Timestamp;
 
 public class DonDatHangDTO {
-    private int id;
-    private String nguoiLap;
-    private BanDTO ban;
+    private int maDon;
+    private int maNV;
+    private int maBan;
+    private String loai;
     private String trangThai;
-    private LocalDate ngayLap;
-    private LocalDate ngayThanhToan;
-    private double daThanhToan; // số tiền đã trả
-    private double tongTien;    // số tiền phải trả
+    private Timestamp ngayDat;
+    private Timestamp ngayThanhToan;
+    private long soTienDaTra;
+    private long tongTien;
+    private int giamGia;
 
-    public DonDatHangDTO(int id, String nguoiLap, BanDTO ban, String trangThai, LocalDate ngayLap, LocalDate ngayThanhToan, double daThanhToan, double tongTien) {
-        this.id = id;
-        this.nguoiLap = nguoiLap;
-        this.ban = ban;
+    public DonDatHangDTO(int maDon, int maNV, int maBan, String loai, String trangThai, 
+                         Timestamp ngayDat, Timestamp ngayThanhToan, long soTienDaTra, long tongTien, int giamGia) {
+        this.maDon = maDon;
+        this.maNV = maNV;
+        this.maBan = maBan;
+        this.loai = loai;
         this.trangThai = trangThai;
-        this.ngayLap = ngayLap;
+        this.ngayDat = ngayDat;
         this.ngayThanhToan = ngayThanhToan;
-        this.daThanhToan = daThanhToan;
+        this.soTienDaTra = soTienDaTra;
         this.tongTien = tongTien;
+        this.giamGia = giamGia;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getNguoiLap() { return nguoiLap; }
-    public void setNguoiLap(String nguoiLap) { this.nguoiLap = nguoiLap; }
-    public BanDTO getBan() { return ban; }
-    public void setBan(BanDTO ban) { this.ban = ban; }
+    public int getMaDon() { return maDon; }
+    public void setMaDon(int maDon) { this.maDon = maDon; }
+    public int getMaNV() { return maNV; }
+    public void setMaNV(int maNV) { this.maNV = maNV; }
+    public int getMaBan() { return maBan; }
+    public void setMaBan(int maBan) { this.maBan = maBan; }
+    public String getLoai() { return loai; }
+    public void setLoai(String loai) { this.loai = loai; }
     public String getTrangThai() { return trangThai; }
     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
-    public LocalDate getNgayLap() { return ngayLap; }
-    public void setNgayLap(LocalDate ngayLap) { this.ngayLap = ngayLap        ; }
-    public LocalDate getNgayThanhToan() { return ngayThanhToan; }
-    public void setNgayThanhToan(LocalDate ngayThanhToan) { this.ngayThanhToan = ngayThanhToan; }
-    public double getDaThanhToan() { return daThanhToan; }
-    public void setDaThanhToan(double daThanhToan) { this.daThanhToan = daThanhToan; }
-    public double getTongTien() { return tongTien; }
+    public Timestamp getNgayDat() { return ngayDat; }
+    public void setNgayDat(Timestamp ngayDat) { this.ngayDat = ngayDat; }
+    public Timestamp getNgayThanhToan() { return ngayThanhToan; }
+    public void setNgayThanhToan(Timestamp ngayThanhToan) { this.ngayThanhToan = ngayThanhToan; }
+    public long getSoTienDaTra() { return soTienDaTra; }
+    public void setSoTienDaTra(long soTienDaTra) { this.soTienDaTra = soTienDaTra; }
+    public long getTongTien() { return tongTien; }
+    public void setTongTien(long tongTien) { this.tongTien = tongTien; }
+    public int getGiamGia() { return giamGia; }
+    public void setGiamGia(int giamGia) { this.giamGia = giamGia; }
 }

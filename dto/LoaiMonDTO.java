@@ -1,22 +1,30 @@
 package dto;
 public class LoaiMonDTO {
-    int ma;
-    String ten;
+    int maLoai;
+    String tenLoai;
+    String slug;
 
-    public LoaiMonDTO(int ma, String ten) {
-        this.ma = ma;
-        this.ten = ten;
+    public LoaiMonDTO(int maLoai, String tenLoai, String slug) {
+        this.maLoai = maLoai;
+        this.tenLoai = tenLoai;
+        this.slug = slug;
     }
-    public int getMa() {
-        return ma;
+    public int getMaLoai() {
+        return maLoai;
     }
-    public void setMa(int ma) {
-        this.ma = ma;
+    public void setMaLoai(int maLoai) {
+        this.maLoai = maLoai;
     }
-    public String getTen() {
-        return ten;
+    public String getTenLoai() {
+        return tenLoai;
     }
-    public void setTen(String ten) {
-        this.ten = ten;
+    public void setTenLoai(String tenLoai) {
+        this.tenLoai = tenLoai;
+    }
+    public String getSlug() {
+        return slug;
+    }
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 }

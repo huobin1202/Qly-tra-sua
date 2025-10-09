@@ -1,38 +1,41 @@
 package dto;
-import java.time.LocalDate;
+import java.sql.Timestamp;
 
 public class NhanVienDTO {
-    private int id;
-    private String tenTaiKhoan;
+    private int maNV;
+    private String taiKhoan;
     private String matKhau;
-    private String soDienThoai;
-    private LocalDate ngayVaoLam;
+    private String hoTen;
+    private String sdt;
+    private Timestamp ngayVaoLam;
     private String chucVu;
-    private double luong;
+    private int luong;
 
-    public NhanVienDTO(int id, String tenTaiKhoan, String matKhau, String soDienThoai, LocalDate ngayVaoLam, String chucVu, double luong) {
-        this.id = id;
-        this.tenTaiKhoan = tenTaiKhoan;
+    public NhanVienDTO(int maNV, String taiKhoan, String matKhau, String hoTen, String sdt, Timestamp ngayVaoLam, String chucVu, int luong) {
+        this.maNV = maNV;
+        this.taiKhoan = taiKhoan;
         this.matKhau = matKhau;
-        this.soDienThoai = soDienThoai;
+        this.hoTen = hoTen;
+        this.sdt = sdt;
         this.ngayVaoLam = ngayVaoLam;
         this.chucVu = chucVu;
         this.luong = luong;
     }
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getTenTaiKhoan() { return tenTaiKhoan; }
-    public void setTenTaiKhoan(String tenTaiKhoan) { this.tenTaiKhoan = tenTaiKhoan; }
+
+    public int getMaNV() { return maNV; }
+    public void setMaNV(int maNV) { this.maNV = maNV; }
+    public String getTaiKhoan() { return taiKhoan; }
+    public void setTaiKhoan(String taiKhoan) { this.taiKhoan = taiKhoan; }
     public String getMatKhau() { return matKhau; }
     public void setMatKhau(String matKhau) { this.matKhau = matKhau; }
-    public String getSoDienThoai() { return soDienThoai; }
-    public void setSoDienThoai(String soDienThoai) { this.soDienThoai = soDienThoai; }
-    public LocalDate getNgayVaoLam() { return ngayVaoLam; }
-    public void setNgayVaoLam(LocalDate ngayVaoLam) { this.ngayVaoLam = ngayVaoLam; }
+    public String getHoTen() { return hoTen; }
+    public void setHoTen(String hoTen) { this.hoTen = hoTen; }
+    public String getSdt() { return sdt; }
+    public void setSdt(String sdt) { this.sdt = sdt; }
+    public Timestamp getNgayVaoLam() { return ngayVaoLam; }
+    public void setNgayVaoLam(Timestamp ngayVaoLam) { this.ngayVaoLam = ngayVaoLam; }
     public String getChucVu() { return chucVu; }
     public void setChucVu(String chucVu) { this.chucVu = chucVu; }
-    public double getLuong() { return luong; }
-    public void setLuong(double luong) { this.luong = luong; }
-
-    // Getter, Setter...
+    public int getLuong() { return luong; }
+    public void setLuong(int luong) { this.luong = luong; }
 }

@@ -8,13 +8,13 @@ public class NhaCungCapView {
         while (true) {
             ConsoleUI.printHeader("QUẢN LÝ NHÀ CUNG CẤP");
             ConsoleUI.printSection("CHỨC NĂNG");
-            System.out.println("│ 1. Xem danh sách nhà cung cấp                 │");
-            System.out.println("│ 2. Thêm nhà cung cấp                          │");
-            System.out.println("│ 3. Sửa thông tin nhà cung cấp                 │");
-            System.out.println("│ 4. Xóa nhà cung cấp                           │");
-            System.out.println("│ 5. Tìm kiếm nhà cung cấp                      │");
+            System.out.println("│ 1. Xem danh sách nhà cung cấp                │");
+            System.out.println("│ 2. Thêm nhà cung cấp                         │");
+            System.out.println("│ 3. Sửa thông tin nhà cung cấp                │");
+            System.out.println("│ 4. Xóa nhà cung cấp                          │");
+            System.out.println("│ 5. Tìm kiếm nhà cung cấp                     │");
             ConsoleUI.printSection("ĐIỀU HƯỚNG");
-            System.out.println("│ 0. Quay lại                                   │");
+            System.out.println("│ 0. Quay lại                                  │");
             ConsoleUI.printFooter();
             System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
             String chonStr = sc.nextLine();

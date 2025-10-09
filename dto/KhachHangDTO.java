@@ -1,35 +1,31 @@
 package dto;
 import java.util.Scanner;
+import java.sql.Timestamp;
+
 public class KhachHangDTO implements Inhapxuat {
-    private String maKH;
-    private String tenKH;
+    private int maKH;
     private String sdt;
+    private String hoTen;
     private String diaChi;
+    private Timestamp ngaySinh;
 
     public KhachHangDTO() {
     }
 
-    public KhachHangDTO(String maKH, String tenKH, String sdt, String diaChi) {
+    public KhachHangDTO(int maKH, String sdt, String hoTen, String diaChi, Timestamp ngaySinh) {
         this.maKH = maKH;
-        this.tenKH = tenKH;
         this.sdt = sdt;
+        this.hoTen = hoTen;
         this.diaChi = diaChi;
+        this.ngaySinh = ngaySinh;
     }
 
-    public String getMaKH() {
+    public int getMaKH() {
         return maKH;
     }
 
-    public void setMaKH(String maKH) {
+    public void setMaKH(int maKH) {
         this.maKH = maKH;
-    }
-
-    public String getTenKH() {
-        return tenKH;
-    }
-
-    public void setTenKH(String tenKH) {
-        this.tenKH = tenKH;
     }
 
     public String getSdt() {
@@ -40,6 +36,14 @@ public class KhachHangDTO implements Inhapxuat {
         this.sdt = sdt;
     }
 
+    public String getHoTen() {
+        return hoTen;
+    }
+
+    public void setHoTen(String hoTen) {
+        this.hoTen = hoTen;
+    }
+
     public String getDiaChi() {
         return diaChi;
     }
@@ -48,21 +52,36 @@ public class KhachHangDTO implements Inhapxuat {
         this.diaChi = diaChi;
     }
 
+    public Timestamp getNgaySinh() {
+        return ngaySinh;
+    }
+
+    public void setNgaySinh(Timestamp ngaySinh) {
+        this.ngaySinh = ngaySinh;
+    }
+
     @Override
     public void nhap() {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Nhap ma khach hang: ");
-        maKH = sc.nextLine();
-        System.out.print("Nhap ten khach hang: ");
-        tenKH = sc.nextLine();
-        System.out.print("Nhap so dien thoai: ");
-        sdt = sc.nextLine();
-        System.out.print("Nhap dia chi: ");
-        diaChi = sc.nextLine();
+        try {
+            System.out.print("Nhập số điện thoại: ");
+            sdt = sc.nextLine();
+            System.out.print("Nhập họ tên: ");
+            hoTen = sc.nextLine();
+            System.out.print("Nhập địa chỉ: ");
+            diaChi = sc.nextLine();
+            System.out.print("Nhập ngày sinh (yyyy-mm-dd): ");
+            String ngaySinhStr = sc.nextLine();
+            if (!ngaySinhStr.isEmpty()) {
+                ngaySinh = Timestamp.valueOf(ngaySinhStr + " 10:00:00");
+            }
+        } finally {
+            sc.close();
+        }
     }
 
     @Override
     public void xuat() {
-        System.out.printf("%-10s %-20s %-15s %-30s\n", maKH, tenKH, sdt, diaChi);
+        System.out.printf("%-10d %-15s %-20s %-30s %-20s\n", maKH, sdt, hoTen, diaChi, ngaySinh);
     }
 }

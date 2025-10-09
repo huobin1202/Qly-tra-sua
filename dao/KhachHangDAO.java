@@ -21,12 +21,12 @@ public class KhachHangDAO implements IQuanLy {
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO customers (ten, sdt, diachi, ngaysinh) VALUES (?, ?, ?, ?)")) {
-            ps.setString(1, ten);
-            ps.setString(2, sdt);
+                "INSERT INTO khachhang (SDT, HoTen, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)")) {
+            ps.setString(1, sdt);
+            ps.setString(2, ten);
             ps.setString(3, diachi);
-            if (ngaysinhStr == null || ngaysinhStr.trim().isEmpty()) ps.setNull(4, java.sql.Types.DATE);
-            else ps.setString(4, ngaysinhStr.trim());
+            if (ngaysinhStr == null || ngaysinhStr.trim().isEmpty()) ps.setNull(4, java.sql.Types.TIMESTAMP);
+            else ps.setTimestamp(4, java.sql.Timestamp.valueOf(ngaysinhStr.trim() + " 10:00:00"));
             ps.executeUpdate();
             System.out.println("Đã thêm khách hàng vào database.");
         } catch (SQLException e) {
@@ -47,7 +47,7 @@ public class KhachHangDAO implements IQuanLy {
         String diachi = rd.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "UPDATE customers SET sdt=?, diachi=? WHERE id=?" )) {
+                "UPDATE khachhang SET SDT=?, DiaChi=? WHERE MaKH=?" )) {
             ps.setString(1, sdt);
             ps.setString(2, diachi);
             ps.setInt(3, id);
@@ -69,7 +69,7 @@ public class KhachHangDAO implements IQuanLy {
         int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "DELETE FROM customers WHERE id=?")) {
+                "DELETE FROM khachhang WHERE MaKH=?")) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
             if (rows > 0)
@@ -94,7 +94,7 @@ public class KhachHangDAO implements IQuanLy {
                 System.out.print("Nhập ID: ");
                 String idStr = rd.nextLine();
                 int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
-                sql = "SELECT * FROM customers WHERE id = ?";
+                sql = "SELECT * FROM khachhang WHERE MaKH = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setInt(1, id);
                     try (ResultSet rs = ps.executeQuery()) { printCustomerTable(rs); }
@@ -102,7 +102,7 @@ public class KhachHangDAO implements IQuanLy {
             } else {
                 System.out.print("Nhập tên: ");
                 String ten = rd.nextLine();
-                sql = "SELECT * FROM customers WHERE ten LIKE ?";
+                sql = "SELECT * FROM khachhang WHERE HoTen LIKE ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, "%" + ten + "%");
                     try (ResultSet rs = ps.executeQuery()) { printCustomerTable(rs); }
@@ -121,8 +121,8 @@ public class KhachHangDAO implements IQuanLy {
         while (rs.next()) {
             any = true;
             System.out.printf("║ %-2d ║ %-18s ║ %-10s ║ %-26s ║ %-10s ║\n",
-                rs.getInt("id"), rs.getString("ten"), rs.getString("sdt"), rs.getString("diachi"),
-                rs.getString("ngaysinh") == null ? "" : rs.getString("ngaysinh"));
+                rs.getInt("MaKH"), rs.getString("HoTen"), rs.getString("SDT"), rs.getString("DiaChi"),
+                rs.getString("NgaySinh") == null ? "" : rs.getString("NgaySinh"));
         }
         if (!any) System.out.println("║ Không có kết quả                                                       ║");
         System.out.println("╚════╩════════════════════╩════════════╩════════════════════════════╩════════════╝");
@@ -138,12 +138,12 @@ public class KhachHangDAO implements IQuanLy {
         boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM customers ORDER BY id")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM khachhang ORDER BY MaKH")) {
             while (rs.next()) {
                 any = true;
                 System.out.printf("│ %-2d │ %-18s │ %-10s │ %-24s │ %-10s │\n",
-                    rs.getInt("id"), rs.getString("ten"), rs.getString("sdt"), rs.getString("diachi"),
-                    rs.getString("ngaysinh") == null ? "" : rs.getString("ngaysinh"));
+                    rs.getInt("MaKH"), rs.getString("HoTen"), rs.getString("SDT"), rs.getString("DiaChi"),
+                    rs.getString("NgaySinh") == null ? "" : rs.getString("NgaySinh"));
             }
         } catch (SQLException e) {
             e.printStackTrace();

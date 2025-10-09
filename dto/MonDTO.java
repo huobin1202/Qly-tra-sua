@@ -1,71 +1,55 @@
 package dto;
 public class MonDTO {
-    int id;
-    String ten;
-    String mota;
-    String anh;
-    String tendv;
-    int gia;
-    String dv;
-    int ma_loai;
+    int maMon;
+    String tenMon;
+    String moTa;
+    String tenDonVi;
+    long gia;
+    int maLoai;
 
-    public MonDTO(int id, String ten, String mota, String anh, String tendv, int gia, String dv, int ma_loai) {
-        this.id = id;
-        this.ten = ten;
-        this.mota = mota;
-        this.anh = anh;
-        this.tendv = tendv;
+    public MonDTO(int maMon, String tenMon, String moTa, String tenDonVi, long gia, int maLoai) {
+        this.maMon = maMon;
+        this.tenMon = tenMon;
+        this.moTa = moTa;
+        this.tenDonVi = tenDonVi;
         this.gia = gia;
-        this.dv = dv;
-        this.ma_loai = ma_loai;
+        this.maLoai = maLoai;
     }
-    public int getId() {
-        return id;
+    public int getMaMon() {
+        return maMon;
     }
-    public void setId(int id) {
-        this.id = id;
+    public void setMaMon(int maMon) {
+        this.maMon = maMon;
     }
-    public String getTen() {
-        return ten;
+    public String getTenMon() {
+        return tenMon;
     }
-    public void setTen(String ten) {
-        this.ten = ten;
+    public void setTenMon(String tenMon) {
+        this.tenMon = tenMon;
     }
-    public String getMota() {
-        return mota;
+    public String getMoTa() {
+        return moTa;
     }
-    public void setMota(String mota) {
-        this.mota = mota;
+    public void setMoTa(String moTa) {
+        this.moTa = moTa;
     }
-    public String getAnh() {
-        return anh;
+   
+    public String getTenDonVi() {
+        return tenDonVi;
     }
-    public void setAnh(String anh) {
-        this.anh = anh;
+    public void setTenDonVi(String tenDonVi) {
+        this.tenDonVi = tenDonVi;
     }
-    public String getTendv() {
-        return tendv;
-    }
-    public void setTendv(String tendv) {
-        this.tendv = tendv;
-    }
-    public int getGia() {
+    public long getGia() {
         return gia;
     }
-    public void setGia(int gia) {
+    public void setGia(long gia) {
         this.gia = gia;
     }
-    public String getDv() {
-        return dv;
+    public int getMaLoai() {
+        return maLoai;
     }
-    public void setDv(String dv) {
-        this.dv = dv;
+    public void setMaLoai(int maLoai) {
+        this.maLoai = maLoai;
     }
-    public int getMa_loai() {
-        return ma_loai;
-    }
-    public void setMa_loai(int ma_loai) {
-        this.ma_loai = ma_loai;
-    }
-
 }

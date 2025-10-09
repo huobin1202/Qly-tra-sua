@@ -1,45 +1,46 @@
 package dto;
-import java.time.LocalDate;
+import java.sql.Timestamp;
 
 public class GiaoHangDTO {
-    private int id;
-    private String tenKH;
-    private String diaChi;
+    private int maDon;
+    private int maKH;
     private String tenShipper;
-    private int sdtShipper;
-    private double giaShip;
+    private String sdtShipper;
+    private int phiShip;
     private String trangThai;
-    private LocalDate ngayBatDau;
-    private LocalDate ngayKetThuc;
+    private String thongBao;
+    private Timestamp ngayBatDau;
+    private Timestamp ngayKetThuc;
 
-    public GiaoHangDTO(int id, String tenKH, String diaChi, String tenShipper, int sdtShipper, double giaShip, String trangThai, LocalDate ngayBatDau, LocalDate ngayKetThuc) {
-        this.id = id;
-        this.tenKH = tenKH;
-        this.diaChi = diaChi;
+    public GiaoHangDTO(int maDon, int maKH, String tenShipper, String sdtShipper, 
+                      int phiShip, String trangThai, String thongBao, Timestamp ngayBatDau, Timestamp ngayKetThuc) {
+        this.maDon = maDon;
+        this.maKH = maKH;
         this.tenShipper = tenShipper;
         this.sdtShipper = sdtShipper;
-        this.giaShip = giaShip;
+        this.phiShip = phiShip;
         this.trangThai = trangThai;
+        this.thongBao = thongBao;
         this.ngayBatDau = ngayBatDau;
         this.ngayKetThuc = ngayKetThuc;
     }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
-    public String getTenKH() { return tenKH; }
-    public void setTenKH(String tenKH) { this.tenKH = tenKH; }
-    public String getDiaChi() { return diaChi; }
-    public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
+    public int getMaDon() { return maDon; }
+    public void setMaDon(int maDon) { this.maDon = maDon; }
+    public int getMaKH() { return maKH; }
+    public void setMaKH(int maKH) { this.maKH = maKH; }
     public String getTenShipper() { return tenShipper; }
     public void setTenShipper(String tenShipper) { this.tenShipper = tenShipper; }
-    public int getSdtShipper() { return sdtShipper; }
-    public void setSdtShipper(int sdtShipper) { this.sdtShipper = sdtShipper; }
-    public double getGiaShip() { return giaShip; }
-    public void setGiaShip(double giaShip) { this.giaShip = giaShip; }
+    public String getSdtShipper() { return sdtShipper; }
+    public void setSdtShipper(String sdtShipper) { this.sdtShipper = sdtShipper; }
+    public int getPhiShip() { return phiShip; }
+    public void setPhiShip(int phiShip) { this.phiShip = phiShip; }
     public String getTrangThai() { return trangThai; }
     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
-    public LocalDate getNgayBatDau() { return ngayBatDau; }
-    public void setNgayBatDau(LocalDate ngayBatDau) { this.ngayBatDau = ngayBatDau; }
-    public LocalDate getNgayKetThuc() { return ngayKetThuc; }
-
+    public String getThongBao() { return thongBao; }
+    public void setThongBao(String thongBao) { this.thongBao = thongBao; }
+    public Timestamp getNgayBatDau() { return ngayBatDau; }
+    public void setNgayBatDau(Timestamp ngayBatDau) { this.ngayBatDau = ngayBatDau; }
+    public Timestamp getNgayKetThuc() { return ngayKetThuc; }
+    public void setNgayKetThuc(Timestamp ngayKetThuc) { this.ngayKetThuc = ngayKetThuc; }
 }

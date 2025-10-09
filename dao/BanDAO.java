@@ -14,7 +14,7 @@ public class BanDAO {
         String trangThai = sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO ban (tenban, trangthai) VALUES (?, ?)")) {
+                "INSERT INTO ban (TenBan, TrangThai) VALUES (?, ?)")) {
             ps.setString(1, tenBan);
             ps.setString(2, trangThai);
             ps.executeUpdate();
@@ -34,7 +34,7 @@ public class BanDAO {
         String trangThai = sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "UPDATE ban SET tenban=?, trangthai=? WHERE id=?")) {
+                "UPDATE ban SET TenBan=?, TrangThai=? WHERE MaBan=?")) {
             ps.setString(1, tenBan);
             ps.setString(2, trangThai);
             ps.setInt(3, id);
@@ -51,7 +51,7 @@ public class BanDAO {
         System.out.print("Nhập ID bàn cần xóa: ");
         int id = sc.nextInt(); sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM ban WHERE id=?")) {
+             PreparedStatement ps = conn.prepareStatement("DELETE FROM ban WHERE MaBan=?")) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
             if (rows > 0) System.out.println("Xóa thành công!");
@@ -69,13 +69,13 @@ public class BanDAO {
         boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery("SELECT * FROM ban ORDER BY id")) {
+             ResultSet rs = st.executeQuery("SELECT * FROM ban ORDER BY MaBan")) {
             while (rs.next()) {
                 any = true;
                 System.out.printf("│ %-2d │ %-10s │ %-18s │\n",
-                    rs.getInt("id"),
-                    rs.getString("tenban"),
-                    rs.getString("trangthai")
+                    rs.getInt("MaBan"),
+                    rs.getString("TenBan"),
+                    rs.getString("TrangThai")
                 );
             }
         } catch (SQLException e) {
