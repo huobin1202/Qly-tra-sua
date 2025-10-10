@@ -12,8 +12,9 @@
 # Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
     Quản lý hàng hóa: món, loại món
-    Quản lý đặt hàng: quản lý bàn, đơn đặt hàng, quản lý giao hàng
-    Quản lý nhập/xuất hàng, bán hàng
+    Quản lý đặt hàng: đơn hàng, quản lý giao hàng
+    Quản lý nhập/xuất hàng
+    Quản lý kho hàng
     Quản lý nhà cung cấp
     Quản lý khách hàng, nhân viên
     Quản lý tài khoản (login, phân quyền) 
