@@ -18,7 +18,7 @@ public class NhaCungCapDAO implements IQuanLy {
         String diachi = rd.nextLine(); 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO nhacungcap (ten, sdt, diachi) VALUES (?, ?, ?)")) {
+                "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
             ps.setString(1, ten);
             ps.setString(2, sdt);
             ps.setString(3, diachi);
@@ -41,7 +41,7 @@ public class NhaCungCapDAO implements IQuanLy {
         String diachi = rd.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "UPDATE nhacungcap SET sdt=?, diachi=? WHERE id=?" )) {
+                "UPDATE nhacungcap SET SDT=?, DiaChi=? WHERE MaNCC=?" )) {
             ps.setString(1, sdt);
             ps.setString(2, diachi);
             ps.setInt(3, id);
@@ -63,7 +63,7 @@ public class NhaCungCapDAO implements IQuanLy {
         int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "DELETE FROM nhacungcap WHERE id=?")) {
+                "DELETE FROM nhacungcap WHERE MaNCC=?")) {
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
             if (rows > 0)
@@ -87,14 +87,14 @@ public class NhaCungCapDAO implements IQuanLy {
                 System.out.print("Nhập ID: ");
                 String idStr = rd.nextLine();
                 int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM nhacungcap WHERE id=?")) {
+                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM nhacungcap WHERE MaNCC=?")) {
                     ps.setInt(1, id);
                     try (ResultSet rs = ps.executeQuery()) { printNCC(rs); }
                 }
             } else {
                 System.out.print("Nhập tên: ");
                 String ten = rd.nextLine();
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM nhacungcap WHERE ten LIKE ?")) {
+                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM nhacungcap WHERE TenNCC LIKE ?")) {
                     ps.setString(1, "%" + ten + "%");
                     try (ResultSet rs = ps.executeQuery()) { printNCC(rs); }
                 }
@@ -110,7 +110,7 @@ public class NhaCungCapDAO implements IQuanLy {
         ConsoleUI.printHeader("DANH SÁCH NHÀ CUNG CẤP");
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM nhacungcap ORDER BY id")) {
+             ResultSet rs = stmt.executeQuery("SELECT * FROM nhacungcap ORDER BY MaNCC")) {
             printNCC(rs);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -119,14 +119,14 @@ public class NhaCungCapDAO implements IQuanLy {
     }
 
     private void printNCC(ResultSet rs) throws SQLException {
-        System.out.println("┌────┬────────────────────┬────────────┬──────────────────────────┐");
-        System.out.println("│ ID │ Tên                │ SĐT        │ Địa chỉ                 │");
+        System.out.println("┌────┬────────────────────┬──────────────┬──────────────────────────┐");
+        System.out.println("│ ID │ Tên                │ SĐT          │ Địa chỉ                 │");
         System.out.println("├────┼────────────────────┼────────────┼──────────────────────────┤");
         boolean any = false;
         while (rs.next()) {
             any = true;
             System.out.printf("│ %-2d │ %-18s │ %-10s │ %-24s │\n",
-                rs.getInt("id"), rs.getString("ten"), rs.getString("sdt"), rs.getString("diachi"));
+                rs.getInt("MaNCC"), rs.getString("TenNCC"), rs.getString("SDT"), rs.getString("DiaChi"));
         }
         if (!any) System.out.println("│ Không có dữ liệu                                        │");
         System.out.println("└────┴────────────────────┴────────────┴──────────────────────────┘");

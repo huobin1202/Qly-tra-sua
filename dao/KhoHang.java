@@ -2,7 +2,6 @@ package dao;
 import java.sql.*;
 import db.DBUtil;
 import view.ConsoleUI;
-import java.util.Scanner;
 
 public class KhoHang {
     public void xemTon() {

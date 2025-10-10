@@ -376,10 +376,11 @@ CREATE TABLE IF NOT EXISTS `phieunhap` (
 
 -- Supplier products catalog and on-hand stock at supplier
 CREATE TABLE IF NOT EXISTS `nhacungcap` (
-  `MaNCC` int(11) NOT NULL,
+  `MaNCC` int(11) NOT NULL AUTO_INCREMENT,
   `TenNCC` varchar(100) NOT NULL,
   `SDT` varchar(20) DEFAULT NULL,
-  `DiaChi` varchar(200) DEFAULT NULL
+  `DiaChi` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`MaNCC`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE IF NOT EXISTS `ncc_sanpham` (
@@ -437,8 +438,7 @@ ALTER TABLE `chitietxuat`
   ADD PRIMARY KEY (`MaPX`,`MaMon`),
   ADD KEY `fk_ctx_mon` (`MaMon`);
 
-ALTER TABLE `nhacungcap`
-  ADD PRIMARY KEY (`MaNCC`);
+-- primary key declared inline for `nhacungcap`
 
 ALTER TABLE `ncc_sanpham`
   ADD PRIMARY KEY (`MaNCC`,`MaMon`),

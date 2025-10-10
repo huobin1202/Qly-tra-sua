@@ -25,10 +25,10 @@ public class NhanVienView {
                 System.out.println("Vui lòng nhập số hợp lệ.");
                 continue;
             }
-            if (chonNV == 2) dsNhanVien.them();
+            if (chonNV == 1) dsNhanVien.xuat();
+            else if (chonNV == 2) dsNhanVien.xuat();
             else if (chonNV == 3) dsNhanVien.sua();
             else if (chonNV == 4) dsNhanVien.xoa();
-            else if (chonNV == 1) dsNhanVien.xuat();
             else if (chonNV == 5) dsNhanVien.timkiem();
             else if (chonNV == 0) break;
             else System.out.println("Chức năng không hợp lệ.");

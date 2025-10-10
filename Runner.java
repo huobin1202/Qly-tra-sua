@@ -130,15 +130,9 @@ public class Runner {
                     break;
                 case 5:
                     NhaCungCapView.menu(NhaCungCap, sc);
-                    return;
+                    break;
                 case 6:
                     view.KhoHangView.menu(sc); // reuse view to create and later list
-                    break;
-                case 7:
-                    view.KhoHangView.menu(sc);
-                    break;
-                case 8:
-                    view.KhoHangView.menu(sc); // reuse view for export management
                     break;
                 case 0:
                     System.out.println("Thoát chương trình.");
