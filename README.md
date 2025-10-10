@@ -1,6 +1,9 @@
 <!-- author: hgbaodev -->
 # Quản lý quán trà sữa
-Đồ án môn Phân tích thiết kế hệ thống thông tin
+- Đồ án môn Phân tích thiết kế hệ thống thông tin
+- Sử dụng ngôn ngữ Java
+- Tiến trình code: 50%
+- Tiến trình báo cáo: -
 ### Thành viên trong nhóm
 | Họ Tên  | MSSV | % Công việc | Phân công | 
 | ------------- | ------------- | ------------- | ------------- |
