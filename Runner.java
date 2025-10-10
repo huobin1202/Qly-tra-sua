@@ -100,7 +100,6 @@ public class Runner {
             System.out.println("│ 5. Quản lý nhà cung cấp                      │");
             System.out.println("│ 6. Quản lý phiếu nhập                        │");
             System.out.println("│ 7. Tồn kho                                   │");
-            System.out.println("│ 8. Quản lý phiếu xuất                        │");
             view.ConsoleUI.printSection("THỐNG KÊ (đang cập nhật)");
             System.out.println("│ 9. Thống kê doanh thu                        │");
             view.ConsoleUI.printSection("HỆ THỐNG");

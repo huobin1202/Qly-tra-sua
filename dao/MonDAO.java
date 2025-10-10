@@ -97,22 +97,21 @@ public class MonDAO {
     public void xuat() {
         ConsoleUI.printHeader("DANH SÁCH MÓN");
         System.out.println("┌────┬────────────────────────────┬────────────────────┬────────────┬────────────┬────────────┬────────────┐");
-        System.out.println("│ ID │ Tên                        │ Mô tả              │ Tên DV     │ Giá        │ Loại       │ Số lượng  │");
+        System.out.println("│ ID │ Tên                        │ Mô tả              │ Tên DV     │ Giá        │ Loại       │ Tình trạng │");
         System.out.println("├────┼────────────────────────────┼────────────────────┼────────────┼────────────┼────────────┼────────────┤");
         boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(
-                "SELECT mon.*, loaimon.TenLoai as ten_loai, IFNULL(k.SoLuong, 0) AS SoLuongCon " +
+                "SELECT mon.*, loaimon.TenLoai as ten_loai " +
                 "FROM mon " +
                 "LEFT JOIN loaimon ON mon.MaLoai = loaimon.MaLoai " +
-                "LEFT JOIN khohang k ON mon.MaMon = k.MaMon " +
                 "ORDER BY mon.MaMon")) {
             while (rs.next()) {
                 any = true;
-                System.out.printf("│ %-2d │ %-25s │ %-18s │ %-10s │ %-10d │ %-10s │ %-10d │\n",
+                System.out.printf("│ %-2d │ %-25s │ %-18s │ %-10s │ %-10d │ %-10s │ %-10s │\n",
                     rs.getInt("MaMon"), rs.getString("TenMon"), rs.getString("MoTa"),
-                    rs.getString("TenDonVi"), rs.getLong("Gia"), rs.getString("ten_loai"), rs.getInt("SoLuongCon"));
+                    rs.getString("TenDonVi"), rs.getLong("Gia"), rs.getString("ten_loai"), rs.getString("TinhTrang"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -142,10 +141,9 @@ public class MonDAO {
                 String idStr = sc.nextLine();
                 int id;
                 try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
-                sql = "SELECT mon.*, loaimon.TenLoai as ten_loai, IFNULL(k.SoLuong, 0) AS SoLuongCon " +
+                sql = "SELECT mon.*, loaimon.TenLoai as ten_loai " +
                       "FROM mon " +
                       "LEFT JOIN loaimon ON mon.MaLoai = loaimon.MaLoai " +
-                      "LEFT JOIN khohang k ON mon.MaMon = k.MaMon " +
                       "WHERE mon.MaMon = ?";
                 try (Connection conn = DBUtil.getConnection();
                      PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -159,10 +157,9 @@ public class MonDAO {
             } else {
                 System.out.print("Nhập tên: ");
                 String ten = sc.nextLine();
-                sql = "SELECT mon.*, loaimon.TenLoai as ten_loai, IFNULL(k.SoLuong, 0) AS SoLuongCon " +
+                sql = "SELECT mon.*, loaimon.TenLoai as ten_loai " +
                       "FROM mon " +
                       "LEFT JOIN loaimon ON mon.MaLoai = loaimon.MaLoai " +
-                      "LEFT JOIN khohang k ON mon.MaMon = k.MaMon " +
                       "WHERE mon.TenMon LIKE ?";
                 try (Connection conn = DBUtil.getConnection();
                      PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -179,14 +176,14 @@ public class MonDAO {
 
     private void printMonTable(ResultSet rs) throws SQLException {
         System.out.println("\n╔════╦════════════════════╦════════════════════╦════════════╦════════════╦═════════════╦════════════╗");
-        System.out.println("║ ID ║ Tên               ║ Mô tả              ║ Tên DV     ║ Giá        ║ Loại       ║ Số lượng   ║");
+        System.out.println("║ ID ║ Tên               ║ Mô tả              ║ Tên DV     ║ Giá        ║ Loại       ║ Tình trạng ║");
         System.out.println("╠════╬════════════════════╬════════════════════╬════════════╬════════════╬════════════╬════════════╣");
         boolean any = false;
         while (rs.next()) {
             any = true;
-            System.out.printf("║ %-2d ║ %-18s ║ %-18s ║ %-10s ║ %-10d ║ %-10s ║ %-10d ║\n",
+            System.out.printf("║ %-2d ║ %-18s ║ %-18s ║ %-10s ║ %-10d ║ %-10s ║ %-10s ║\n",
                 rs.getInt("MaMon"), rs.getString("TenMon"), rs.getString("MoTa"),
-                rs.getString("TenDonVi"), rs.getLong("Gia"), rs.getString("ten_loai"), rs.getInt("SoLuongCon"));
+                rs.getString("TenDonVi"), rs.getLong("Gia"), rs.getString("ten_loai"), rs.getString("TinhTrang"));
         }
         if (!any) System.out.println("║ Không có kết quả                                                                           ║");
         System.out.println("╚════╩════════════════════╩════════════════════╩════════════╩════════════╩════════════╩════════════╝");

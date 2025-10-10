@@ -64,13 +64,7 @@ public class NhapHang {
                     ps.setInt(2, sl);
                     ps.executeUpdate();
                 }
-                // also update mon.SoLuong
-                try (PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE mon SET SoLuong = SoLuong + ? WHERE MaMon=?")) {
-                    ps.setInt(1, sl);
-                    ps.setInt(2, maMon);
-                    ps.executeUpdate();
-                }
+                // mon table no longer tracks SoLuong
                 // decrement supplier stock
                 try (PreparedStatement ps = conn.prepareStatement("UPDATE ncc_sanpham SET SoLuong = SoLuong - ? WHERE MaNCC=? AND MaMon=?")) {
                     ps.setInt(1, sl);

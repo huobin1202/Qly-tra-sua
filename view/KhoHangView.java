@@ -3,21 +3,18 @@ package view;
 import java.util.Scanner;
 import dao.KhoHang;
 import dao.NhapHang;
-import dao.XuatHang;
 
 public class KhoHangView {
     public static void menu(Scanner sc) {
         KhoHang kho = new KhoHang();
         NhapHang nhap = new NhapHang();
-        XuatHang xuat = new XuatHang();
         while (true) {
             ConsoleUI.printHeader("NHẬP → KHO → XUẤT");
             ConsoleUI.printSection("CHỨC NĂNG");
             System.out.println("│ 1. Tạo phiếu nhập                     │");
             System.out.println("│ 2. Xem tồn kho                        │");
-            System.out.println("│ 3. Tạo phiếu xuất                     │");
-            System.out.println("│ 4. Xem danh sách nhà cung cấp                │");
-            System.out.println("│ 5. Xem sản phẩm của nhà cung cấp      │");
+            System.out.println("│ 3. Xem danh sách nhà cung cấp                │");
+            System.out.println("│ 4. Xem sản phẩm của nhà cung cấp      │");
             ConsoleUI.printSection("ĐIỀU HƯỚNG");
             System.out.println("│ 0. Quay lại                           │");
             ConsoleUI.printFooter();
@@ -32,9 +29,8 @@ public class KhoHangView {
             }
             if (chon == 1) nhap.taoPhieuNhap();
             else if (chon == 2) kho.xemTon();
-            else if (chon == 3) xuat.taoPhieuXuat();
-            else if (chon == 4) xemDanhSachNCC(sc);
-            else if (chon == 5) xemSanPhamNCC(sc);
+            else if (chon == 3) xemDanhSachNCC(sc);
+            else if (chon == 4) xemSanPhamNCC(sc);
             else if (chon == 0) break;
             else System.out.println("Chức năng không hợp lệ.");
         }

@@ -106,7 +106,7 @@ CREATE TABLE `mon` (
   `MoTa` varchar(500) DEFAULT NULL,
   `TenDonVi` varchar(20) NOT NULL,
   `Gia` bigint(20) NOT NULL,
-  `SoLuong` int(11) NOT NULL DEFAULT 0,
+  `TinhTrang` varchar(20) NOT NULL DEFAULT 'ban',
   `MaLoai` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -114,24 +114,24 @@ CREATE TABLE `mon` (
 -- Dumping data for table `mon`
 --
 
-INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `TenDonVi`, `Gia`, `SoLuong`, `MaLoai`) VALUES
-(1, 'No Topping', '', 'Phần', 0, 0, 4),
-(2, 'Trân Châu Tuyết Sợi', NULL, 'Phần', 10000, 0, 4),
-(3, 'Trân Châu Đen', NULL, 'Phần', 10000, 0, 4),
-(4, 'Trân Châu Trắng', NULL, 'Phần', 10000, 0, 4),
-(5, 'Trà Sữa Trân Châu', '', 'Ly', 50000, 0, 2),
-(6, 'Trà Sữa Sương Sáo', NULL, 'Ly', 45000, 0, 2),
-(7, 'Trà Sữa Matcha(L)', '', 'Ly', 50000, 0, 2),
-(8, 'Sữa Tươi Trân Châu Đường Đen', NULL, 'Ly', 45000, 0, 2),
-(9, 'Bánh Flan', '', 'Cái', 10000, 0, 2),
-(10, 'Hướng dương', NULL, 'Túi', 10000, 0, 1),
-(11, 'Cafe truyền thống', NULL, 'Cốc', 35000, 0, 3),
-(12, 'Espresso', NULL, 'Cốc', 45000, 0, 3),
-(13, 'Trà Sữa Matcha(XL)', NULL, 'Ly', 25000, 0, 2),
-(14, 'Trà Sữa Ô Long', '', 'Ly', 20000, 0, 2),
-(15, 'Trà Đào', '', 'Ly', 40000, 0, 2),
-(16, 'Trà Đào(L)', '', 'Ly', 50000, 0, 2),
-(18, 'Trà Nhãn - Sen', '', 'Ly', 45000, 0, 2);
+INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `TenDonVi`, `Gia`, `TinhTrang`, `MaLoai`) VALUES
+(1, 'No Topping', '', 'Phần', 0, 'ban', 4),
+(2, 'Trân Châu Tuyết Sợi', NULL, 'Phần', 10000, 'ban', 4),
+(3, 'Trân Châu Đen', NULL, 'Phần', 10000, 'ban', 4),
+(4, 'Trân Châu Trắng', NULL, 'Phần', 10000, 'ban', 4),
+(5, 'Trà Sữa Trân Châu', '', 'Ly', 50000, 'ban', 2),
+(6, 'Trà Sữa Sương Sáo', NULL, 'Ly', 45000, 'ban', 2),
+(7, 'Trà Sữa Matcha(L)', '', 'Ly', 50000, 'ban', 2),
+(8, 'Sữa Tươi Trân Châu Đường Đen', NULL, 'Ly', 45000, 'ban', 2),
+(9, 'Bánh Flan', '', 'Cái', 10000, 'ban', 2),
+(10, 'Hướng dương', NULL, 'Túi', 10000, 'ban', 1),
+(11, 'Cafe truyền thống', NULL, 'Cốc', 35000, 'ban', 3),
+(12, 'Espresso', NULL, 'Cốc', 45000, 'ban', 3),
+(13, 'Trà Sữa Matcha(XL)', NULL, 'Ly', 25000, 'ban', 2),
+(14, 'Trà Sữa Ô Long', '', 'Ly', 20000, 'ban', 2),
+(15, 'Trà Đào', '', 'Ly', 40000, 'ban', 2),
+(16, 'Trà Đào(L)', '', 'Ly', 50000, 'ban', 2),
+(18, 'Trà Nhãn - Sen', '', 'Ly', 45000, 'ban', 2);
 
 -- --------------------------------------------------------
 

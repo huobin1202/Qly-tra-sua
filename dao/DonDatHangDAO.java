@@ -9,15 +9,11 @@ public class DonDatHangDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
         try {
-            System.out.print("Mã nhân viên lập đơn: ");
-            int maNV = sc.nextInt();
-            sc.nextLine();
+            int maNV = db.Session.currentMaNV;
             System.out.print("Trạng thái: ");
             String trangThai = sc.nextLine();
-            System.out.print("Ngày lập (yyyy-mm-dd): ");
-            String ngayLap = sc.nextLine();
-            System.out.print("Ngày thanh toán (yyyy-mm-dd, có thể để trống): ");
-            String ngayThanhToan = sc.nextLine();
+            String ngayLap = null; // now auto by DB
+            String ngayThanhToan = ""; // user may set later; keep empty
             System.out.print("Đã thanh toán: ");
             double daThanhToan = sc.nextDouble();
             System.out.print("Tổng tiền: ");
@@ -25,14 +21,11 @@ public class DonDatHangDAO {
             sc.nextLine();
             try (Connection conn = DBUtil.getConnection();
                  PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO dondathang (MaNV, TrangThai, NgayDat, NgayThanhToan, SoTienDaTra, TongTien) VALUES (?, ?, ?, ?, ?, ?)")) {
+                    "INSERT INTO dondathang (MaNV, TrangThai, SoTienDaTra, TongTien) VALUES (?, ?, ?, ?)")) {
                 ps.setInt(1, maNV);
                 ps.setString(2, trangThai);
-                ps.setTimestamp(3, java.sql.Timestamp.valueOf(ngayLap + " 10:00:00"));
-                if (ngayThanhToan.isEmpty()) ps.setNull(4, Types.TIMESTAMP);
-                else ps.setTimestamp(4, java.sql.Timestamp.valueOf(ngayThanhToan + " 10:00:00"));
-                ps.setLong(5, (long)daThanhToan);
-                ps.setLong(6, (long)tongTien);
+                ps.setLong(3, (long)daThanhToan);
+                ps.setLong(4, (long)tongTien);
                 ps.executeUpdate();
                 System.out.println("Thêm đơn đặt hàng thành công!");
             } catch (SQLException e) {
