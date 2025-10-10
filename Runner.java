@@ -4,7 +4,6 @@ import dao.KhachHangDAO;
 import dao.LoaiMonDAO;
 import dao.MonDAO;
 import dao.NhanVienDAO;
-import dao.BanDAO;
 import dao.DonDatHangDAO;
 import dao.NhaCungCapDAO;
 import dao.GiaoHangDAO;
@@ -85,7 +84,6 @@ public class Runner {
         LoaiMonDAO LoaiMon = new LoaiMonDAO();
         MonDAO Mon = new MonDAO();
         NhanVienDAO NhanVien = new NhanVienDAO();
-        BanDAO Ban = new BanDAO();
         DonDatHangDAO DonDatHang = new DonDatHangDAO();
         NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
         GiaoHangDAO GiaoHang = new GiaoHangDAO();
@@ -129,7 +127,7 @@ public class Runner {
                     NhanVienView.menu(NhanVien, sc);
                     break;
                 case 4:
-                    DatHangView.menu(Ban, DonDatHang, GiaoHang, sc);
+                    DatHangView.menu(DonDatHang, GiaoHang, sc);
                     break;
                 case 5:
                     NhaCungCapView.menu(NhaCungCap, sc);

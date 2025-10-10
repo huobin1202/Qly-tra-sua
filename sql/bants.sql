@@ -114,24 +114,24 @@ CREATE TABLE `mon` (
 -- Dumping data for table `mon`
 --
 
-INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `TenDonVi`, `Gia`, `MaLoai`) VALUES
-(1, 'No Topping', '', 'Phần', 0, 4),
-(2, 'Trân Châu Tuyết Sợi', NULL, 'Phần', 10000, 4),
-(3, 'Trân Châu Đen', NULL, 'Phần', 10000, 4),
-(4, 'Trân Châu Trắng', NULL, 'Phần', 10000, 4),
-(5, 'Trà Sữa Trân Châu', '', 'Ly', 50000, 2),
-(6, 'Trà Sữa Sương Sáo', NULL, 'Ly', 45000, 2),
-(7, 'Trà Sữa Matcha(L)', '', 'Ly', 50000, 2),
-(8, 'Sữa Tươi Trân Châu Đường Đen', NULL, 'Ly', 45000, 2),
-(9, 'Bánh Flan', '', 'Cái', 10000, 2),
-(10, 'Hướng dương', NULL, 'Túi', 10000, 1),
-(11, 'Cafe truyền thống', NULL, 'Cốc', 35000, 3),
-(12, 'Espresso', NULL, 'Cốc', 45000, 3),
-(13, 'Trà Sữa Matcha(XL)', NULL, 'Ly', 25000, 2),
-(14, 'Trà Sữa Ô Long', '', 'Ly', 20000, 2),
-(15, 'Trà Đào', '', 'Ly', 40000, 2),
-(16, 'Trà Đào(L)', '', 'Ly', 50000, 2),
-(18, 'Trà Nhãn - Sen', '', 'Ly', 45000, 2);
+INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `TenDonVi`, `Gia`, `SoLuong`, `MaLoai`) VALUES
+(1, 'No Topping', '', 'Phần', 0, 0, 4),
+(2, 'Trân Châu Tuyết Sợi', NULL, 'Phần', 10000, 0, 4),
+(3, 'Trân Châu Đen', NULL, 'Phần', 10000, 0, 4),
+(4, 'Trân Châu Trắng', NULL, 'Phần', 10000, 0, 4),
+(5, 'Trà Sữa Trân Châu', '', 'Ly', 50000, 0, 2),
+(6, 'Trà Sữa Sương Sáo', NULL, 'Ly', 45000, 0, 2),
+(7, 'Trà Sữa Matcha(L)', '', 'Ly', 50000, 0, 2),
+(8, 'Sữa Tươi Trân Châu Đường Đen', NULL, 'Ly', 45000, 0, 2),
+(9, 'Bánh Flan', '', 'Cái', 10000, 0, 2),
+(10, 'Hướng dương', NULL, 'Túi', 10000, 0, 1),
+(11, 'Cafe truyền thống', NULL, 'Cốc', 35000, 0, 3),
+(12, 'Espresso', NULL, 'Cốc', 45000, 0, 3),
+(13, 'Trà Sữa Matcha(XL)', NULL, 'Ly', 25000, 0, 2),
+(14, 'Trà Sữa Ô Long', '', 'Ly', 20000, 0, 2),
+(15, 'Trà Đào', '', 'Ly', 40000, 0, 2),
+(16, 'Trà Đào(L)', '', 'Ly', 50000, 0, 2),
+(18, 'Trà Nhãn - Sen', '', 'Ly', 45000, 0, 2);
 
 -- --------------------------------------------------------
 
@@ -142,7 +142,6 @@ INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `TenDonVi`, `Gia`, `MaLoai`) VALUE
 CREATE TABLE `dondathang` (
   `MaDon` int(11) NOT NULL,
   `MaNV` int(11) NOT NULL,
-  `MaBan` int(11) DEFAULT NULL,
   `Loai` varchar(45) NOT NULL DEFAULT 'taiquan' COMMENT 'taiquan - tại quán\nonline - đặt online',
   `TrangThai` varchar(45) NOT NULL DEFAULT 'chuathanhtoan' COMMENT 'chuathanhtoan - chưa thanh toán\ndathanhtoan - đã thanh toán',
   `NgayDat` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -156,10 +155,10 @@ CREATE TABLE `dondathang` (
 -- Dumping data for table `dondathang`
 --
 
-INSERT INTO `dondathang` (`MaDon`, `MaNV`, `MaBan`, `Loai`, `TrangThai`, `NgayDat`, `NgayThanhToan`, `SoTienDaTra`, `TongTien`, `GiamGia`) VALUES
-(1, 1, 1, 'taiquan', 'dathanhtoan', '2020-11-24 07:28:41', '2020-12-01 10:40:46', 450000, 450000, 0),
-(2, 1, 1, 'online', 'dathanhtoan', '2020-11-24 08:05:08', '2020-12-23 06:33:51', 406000, 406000, 0),
-(3, 1, 3, 'taiquan', 'dathanhtoan', '2020-12-16 08:55:36', '2020-12-23 06:34:01', 550000, 550000, 5);
+INSERT INTO `dondathang` (`MaDon`, `MaNV`, `Loai`, `TrangThai`, `NgayDat`, `NgayThanhToan`, `SoTienDaTra`, `TongTien`, `GiamGia`) VALUES
+(1, 1, 'taiquan', 'dathanhtoan', '2020-11-24 07:28:41', '2020-12-01 10:40:46', 450000, 450000, 0),
+(2, 1, 'online', 'dathanhtoan', '2020-11-24 08:05:08', '2020-12-23 06:33:51', 406000, 406000, 0),
+(3, 1, 'taiquan', 'dathanhtoan', '2020-12-16 08:55:36', '2020-12-23 06:34:01', 550000, 550000, 5);
 
 -- --------------------------------------------------------
 
@@ -216,33 +215,6 @@ INSERT INTO `giaohang` (`MaDon`, `MaKH`, `TenShipper`, `SDTShipper`, `PhiShip`, 
 
 -- --------------------------------------------------------
 
---
--- Table structure for table `ban`
---
-
-CREATE TABLE `ban` (
-  `MaBan` int(11) NOT NULL,
-  `TenBan` varchar(45) NOT NULL,
-  `TrangThai` varchar(45) NOT NULL DEFAULT 'trong' COMMENT 'trong-Trống\nphucvu-Đang phục vụ\ndattruoc-Đặt trước'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `ban`
---
-
-INSERT INTO `ban` (`MaBan`, `TenBan`, `TrangThai`) VALUES
-(1, 'Bàn 1', 'trong'),
-(2, 'Bàn 2', 'trong'),
-(3, 'Bàn 3', 'phucvu'),
-(4, 'Bàn 4', 'trong'),
-(5, 'Bàn 5', 'trong'),
-(6, 'Bàn 6', 'trong'),
-(7, 'Bàn 7', 'trong'),
-(8, 'Bàn 8', 'trong'),
-(10, 'Bàn 10', 'phucvu'),
-(11, 'Bàn 11', 'trong'),
-(15, 'Bàn 12', 'trong'),
-(16, 'Bàn 20', 'trong');
 
 --
 -- Indexes for dumped tables
@@ -281,8 +253,7 @@ ALTER TABLE `mon`
 --
 ALTER TABLE `dondathang`
   ADD PRIMARY KEY (`MaDon`),
-  ADD KEY `fk_nhanvien_don` (`MaNV`),
-  ADD KEY `fk_ban_don` (`MaBan`);
+  ADD KEY `fk_nhanvien_don` (`MaNV`);
 
 --
 -- Indexes for table `chitietdonhang`
@@ -304,8 +275,7 @@ ALTER TABLE `giaohang`
 --
 -- Indexes for table `ban`
 --
-ALTER TABLE `ban`
-  ADD PRIMARY KEY (`MaBan`);
+-- removed table `ban`
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -345,8 +315,7 @@ ALTER TABLE `dondathang`
 --
 -- AUTO_INCREMENT for table `ban`
 --
-ALTER TABLE `ban`
-  MODIFY `MaBan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+-- removed auto_increment for table `ban`
 
 --
 -- Constraints for dumped tables
@@ -362,7 +331,6 @@ ALTER TABLE `mon`
 -- Constraints for table `dondathang`
 --
 ALTER TABLE `dondathang`
-  ADD CONSTRAINT `fk_ban_don` FOREIGN KEY (`MaBan`) REFERENCES `ban` (`MaBan`),
   ADD CONSTRAINT `fk_nhanvien_don` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`);
 
 --
@@ -402,7 +370,8 @@ CREATE TABLE IF NOT EXISTS `phieunhap` (
   `MaNV` int(11) NOT NULL,
   `MaNCC` int(11) NOT NULL,
   `Ngay` timestamp NOT NULL DEFAULT current_timestamp(),
-  `GhiChu` varchar(250) DEFAULT NULL
+  `GhiChu` varchar(250) DEFAULT NULL,
+  `ThanhTien` bigint(20) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Supplier products catalog and on-hand stock at supplier
@@ -425,7 +394,8 @@ CREATE TABLE IF NOT EXISTS `chitietnhap` (
   `MaPN` int(11) NOT NULL,
   `MaMon` int(11) NOT NULL,
   `SoLuong` int(11) NOT NULL,
-  `DonGia` bigint(20) NOT NULL DEFAULT 0
+  `DonGia` bigint(20) NOT NULL DEFAULT 0,
+  `DonVi` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Table structure for table `phieuxuat`
@@ -433,7 +403,8 @@ CREATE TABLE IF NOT EXISTS `phieuxuat` (
   `MaPX` int(11) NOT NULL,
   `MaNV` int(11) NOT NULL,
   `Ngay` timestamp NOT NULL DEFAULT current_timestamp(),
-  `GhiChu` varchar(250) DEFAULT NULL
+  `GhiChu` varchar(250) DEFAULT NULL,
+  `ThanhTien` bigint(20) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Table structure for table `chitietxuat`
@@ -441,7 +412,8 @@ CREATE TABLE IF NOT EXISTS `chitietxuat` (
   `MaPX` int(11) NOT NULL,
   `MaMon` int(11) NOT NULL,
   `SoLuong` int(11) NOT NULL,
-  `DonGia` bigint(20) NOT NULL DEFAULT 0
+  `DonGia` bigint(20) NOT NULL DEFAULT 0,
+  `DonVi` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Indexes

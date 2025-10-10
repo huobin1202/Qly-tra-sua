@@ -2,19 +2,17 @@ package view;
 
 import java.util.Scanner;
 
-import dao.BanDAO;
 import dao.DonDatHangDAO;
 import dao.GiaoHangDAO;
 
 public class DatHangView {
-    public static void menu(BanDAO QuanLyBan,DonDatHangDAO DonDatHang,GiaoHangDAO GiaoHang, Scanner sc) {
+    public static void menu(DonDatHangDAO DonDatHang,GiaoHangDAO GiaoHang, Scanner sc) {
 
         while (true) {
             ConsoleUI.printHeader("QUẢN LÝ ĐẶT HÀNG");
             ConsoleUI.printSection("KHU VỰC QUẢN LÝ");
-            System.out.println("│ 1. Quản lý bàn                               │");
-            System.out.println("│ 2. Quản lý đơn đặt hàng                      │");
-            System.out.println("│ 3. Quản lý giao hàng                         │");
+            System.out.println("│ 1. Quản lý đơn đặt hàng                      │");
+            System.out.println("│ 2. Quản lý giao hàng                         │");
             ConsoleUI.printSection("ĐIỀU HƯỚNG");
             System.out.println("│ 0. Quay lại                                  │");
             ConsoleUI.printFooter();
@@ -28,33 +26,6 @@ public class DatHangView {
                 continue;
             }
             if (chonDH == 1) {
-                while (true) {
-                    ConsoleUI.printHeader("QUẢN LÝ BÀN");
-                    ConsoleUI.printSection("CHỨC NĂNG");
-                    System.out.println("│ 1. Xem danh sách bàn               │");
-                    System.out.println("│ 2. Thêm bàn                        │");
-                    System.out.println("│ 3. Sửa bàn                         │");
-                    System.out.println("│ 4. Xóa bàn                         │");
-                    ConsoleUI.printSection("ĐIỀU HƯỚNG");
-                    System.out.println("│ 0. Quay lại                        │");
-                    ConsoleUI.printFooter();
-                    System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-                    String chonBanStr = sc.nextLine();
-                    int chonBan;
-                    try {
-                        chonBan = Integer.parseInt(chonBanStr.trim());
-                    } catch (NumberFormatException e) {
-                        System.out.println("Vui lòng nhập số hợp lệ.");
-                        continue;
-                    }
-                    if (chonBan == 2) QuanLyBan.them();
-                    else if (chonBan == 3) QuanLyBan.sua();
-                    else if (chonBan == 4) QuanLyBan.xoa();
-                    else if (chonBan == 1) QuanLyBan.xuat();
-                    else if (chonBan == 0) break;
-                    else System.out.println("Chức năng không hợp lệ.");
-                }
-            } else if (chonDH == 2) {
                 while (true) {
                     ConsoleUI.printHeader("QUẢN LÝ ĐƠN ĐẶT HÀNG");
                     ConsoleUI.printSection("CHỨC NĂNG");
@@ -83,7 +54,7 @@ public class DatHangView {
                     else if (chonDon == 0) break;
                     else System.out.println("Chức năng không hợp lệ.");
                 }
-            } else if (chonDH == 3) {
+            } else if (chonDH == 2) {
                 while (true) {
                     ConsoleUI.printHeader("QUẢN LÝ GIAO HÀNG");
                     ConsoleUI.printSection("CHỨC NĂNG");

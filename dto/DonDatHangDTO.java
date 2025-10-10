@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 public class DonDatHangDTO {
     private int maDon;
     private int maNV;
-    private int maBan;
     private String loai;
     private String trangThai;
     private Timestamp ngayDat;
@@ -13,11 +12,10 @@ public class DonDatHangDTO {
     private long tongTien;
     private int giamGia;
 
-    public DonDatHangDTO(int maDon, int maNV, int maBan, String loai, String trangThai, 
+    public DonDatHangDTO(int maDon, int maNV, String loai, String trangThai, 
                          Timestamp ngayDat, Timestamp ngayThanhToan, long soTienDaTra, long tongTien, int giamGia) {
         this.maDon = maDon;
         this.maNV = maNV;
-        this.maBan = maBan;
         this.loai = loai;
         this.trangThai = trangThai;
         this.ngayDat = ngayDat;
@@ -31,8 +29,6 @@ public class DonDatHangDTO {
     public void setMaDon(int maDon) { this.maDon = maDon; }
     public int getMaNV() { return maNV; }
     public void setMaNV(int maNV) { this.maNV = maNV; }
-    public int getMaBan() { return maBan; }
-    public void setMaBan(int maBan) { this.maBan = maBan; }
     public String getLoai() { return loai; }
     public void setLoai(String loai) { this.loai = loai; }
     public String getTrangThai() { return trangThai; }

@@ -6,14 +6,16 @@ public class MonDTO {
     String tenDonVi;
     long gia;
     int maLoai;
+    int soLuong;
 
-    public MonDTO(int maMon, String tenMon, String moTa, String tenDonVi, long gia, int maLoai) {
+    public MonDTO(int maMon, String tenMon, String moTa, String tenDonVi, long gia, int maLoai, int soLuong) {
         this.maMon = maMon;
         this.tenMon = tenMon;
         this.moTa = moTa;
         this.tenDonVi = tenDonVi;
         this.gia = gia;
         this.maLoai = maLoai;
+        this.soLuong = soLuong;
     }
     public int getMaMon() {
         return maMon;
@@ -51,5 +53,11 @@ public class MonDTO {
     }
     public void setMaLoai(int maLoai) {
         this.maLoai = maLoai;
+    }
+    public int getSoLuong() {
+        return soLuong;
+    }
+    public void setSoLuong(int soLuong) {
+        this.soLuong = soLuong;
     }
 }

@@ -21,6 +21,7 @@ public class XuatHang {
                     if (rs.next()) maPX = rs.getInt(1);
                 }
             }
+            long tongThanhTien = 0;
             while (true) {
                 System.out.print("MaMon (0 để kết thúc): ");
                 int maMon = Integer.parseInt(sc.nextLine().trim());
@@ -38,13 +39,20 @@ public class XuatHang {
                 }
                 if (ton < sl) { System.out.println("Không đủ tồn kho (còn " + ton + ")"); continue; }
 
-                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO chitietxuat (MaPX, MaMon, SoLuong, DonGia) VALUES (?,?,?,?)")) {
+                String donVi = null;
+                try (PreparedStatement ps = conn.prepareStatement("SELECT TenDonVi FROM mon WHERE MaMon=?")) {
+                    ps.setInt(1, maMon);
+                    try (ResultSet rs = ps.executeQuery()) { if (rs.next()) donVi = rs.getString(1); }
+                }
+                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO chitietxuat (MaPX, MaMon, SoLuong, DonGia, DonVi) VALUES (?,?,?,?,?)")) {
                     ps.setInt(1, maPX);
                     ps.setInt(2, maMon);
                     ps.setInt(3, sl);
                     ps.setLong(4, donGia);
+                    ps.setString(5, donVi);
                     ps.executeUpdate();
                 }
+                tongThanhTien += (long) sl * donGia;
                 // trừ kho
                 try (PreparedStatement ps = conn.prepareStatement("UPDATE khohang SET SoLuong = SoLuong - ? WHERE MaMon=?")) {
                     ps.setInt(1, sl);
@@ -57,6 +65,12 @@ public class XuatHang {
                     ps.setInt(2, maMon);
                     ps.executeUpdate();
                 }
+            }
+            // update tổng tiền phiếu xuất
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE phieuxuat SET ThanhTien=? WHERE MaPX=?")) {
+                ps.setLong(1, tongThanhTien);
+                ps.setInt(2, maPX);
+                ps.executeUpdate();
             }
             conn.commit();
             System.out.println("Đã tạo phiếu xuất: " + maPX);

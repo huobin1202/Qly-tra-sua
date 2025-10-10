@@ -24,6 +24,7 @@ public class NhapHang {
                     if (rs.next()) maPN = rs.getInt(1);
                 }
             }
+            long tongThanhTien = 0;
             while (true) {
                 System.out.print("MaMon (0 để kết thúc): ");
                 int maMon = Integer.parseInt(sc.nextLine().trim());
@@ -41,14 +42,20 @@ public class NhapHang {
                 }
                 if (nccQty == 0) { System.out.println("Nhà cung cấp không có sản phẩm này."); continue; }
                 if (sl > nccQty) { System.out.println("Số lượng yêu cầu vượt quá số lượng NCC (" + nccQty + ")"); continue; }
-
-                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO chitietnhap (MaPN, MaMon, SoLuong, DonGia) VALUES (?,?,?,?)")) {
+                String donVi = null;
+                try (PreparedStatement ps = conn.prepareStatement("SELECT TenDonVi FROM mon WHERE MaMon=?")) {
+                    ps.setInt(1, maMon);
+                    try (ResultSet rs = ps.executeQuery()) { if (rs.next()) donVi = rs.getString(1); }
+                }
+                try (PreparedStatement ps = conn.prepareStatement("INSERT INTO chitietnhap (MaPN, MaMon, SoLuong, DonGia, DonVi) VALUES (?,?,?,?,?)")) {
                     ps.setInt(1, maPN);
                     ps.setInt(2, maMon);
                     ps.setInt(3, sl);
                     ps.setLong(4, donGia);
+                    ps.setString(5, donVi);
                     ps.executeUpdate();
                 }
+                tongThanhTien += (long) sl * donGia;
                 // upsert kho
                 try (PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO khohang (MaMon, SoLuong) VALUES (?, ?) " +
@@ -71,6 +78,12 @@ public class NhapHang {
                     ps.setInt(3, maMon);
                     ps.executeUpdate();
                 }
+            }
+            // update tổng tiền phiếu nhập
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE phieunhap SET ThanhTien=? WHERE MaPN=?")) {
+                ps.setLong(1, tongThanhTien);
+                ps.setInt(2, maPN);
+                ps.executeUpdate();
             }
             conn.commit();
             System.out.println("Đã tạo phiếu nhập: " + maPN);

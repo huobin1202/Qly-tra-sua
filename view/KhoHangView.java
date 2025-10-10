@@ -11,10 +11,10 @@ public class KhoHangView {
         NhapHang nhap = new NhapHang();
         XuatHang xuat = new XuatHang();
         while (true) {
-            ConsoleUI.printHeader("TỒN KHO / NHẬP / XUẤT");
+            ConsoleUI.printHeader("NHẬP → KHO → XUẤT");
             ConsoleUI.printSection("CHỨC NĂNG");
-            System.out.println("│ 1. Xem tồn kho                        │");
-            System.out.println("│ 2. Tạo phiếu nhập                     │");
+            System.out.println("│ 1. Tạo phiếu nhập                     │");
+            System.out.println("│ 2. Xem tồn kho                        │");
             System.out.println("│ 3. Tạo phiếu xuất                     │");
             System.out.println("│ 4. Xem danh sách nhà cung cấp                │");
             System.out.println("│ 5. Xem sản phẩm của nhà cung cấp      │");
@@ -30,8 +30,8 @@ public class KhoHangView {
                 System.out.println("Vui lòng nhập số hợp lệ.");
                 continue;
             }
-            if (chon == 1) kho.xemTon();
-            else if (chon == 2) nhap.taoPhieuNhap();
+            if (chon == 1) nhap.taoPhieuNhap();
+            else if (chon == 2) kho.xemTon();
             else if (chon == 3) xuat.taoPhieuXuat();
             else if (chon == 4) xemDanhSachNCC(sc);
             else if (chon == 5) xemSanPhamNCC(sc);

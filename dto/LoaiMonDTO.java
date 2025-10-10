@@ -4,10 +4,9 @@ public class LoaiMonDTO {
     String tenLoai;
     String slug;
 
-    public LoaiMonDTO(int maLoai, String tenLoai, String slug) {
+    public LoaiMonDTO(int maLoai, String tenLoai) {
         this.maLoai = maLoai;
         this.tenLoai = tenLoai;
-        this.slug = slug;
     }
     public int getMaLoai() {
         return maLoai;
@@ -21,10 +20,5 @@ public class LoaiMonDTO {
     public void setTenLoai(String tenLoai) {
         this.tenLoai = tenLoai;
     }
-    public String getSlug() {
-        return slug;
-    }
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
+
 }

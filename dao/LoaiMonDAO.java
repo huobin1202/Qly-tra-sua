@@ -11,9 +11,8 @@ public class LoaiMonDAO {
         System.out.print("Nhập tên loại món mới: ");
         String ten = sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("INSERT INTO loaimon (TenLoai, Slug) VALUES (?, ?)")) {
+             PreparedStatement ps = conn.prepareStatement("INSERT INTO loaimon (TenLoai) VALUES (?)")) {
             ps.setString(1, ten);
-            ps.setString(2, ten.toLowerCase().replace(" ", "-"));
             ps.executeUpdate();
             System.out.println("Đã thêm loại món.");
         } catch (SQLException e) {
@@ -29,10 +28,9 @@ public class LoaiMonDAO {
         System.out.print("Nhập tên loại món mới: ");
         String ten = sc.nextLine();
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("UPDATE loaimon SET TenLoai=?, Slug=? WHERE MaLoai=?")) {
+             PreparedStatement ps = conn.prepareStatement("UPDATE loaimon SET TenLoai=? WHERE MaLoai=?")) {
             ps.setString(1, ten);
-            ps.setString(2, ten.toLowerCase().replace(" ", "-"));
-            ps.setInt(3, ma);
+            ps.setInt(2, ma);
             int rows = ps.executeUpdate();
             if (rows > 0)
                 System.out.println("Đã sửa loại món.");

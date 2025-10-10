@@ -12,8 +12,6 @@ public class DonDatHangDAO {
             System.out.print("Mã nhân viên lập đơn: ");
             int maNV = sc.nextInt();
             sc.nextLine();
-            System.out.print("ID bàn: ");
-            int banId = sc.nextInt(); sc.nextLine();
             System.out.print("Trạng thái: ");
             String trangThai = sc.nextLine();
             System.out.print("Ngày lập (yyyy-mm-dd): ");
@@ -27,15 +25,14 @@ public class DonDatHangDAO {
             sc.nextLine();
             try (Connection conn = DBUtil.getConnection();
                  PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO dondathang (MaNV, MaBan, TrangThai, NgayDat, NgayThanhToan, SoTienDaTra, TongTien) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                    "INSERT INTO dondathang (MaNV, TrangThai, NgayDat, NgayThanhToan, SoTienDaTra, TongTien) VALUES (?, ?, ?, ?, ?, ?)")) {
                 ps.setInt(1, maNV);
-                ps.setInt(2, banId);
-                ps.setString(3, trangThai);
-                ps.setTimestamp(4, java.sql.Timestamp.valueOf(ngayLap + " 10:00:00"));
-                if (ngayThanhToan.isEmpty()) ps.setNull(5, Types.TIMESTAMP);
-                else ps.setTimestamp(5, java.sql.Timestamp.valueOf(ngayThanhToan + " 10:00:00"));
-                ps.setLong(6, (long)daThanhToan);
-                ps.setLong(7, (long)tongTien);
+                ps.setString(2, trangThai);
+                ps.setTimestamp(3, java.sql.Timestamp.valueOf(ngayLap + " 10:00:00"));
+                if (ngayThanhToan.isEmpty()) ps.setNull(4, Types.TIMESTAMP);
+                else ps.setTimestamp(4, java.sql.Timestamp.valueOf(ngayThanhToan + " 10:00:00"));
+                ps.setLong(5, (long)daThanhToan);
+                ps.setLong(6, (long)tongTien);
                 ps.executeUpdate();
                 System.out.println("Thêm đơn đặt hàng thành công!");
             } catch (SQLException e) {
@@ -95,21 +92,20 @@ public class DonDatHangDAO {
 
     public void xuat() {
         ConsoleUI.printHeader("DANH SÁCH ĐƠN ĐẶT HÀNG");
-        System.out.println("┌────┬────────────┬──────┬────────────┬────────────┬────────────┬────────────┬────────────┐");
-        System.out.println("│ ID │ Người lập  │ Bàn  │ Trạng thái │ Ngày lập   │ Ngày TT    │ Đã TT      │ Tổng tiền  │");
-        System.out.println("├────┼────────────┼──────┼────────────┼────────────┼────────────┼────────────┼────────────┤");
+        System.out.println("┌────┬────────────┬────────────┬────────────┬────────────┬────────────┬────────────┐");
+        System.out.println("│ ID │ Người lập  │ Trạng thái │ Ngày lập   │ Ngày TT    │ Đã TT      │ Tổng tiền  │");
+        System.out.println("├────┼────────────┼────────────┼────────────┼────────────┼────────────┼────────────┤");
         boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(
-                "SELECT d.MaDon, nv.HoTen as nguoilap, b.TenBan, d.TrangThai, d.NgayDat, d.NgayThanhToan, d.SoTienDaTra, d.TongTien " +
-                "FROM dondathang d JOIN ban b ON d.MaBan = b.MaBan JOIN nhanvien nv ON d.MaNV = nv.MaNV ORDER BY d.MaDon")) {
+                "SELECT d.MaDon, nv.HoTen as nguoilap, d.TrangThai, d.NgayDat, d.NgayThanhToan, d.SoTienDaTra, d.TongTien " +
+                "FROM dondathang d JOIN nhanvien nv ON d.MaNV = nv.MaNV ORDER BY d.MaDon")) {
             while (rs.next()) {
                 any = true;
-                System.out.printf("│ %-2d │ %-10s │ %-4s │ %-10s │ %-10s │ %-10s │ %-10.0f │ %-10.0f │\n",
+                System.out.printf("│ %-2d │ %-10s │ %-10s │ %-19s │ %-19s │ %-10d │ %-10d │\n",
                     rs.getInt("MaDon"),
                     rs.getString("nguoilap"),
-                    rs.getString("TenBan"),
                     rs.getString("TrangThai"),
                     rs.getString("NgayDat"),
                     rs.getString("NgayThanhToan") == null ? "" : rs.getString("NgayThanhToan"),
@@ -120,8 +116,8 @@ public class DonDatHangDAO {
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
         }
-        if (!any) System.out.println("│ Không có dữ liệu                                                               │");
-        System.out.println("└────┴────────────┴──────┴────────────┴────────────┴────────────┴────────────┴────────────┘");
+        if (!any) System.out.println("│ Không có dữ liệu                                                   │");
+        System.out.println("└────┴────────────┴────────────┴────────────┴────────────┴────────────┴────────────┘");
         ConsoleUI.printFooter();
     }
 
@@ -133,15 +129,15 @@ public class DonDatHangDAO {
             String chStr = sc.nextLine();
             int ch; try { ch = Integer.parseInt(chStr.trim()); } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); return; }
             String sql;
-            System.out.println("\n╔════╦════════════╦══════╦════════════╦════════════╦════════════╦════════════╦════════════╗");
-            System.out.println("║ ID ║ Người lập  ║ Bàn  ║ Trạng thái ║ Ngày lập   ║ Ngày TT    ║ Đã TT      ║ Tổng tiền ║");
-            System.out.println("╠════╬════════════╬══════╬════════════╬════════════╬════════════╬════════════╬════════════╣");
+            System.out.println("\n╔════╦════════════╦════════════╦════════════╦════════════╦════════════╦════════════╗");
+            System.out.println("║ ID ║ Người lập  ║ Trạng thái ║ Ngày lập   ║ Ngày TT    ║ Đã TT      ║ Tổng tiền ║");
+            System.out.println("╠════╬════════════╬════════════╬════════════╬════════════╬════════════╬════════════╣");
             try (Connection conn = DBUtil.getConnection()) {
                 if (ch == 1) {
                     System.out.print("Nhập ID: ");
                     String idStr = sc.nextLine();
                     int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
-                    sql = "SELECT d.MaDon, nv.HoTen as nguoilap, b.TenBan, d.TrangThai, d.NgayDat, d.NgayThanhToan, d.SoTienDaTra, d.TongTien FROM dondathang d JOIN ban b ON d.MaBan = b.MaBan JOIN nhanvien nv ON d.MaNV = nv.MaNV WHERE d.MaDon = ?";
+                    sql = "SELECT d.MaDon, nv.HoTen as nguoilap, d.TrangThai, d.NgayDat, d.NgayThanhToan, d.SoTienDaTra, d.TongTien FROM dondathang d JOIN nhanvien nv ON d.MaNV = nv.MaNV WHERE d.MaDon = ?";
                     try (PreparedStatement ps = conn.prepareStatement(sql)) {
                         ps.setInt(1, id);
                         try (ResultSet rs = ps.executeQuery()) { printDDH(rs); }
@@ -149,7 +145,7 @@ public class DonDatHangDAO {
                 } else {
                     System.out.print("Nhập từ khóa: ");
                     String key = sc.nextLine();
-                    sql = "SELECT d.MaDon, nv.HoTen as nguoilap, b.TenBan, d.TrangThai, d.NgayDat, d.NgayThanhToan, d.SoTienDaTra, d.TongTien FROM dondathang d JOIN ban b ON d.MaBan = b.MaBan JOIN nhanvien nv ON d.MaNV = nv.MaNV WHERE nv.HoTen LIKE ? OR d.TrangThai LIKE ?";
+                    sql = "SELECT d.MaDon, nv.HoTen as nguoilap, d.TrangThai, d.NgayDat, d.NgayThanhToan, d.SoTienDaTra, d.TongTien FROM dondathang d JOIN nhanvien nv ON d.MaNV = nv.MaNV WHERE nv.HoTen LIKE ? OR d.TrangThai LIKE ?";
                     try (PreparedStatement ps = conn.prepareStatement(sql)) {
                         ps.setString(1, "%" + key + "%");
                         ps.setString(2, "%" + key + "%");
@@ -160,17 +156,16 @@ public class DonDatHangDAO {
                 System.out.println("Lỗi: " + e.getMessage());
             }
         } finally{}
-        System.out.println("╚════╩════════════╩══════╩════════════╩════════════╩════════════╩════════════╩════════════╝");
+        System.out.println("╚════╩════════════╩════════════╩════════════╩════════════╩════════════╩════════════╝");
     }
 
     private void printDDH(ResultSet rs) throws SQLException {
         boolean any = false;
         while (rs.next()) {
             any = true;
-            System.out.printf("║ %-2d ║ %-10s ║ %-4s ║ %-10s ║ %-10s ║ %-10s ║ %-10.0f ║ %-10.0f ║\n",
+            System.out.printf("║ %-2d ║ %-10s ║ %-10s ║ %-19s ║ %-19s ║ %-10d ║ %-10d ║\n",
                 rs.getInt("MaDon"),
                 rs.getString("nguoilap"),
-                rs.getString("TenBan"),
                 rs.getString("TrangThai"),
                 rs.getString("NgayDat"),
                 rs.getString("NgayThanhToan") == null ? "" : rs.getString("NgayThanhToan"),
