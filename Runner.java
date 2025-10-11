@@ -14,7 +14,7 @@ import view.DatHangView;
 import view.NhaCungCapView;
 import view.ConsoleUI;
 
-import java.sql.*; // Thêm import này
+import java.sql.*; // Thêm import nàyjavac -encoding UTF-8 Runner.java
 
 public class Runner {
     public static boolean dangNhap(Scanner sc) {
@@ -51,7 +51,7 @@ public class Runner {
                 db.Session.currentMaNV = rs.getInt("MaNV");
                 db.Session.currentTaiKhoan = rs.getString("TaiKhoan");
                 System.out.println("Đăng nhập thành công!");
-                return true;
+                return true;s
             } else {
                 System.out.println("Sai tài khoản hoặc mật khẩu!");
                 return false;
