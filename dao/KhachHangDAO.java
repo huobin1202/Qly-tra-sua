@@ -21,9 +21,9 @@ public class KhachHangDAO implements IQuanLy {
 
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO khachhang (SDT, HoTen, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)")) {
-            ps.setString(1, sdt);
-            ps.setString(2, ten);
+                "INSERT INTO khachhang (HoTen, SDT, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)")) {
+            ps.setString(1, ten);
+            ps.setString(2, sdt);
             ps.setString(3, diachi);
             if (ngaysinhStr == null || ngaysinhStr.trim().isEmpty()) ps.setNull(4, java.sql.Types.TIMESTAMP);
             else ps.setTimestamp(4, java.sql.Timestamp.valueOf(ngaysinhStr.trim() + " 10:00:00"));
@@ -40,17 +40,21 @@ public class KhachHangDAO implements IQuanLy {
         System.out.print("Nhập ID khách hàng cần sửa: ");
         String idStr = rd.nextLine();
         int id;
-        try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
+        try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); 
+        return; }
+        System.out.print("Nhập tên khách hàng mới: ");
+        String ten = rd.nextLine();
         System.out.print("Nhập số điện thoại mới: ");
         String sdt = rd.nextLine();
         System.out.print("Nhập địa chỉ mới: ");
         String diachi = rd.nextLine();
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                "UPDATE khachhang SET SDT=?, DiaChi=? WHERE MaKH=?" )) {
-            ps.setString(1, sdt);
-            ps.setString(2, diachi);
-            ps.setInt(3, id);
+                "UPDATE khachhang SET  HoTen=?,SDT=?, DiaChi=? WHERE MaKH=?" )) {
+      ps.setString(1, ten);
+            ps.setString(2, sdt);
+            ps.setString(3, diachi);
+            ps.setInt(4, id);
             int rows = ps.executeUpdate();
             if (rows > 0)
                 System.out.println("Đã sửa thông tin khách hàng.");
