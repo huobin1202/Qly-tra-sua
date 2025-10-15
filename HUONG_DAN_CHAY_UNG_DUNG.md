@@ -1,26 +1,47 @@
+# Hướng dẫn các vị trí
+```
+Vị trí Runner: src->main->Runner
+Vị trí thư viện: src->resources->library
+Vị trí file sql: src->resources->database
+```
+
 # Hướng dẫn chạy ứng dụng Quản lý quán trà sữa bằng tiếng Việt trong terminal
+### Phương pháp 1: 
+```
+settings ->
+time & language ->
+language & legion ->
+administrative language settings ->
+change system locate ->
+Vietnamese + bật beta
+```
 
-## Vấn đề đã sửa
-- ✅ Đã sửa lỗi hiển thị tiếng Việt trong console
-- ✅ Thêm cấu hình UTF-8 encoding
+### Phương pháp 2:
+```
+control panel ->
+clock and region ->
+region ->
+administrative ->
+additional settings ->
+change system locate ->
+Vietnamese + bật beta
+```
 
-## Cách chạy ứng dụng
-
-### Phương pháp 1: Sử dụng Command Prompt với UTF-8
+### Phương pháp 3: Sử dụng Command Prompt với UTF-8
 ```cmd
 chcp 65001
 javac -cp "lib/mysql-connector-j-9.4.0.jar" -encoding UTF-8 *.java dao/*.java dto/*.java db/*.java view/*.java
 java -cp ".;lib/mysql-connector-j-9.4.0.jar" -Dfile.encoding=UTF-8 Runner
 ```
 
-### Phương pháp 2: Sử dụng PowerShell
+### Phương pháp 4: Sử dụng PowerShell
 ```powershell
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 javac -cp "lib/mysql-connector-j-9.4.0.jar" -encoding UTF-8 *.java dao/*.java dto/*.java db/*.java view/*.java
 java -cp ".;lib/mysql-connector-j-9.4.0.jar" -Dfile.encoding=UTF-8 Runner
 ```
 
-### Phương pháp 3: Sử dụng IDE (IntelliJ IDEA, Eclipse, VS Code)
+### Phương pháp 5: Sử dụng IDE (IntelliJ IDEA, Eclipse, VS Code)
 1. Mở project trong IDE
 2. Đảm bảo project encoding được set thành UTF-8
 3. Chạy file Runner.java

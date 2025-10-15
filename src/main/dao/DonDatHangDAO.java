@@ -2,14 +2,14 @@ package dao;
 import java.sql.*;
 import java.util.Scanner;
 
-import db.DBUtil;
+import datebase.DBUtil;
 import view.ConsoleUI;
 
 public class DonDatHangDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
         try {
-            int maNV = db.Session.currentMaNV;
+            int maNV = datebase.Session.currentMaNV;
             System.out.print("Trạng thái: ");
             String trangThai = sc.nextLine();
             String ngayLap = null; // now auto by DB

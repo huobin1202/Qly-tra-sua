@@ -1,6 +1,6 @@
 package dao;
 import java.sql.*;
-import db.DBUtil;
+import datebase.DBUtil;
 import view.ConsoleUI;
 
 public class KhoHang {

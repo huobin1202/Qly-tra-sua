@@ -12,7 +12,6 @@ import view.HangHoaView;
 import view.KhachHangView;
 import view.DatHangView;
 import view.NhaCungCapView;
-import view.ConsoleUI;
 
 import java.sql.*; // Thêm import này
 
@@ -48,8 +47,8 @@ public class Runner {
             ps.setString(2, pass);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                db.Session.currentMaNV = rs.getInt("MaNV");
-                db.Session.currentTaiKhoan = rs.getString("TaiKhoan");
+                datebase.Session.currentMaNV = rs.getInt("MaNV");
+                datebase.Session.currentTaiKhoan = rs.getString("TaiKhoan");
                 System.out.println("Đăng nhập thành công!");
                 return true;
             } else {
