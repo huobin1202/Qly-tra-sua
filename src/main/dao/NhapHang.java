@@ -1,14 +1,15 @@
 package dao;
 import java.sql.*;
-import datebase.DBUtil;
 import java.util.Scanner;
+
+import database.DBUtil;
 
 public class NhapHang {
     public void taoPhieuNhap() {
         Scanner sc = new Scanner(System.in);
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
-            int maNV = datebase.Session.currentMaNV;
+            int maNV = database.Session.currentMaNV;
             System.out.println("Nhân viên hiện tại: " + maNV);
             System.out.print("Mã nhà cung cấp: ");
             int maNCC = Integer.parseInt(sc.nextLine().trim());

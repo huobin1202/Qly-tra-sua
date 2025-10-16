@@ -3,7 +3,7 @@ package dao;
 import java.sql.*;
 import java.util.Scanner;
 
-import datebase.DBUtil;
+import database.DBUtil;
 import view.ConsoleUI;
 
 public class ChiTietDonHangDAO {
@@ -141,7 +141,7 @@ public class ChiTietDonHangDAO {
             System.out.println("Lỗi: " + e.getMessage());
         }
     }
-    
+
     public void xemChiTietTheoDon(Scanner sc) {
         try (Connection conn = DBUtil.getConnection()) {
             Integer maDon = promptId(sc, "Nhập mã đơn (0: hủy)"); if (maDon == null) { System.out.println("Đã hủy."); return; }

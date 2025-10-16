@@ -1,11 +1,13 @@
 package dao;
 import java.sql.*;
-import datebase.DBUtil;
+
 import view.ConsoleUI;
 import java.util.Scanner;
+
+import database.DBUtil;
 public class KhoHang {
     public void xemDanhSachNCC(Scanner sc) {
-        try (java.sql.Connection conn = datebase.DBUtil.getConnection();
+        try (java.sql.Connection conn = database.DBUtil.getConnection();
              java.sql.PreparedStatement ps = conn.prepareStatement("SELECT MaNCC, TenNCC FROM nhacungcap")) {
             try (java.sql.ResultSet rs = ps.executeQuery()) {
                 ConsoleUI.printHeader("DANH SÁCH NHÀ CUNG CẤP");
@@ -25,7 +27,7 @@ public class KhoHang {
         String idStr = sc.nextLine();
         int maNCC;
         try { maNCC = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("Mã không hợp lệ."); return; }
-        try (java.sql.Connection conn = datebase.DBUtil.getConnection();
+        try (java.sql.Connection conn = database.DBUtil.getConnection();
              java.sql.PreparedStatement ps = conn.prepareStatement(
                 "SELECT ncc.TenNCC, sp.MaMon, m.TenMon, sp.SoLuong, sp.DonGia FROM ncc_sanpham sp " +
                 "JOIN nhacungcap ncc ON ncc.MaNCC=sp.MaNCC JOIN mon m ON m.MaMon=sp.MaMon WHERE sp.MaNCC=? ORDER BY sp.MaMon")) {

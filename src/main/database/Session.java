@@ -1,4 +1,4 @@
-package datebase;
+package database;
 
 public class Session {
     public static int currentMaNV = 0;

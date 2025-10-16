@@ -2,7 +2,7 @@ package dao;
 import java.sql.*;
 import java.util.Scanner;
 
-import datebase.DBUtil;
+import database.DBUtil;
 import view.ConsoleUI;
 
 public class LoaiMonDAO {

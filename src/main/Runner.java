@@ -48,8 +48,8 @@ public class Runner {
             ps.setString(2, pass);
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                datebase.Session.currentMaNV = rs.getInt("MaNV");
-                datebase.Session.currentTaiKhoan = rs.getString("TaiKhoan");
+                database.Session.currentMaNV = rs.getInt("MaNV");
+                database.Session.currentTaiKhoan = rs.getString("TaiKhoan");
                 System.out.println("Đăng nhập thành công!");
                 return true;
             } else {

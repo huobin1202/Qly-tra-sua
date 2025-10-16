@@ -1,7 +1,7 @@
 package dao;
 import java.util.Scanner;
 
-import datebase.DBUtil;
+import database.DBUtil;
 import view.ConsoleUI;
 import dto.IQuanLy;
 
