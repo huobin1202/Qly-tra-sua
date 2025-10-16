@@ -3,9 +3,13 @@ package view;
 import java.util.Scanner;
 import dao.LoaiMonDAO;
 import dao.MonDAO;
+import dao.KhoHang;
+import dao.NhapHang;
 
 public class HangHoaView {
     public static void menu(LoaiMonDAO dsLoaiMon, MonDAO dsMon, Scanner sc) {
+        KhoHang kho = new KhoHang();
+        NhapHang nhap = new NhapHang();
         while (true) {
             ConsoleUI.printHeader("QUẢN LÝ HÀNG HÓA");
             ConsoleUI.printSection("KHU VỰC QUẢN LÝ");
@@ -44,12 +48,18 @@ public class HangHoaView {
                         System.out.println("Vui lòng nhập số hợp lệ.");
                         continue;
                     }
-                    if (chonLM == 2) dsLoaiMon.them();
-                    else if (chonLM == 3) dsLoaiMon.sua();
-                    else if (chonLM == 4) dsLoaiMon.xoa();
-                    else if (chonLM == 1) dsLoaiMon.xuat();
-                    else if (chonLM == 0) break;
-                    else System.out.println("Chức năng không hợp lệ.");
+                    if (chonLM == 2)
+                        dsLoaiMon.them();
+                    else if (chonLM == 3)
+                        dsLoaiMon.sua();
+                    else if (chonLM == 4)
+                        dsLoaiMon.xoa();
+                    else if (chonLM == 1)
+                        dsLoaiMon.xuat();
+                    else if (chonLM == 0)
+                        break;
+                    else
+                        System.out.println("Chức năng không hợp lệ.");
                 }
             } else if (chonHH == 2) {
                 while (true) {
@@ -72,16 +82,54 @@ public class HangHoaView {
                         System.out.println("Vui lòng nhập số hợp lệ.");
                         continue;
                     }
-                    if (chonMon == 2) dsMon.them();
-                    else if (chonMon == 3) dsMon.sua();
-                    else if (chonMon == 4) dsMon.xoa();
-                    else if (chonMon == 1) dsMon.xuat();
-                    else if (chonMon == 5) dsMon.timkiem();
-                    else if (chonMon == 0) break;
-                    else System.out.println("Chức năng không hợp lệ.");
+                    if (chonMon == 2)
+                        dsMon.them();
+                    else if (chonMon == 3)
+                        dsMon.sua();
+                    else if (chonMon == 4)
+                        dsMon.xoa();
+                    else if (chonMon == 1)
+                        dsMon.xuat();
+                    else if (chonMon == 5)
+                        dsMon.timkiem();
+                    else if (chonMon == 0)
+                        break;
+                    else
+                        System.out.println("Chức năng không hợp lệ.");
                 }
             } else if (chonHH == 3) {
-                KhoHangView.menu(sc);
+                while (true) {
+                    ConsoleUI.printHeader("NHẬP → KHO → XUẤT");
+                    ConsoleUI.printSection("CHỨC NĂNG");
+                    System.out.println("│ 1. Tạo phiếu nhập                     │");
+                    System.out.println("│ 2. Xem tồn kho                        │");
+                    System.out.println("│ 3. Xem danh sách nhà cung cấp                │");
+                    System.out.println("│ 4. Xem sản phẩm của nhà cung cấp      │");
+                    ConsoleUI.printSection("ĐIỀU HƯỚNG");
+                    System.out.println("│ 0. Quay lại                           │");
+                    ConsoleUI.printFooter();
+                    System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
+                    String chonStr = sc.nextLine();
+                    int chon;
+                    try {
+                        chon = Integer.parseInt(chonStr.trim());
+                    } catch (NumberFormatException e) {
+                        System.out.println("Vui lòng nhập số hợp lệ.");
+                        continue;
+                    }
+                    if (chon == 1)
+                        nhap.taoPhieuNhap();
+                    else if (chon == 2)
+                        kho.xemTon();
+                    else if (chon == 3)
+                        kho.xemDanhSachNCC(sc);
+                    else if (chon == 4)
+                        kho.xemSanPhamNCC(sc);
+                    else if (chon == 0)
+                        break;
+                    else
+                        System.out.println("Chức năng không hợp lệ.");
+                }
             } else if (chonHH == 0) {
                 break;
             }

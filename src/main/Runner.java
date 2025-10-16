@@ -4,13 +4,14 @@ import dao.KhachHangDAO;
 import dao.LoaiMonDAO;
 import dao.MonDAO;
 import dao.NhanVienDAO;
-import dao.DonDatHangDAO;
+import dao.DonHangDAO;
+import dao.ChiTietDonHangDAO;
 import dao.NhaCungCapDAO;
 import dao.GiaoHangDAO;
 import view.NhanVienView;
 import view.HangHoaView;
 import view.KhachHangView;
-import view.DatHangView;
+import view.DonHangView;
 import view.NhaCungCapView;
 
 import java.sql.*; // Thêm import này
@@ -83,7 +84,8 @@ public class Runner {
         LoaiMonDAO LoaiMon = new LoaiMonDAO();
         MonDAO Mon = new MonDAO();
         NhanVienDAO NhanVien = new NhanVienDAO();
-        DonDatHangDAO DonDatHang = new DonDatHangDAO();
+        DonHangDAO DonDatHang = new DonHangDAO();
+        ChiTietDonHangDAO ChiTietDon = new ChiTietDonHangDAO();
         NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
         GiaoHangDAO GiaoHang = new GiaoHangDAO();
 
@@ -125,7 +127,7 @@ public class Runner {
                     NhanVienView.menu(NhanVien, sc);
                     break;
                 case 4:
-                    DatHangView.menu(DonDatHang, GiaoHang, sc);
+                    DonHangView.menu(DonDatHang, GiaoHang, ChiTietDon, sc);
                     break;
                 case 5:
                     NhaCungCapView.menu(NhaCungCap, sc);

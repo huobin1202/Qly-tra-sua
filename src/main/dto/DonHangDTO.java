@@ -1,7 +1,7 @@
 package dto;
 import java.sql.Timestamp;
 
-public class DonDatHangDTO {
+public class DonHangDTO {
     private int maDon;
     private int maNV;
     private String loai;
@@ -12,7 +12,7 @@ public class DonDatHangDTO {
     private long tongTien;
     private int giamGia;
 
-    public DonDatHangDTO(int maDon, int maNV, String loai, String trangThai, 
+    public DonHangDTO(int maDon, int maNV, String loai, String trangThai, 
                          Timestamp ngayDat, Timestamp ngayThanhToan, long soTienDaTra, long tongTien, int giamGia) {
         this.maDon = maDon;
         this.maNV = maNV;
