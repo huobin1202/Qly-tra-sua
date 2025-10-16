@@ -5,17 +5,18 @@ public class MonDTO {
     String moTa;
     String tenDonVi;
     long gia;
+    String tinhTrang;
     int maLoai;
-    int soLuong;
 
-    public MonDTO(int maMon, String tenMon, String moTa, String tenDonVi, long gia, int maLoai, int soLuong) {
+
+    public MonDTO(int maMon, String tenMon, String moTa, String tenDonVi, long gia, String tinhTrang, int maLoai) {
         this.maMon = maMon;
         this.tenMon = tenMon;
         this.moTa = moTa;
         this.tenDonVi = tenDonVi;
         this.gia = gia;
+        this.tinhTrang = tinhTrang;
         this.maLoai = maLoai;
-        this.soLuong = soLuong;
     }
     public int getMaMon() {
         return maMon;
@@ -48,16 +49,18 @@ public class MonDTO {
     public void setGia(long gia) {
         this.gia = gia;
     }
+    public String getTinhTrang() {
+        return tinhTrang;
+    }
+    public void setTinhTrang(String tinhTrang) {
+        this.tinhTrang = tinhTrang;
+    }
     public int getMaLoai() {
         return maLoai;
     }
     public void setMaLoai(int maLoai) {
         this.maLoai = maLoai;
     }
-    public int getSoLuong() {
-        return soLuong;
-    }
-    public void setSoLuong(int soLuong) {
-        this.soLuong = soLuong;
-    }
+
+
 }

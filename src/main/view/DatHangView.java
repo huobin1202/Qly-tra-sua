@@ -34,6 +34,7 @@ public class DatHangView {
                     System.out.println("│ 3. Sửa đơn đặt hàng                          │");
                     System.out.println("│ 4. Xóa đơn đặt hàng                          │");
                     System.out.println("│ 5. Tìm kiếm đơn đặt hàng                     │");
+                    System.out.println("│ 6. Quản lý chi tiết đơn hàng                 │");
                     ConsoleUI.printSection("ĐIỀU HƯỚNG");
                     System.out.println("│ 0. Quay lại                                  │");
                     ConsoleUI.printFooter();
@@ -51,6 +52,7 @@ public class DatHangView {
                     else if (chonDon == 3) DonDatHang.sua();
                     else if (chonDon == 4) DonDatHang.xoa();
                     else if (chonDon == 5) DonDatHang.timkiem();
+                    else if (chonDon == 6) DonDatHang.chitietMenu(sc);
                     else if (chonDon == 0) break;
                     else System.out.println("Chức năng không hợp lệ.");
                 }
