@@ -1,7 +1,8 @@
 <!-- author: hgbaodev -->
-# Quản lý quán trà sữa theo mô hình offline
+# Quản lý quán trà sữa (mô hình offline)
 - Đồ án môn Phân tích thiết kế hệ thống thông tin
-- Sử dụng ngôn ngữ Java
+- Sử dụng ngôn ngữ Java + JDBC
+- Chạy giao diện trong Console
 - Tiến trình code: 70%
 - Tiến trình báo cáo: -
 ### Thành viên trong nhóm
