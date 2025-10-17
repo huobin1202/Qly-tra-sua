@@ -4,14 +4,14 @@
 - Sử dụng ngôn ngữ Java + JDBC
 - Chạy giao diện trong Console
 - Tiến trình code: 70%
-- Tiến trình báo cáo:(ツ)
+- Tiến trình báo cáo: (ツ)
 ### Thành viên trong nhóm
 | Họ Tên  | MSSV | % Công việc | Phân công | 
 | ------------- | ------------- | ------------- | ------------- |
 | Hồ Phạm Hữu Bình  | 3123411033  | 25 | Code chính |
 | Nguyễn Văn Phát  | 3123411220  | 25 | Vẽ báo cáo |
-| Nguyễn Minh  | 3123411(ツ) | 25 | Code phụ |
-| Võ Lê Chí Dũng  | 3123411(ツ)  | 25 | Vẽ báo cáo + Code phụ |
+| Nguyễn Minh  | 3123411 (ツ) | 25 | Code phụ |
+| Võ Lê Chí Dũng  | 3123411 (ツ)  | 25 | Vẽ báo cáo + Code phụ |
 
 # Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
