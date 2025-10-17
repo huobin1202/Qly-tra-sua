@@ -191,32 +191,6 @@ INSERT INTO `chitietdonhang` (`MaDon`, `MaMon`, `MaTopping`, `SoLuong`, `GiaMon`
 -- --------------------------------------------------------
 
 --
--- Table structure for table `giaohang`
---
-
-CREATE TABLE `giaohang` (
-  `MaDon` int(11) NOT NULL,
-  `MaKH` int(11) NOT NULL,
-  `TenShipper` varchar(50) DEFAULT NULL,
-  `SDTShipper` varchar(20) DEFAULT NULL,
-  `PhiShip` int(11) DEFAULT NULL,
-  `TrangThai` varchar(45) NOT NULL DEFAULT 'choxacnhan' COMMENT 'choxacnhan - chờ xác nhận\ncholayhang - chờ lấy hàng\ndangiao - đang giao\nhoanthanh - hoàn thành\nhuy - đã hủy',
-  `ThongBao` varchar(45) DEFAULT NULL,
-  `NgayBatDau` timestamp NULL DEFAULT current_timestamp(),
-  `NgayKetThuc` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `giaohang`
---
-
-INSERT INTO `giaohang` (`MaDon`, `MaKH`, `TenShipper`, `SDTShipper`, `PhiShip`, `TrangThai`, `ThongBao`, `NgayBatDau`, `NgayKetThuc`) VALUES
-(2, 1, 'Nguyễn Văn B', '09421321323', 0, 'dangiao', NULL, '2020-11-23 17:00:00', NULL);
-
--- --------------------------------------------------------
-
-
---
 -- Indexes for dumped tables
 --
 
@@ -264,18 +238,6 @@ ALTER TABLE `chitietdonhang`
   ADD KEY `fk_don_topping` (`MaTopping`);
 
 
-
---
--- Indexes for table `giaohang`
---
-ALTER TABLE `giaohang`
-  ADD PRIMARY KEY (`MaDon`),
-  ADD KEY `fk_khachhang_giao` (`MaKH`);
-
---
--- Indexes for table `ban`
---
--- removed table `ban`
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -341,12 +303,7 @@ ALTER TABLE `chitietdonhang`
   ADD CONSTRAINT `fk_don_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`),
   ADD CONSTRAINT `fk_don_topping` FOREIGN KEY (`MaTopping`) REFERENCES `mon` (`MaMon`);
 
---
--- Constraints for table `giaohang`
---
-ALTER TABLE `giaohang`
-  ADD CONSTRAINT `fk_don_giao` FOREIGN KEY (`MaDon`) REFERENCES `dondathang` (`MaDon`),
-  ADD CONSTRAINT `fk_khachhang_giao` FOREIGN KEY (`MaKH`) REFERENCES `khachhang` (`MaKH`);
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
@@ -356,13 +313,6 @@ COMMIT;
 -- Inventory and Stock Flow Tables
 -- --------------------------------------------------------
 
--- Table structure for table `khohang`
--- Holds current on-hand quantity per `mon`
-CREATE TABLE IF NOT EXISTS `khohang` (
-  `MaMon` int(11) NOT NULL,
-  `SoLuong` int(11) NOT NULL DEFAULT 0,
-  `CapNhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Table structure for table `phieunhap`
 CREATE TABLE IF NOT EXISTS `phieunhap` (
@@ -399,27 +349,8 @@ CREATE TABLE IF NOT EXISTS `chitietnhap` (
   `DonVi` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Table structure for table `phieuxuat`
-CREATE TABLE IF NOT EXISTS `phieuxuat` (
-  `MaPX` int(11) NOT NULL,
-  `MaNV` int(11) NOT NULL,
-  `Ngay` timestamp NOT NULL DEFAULT current_timestamp(),
-  `GhiChu` varchar(250) DEFAULT NULL,
-  `ThanhTien` bigint(20) NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- Table structure for table `chitietxuat`
-CREATE TABLE IF NOT EXISTS `chitietxuat` (
-  `MaPX` int(11) NOT NULL,
-  `MaMon` int(11) NOT NULL,
-  `SoLuong` int(11) NOT NULL,
-  `DonGia` bigint(20) NOT NULL DEFAULT 0,
-  `DonVi` varchar(20) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Indexes
-ALTER TABLE `khohang`
-  ADD PRIMARY KEY (`MaMon`);
 
 ALTER TABLE `phieunhap`
   ADD PRIMARY KEY (`MaPN`),
@@ -430,13 +361,6 @@ ALTER TABLE `chitietnhap`
   ADD PRIMARY KEY (`MaPN`,`MaMon`),
   ADD KEY `fk_ctn_mon` (`MaMon`);
 
-ALTER TABLE `phieuxuat`
-  ADD PRIMARY KEY (`MaPX`),
-  ADD KEY `fk_px_nv` (`MaNV`);
-
-ALTER TABLE `chitietxuat`
-  ADD PRIMARY KEY (`MaPX`,`MaMon`),
-  ADD KEY `fk_ctx_mon` (`MaMon`);
 
 -- primary key declared inline for `nhacungcap`
 
@@ -448,12 +372,8 @@ ALTER TABLE `ncc_sanpham`
 ALTER TABLE `phieunhap`
   MODIFY `MaPN` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
-ALTER TABLE `phieuxuat`
-  MODIFY `MaPX` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 -- Foreign keys
-ALTER TABLE `khohang`
-  ADD CONSTRAINT `fk_kho_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 ALTER TABLE `phieunhap`
   ADD CONSTRAINT `fk_pn_nv` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -465,12 +385,7 @@ ALTER TABLE `chitietnhap`
   ADD CONSTRAINT `fk_ctn_pn` FOREIGN KEY (`MaPN`) REFERENCES `phieunhap` (`MaPN`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_ctn_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-ALTER TABLE `phieuxuat`
-  ADD CONSTRAINT `fk_px_nv` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-ALTER TABLE `chitietxuat`
-  ADD CONSTRAINT `fk_ctx_px` FOREIGN KEY (`MaPX`) REFERENCES `phieuxuat` (`MaPX`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_ctx_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 ALTER TABLE `ncc_sanpham`
   ADD CONSTRAINT `fk_nccsp_ncc` FOREIGN KEY (`MaNCC`) REFERENCES `nhacungcap` (`MaNCC`) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -487,4 +402,77 @@ INSERT INTO `ncc_sanpham` (`MaNCC`, `MaMon`, `SoLuong`, `DonGia`) VALUES
   (1, 4, 150, 8500),  -- Trân Châu Trắng
   (2, 5, 300, 40000), -- Trà Sữa Trân Châu
   (2, 8, 250, 38000); -- Sữa Tươi Trân Châu Đường Đen
+
+-- --------------------------------------------------------
+-- Ingredients domain (Nguyên liệu) and inventory changes
+-- --------------------------------------------------------
+
+-- Ingredients master table
+CREATE TABLE IF NOT EXISTS `nguyenlieu` (
+  `MaNL` int(11) NOT NULL AUTO_INCREMENT,
+  `TenNL` varchar(100) NOT NULL,
+  `DonVi` varchar(20) NOT NULL,
+  PRIMARY KEY (`MaNL`),
+  UNIQUE KEY `uq_ten_nl` (`TenNL`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Warehouse now tracks ingredients instead of finished goods
+CREATE TABLE IF NOT EXISTS `kho_nguyenlieu` (
+  `MaNL` int(11) NOT NULL,
+  `SoLuong` int(11) NOT NULL DEFAULT 0,
+  `CapNhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`MaNL`),
+  CONSTRAINT `fk_kho_nl` FOREIGN KEY (`MaNL`) REFERENCES `nguyenlieu` (`MaNL`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Supplier can supply ingredients too
+CREATE TABLE IF NOT EXISTS `ncc_nguyenlieu` (
+  `MaNCC` int(11) NOT NULL,
+  `MaNL` int(11) NOT NULL,
+  `SoLuong` int(11) NOT NULL DEFAULT 0,
+  `DonGia` bigint(20) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`MaNCC`,`MaNL`),
+  KEY `fk_nccnl_nl` (`MaNL`),
+  CONSTRAINT `fk_nccnl_ncc` FOREIGN KEY (`MaNCC`) REFERENCES `nhacungcap` (`MaNCC`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_nccnl_nl` FOREIGN KEY (`MaNL`) REFERENCES `nguyenlieu` (`MaNL`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Recipe: quantity of each ingredient per dish
+CREATE TABLE IF NOT EXISTS `mon_nguyenlieu` (
+  `MaMon` int(11) NOT NULL,
+  `MaNL` int(11) NOT NULL,
+  `SoLuongDung` int(11) NOT NULL,
+  `DonVi` varchar(20) NOT NULL,
+  PRIMARY KEY (`MaMon`,`MaNL`),
+  KEY `fk_mnl_nl` (`MaNL`),
+  CONSTRAINT `fk_mnl_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_mnl_nl` FOREIGN KEY (`MaNL`) REFERENCES `nguyenlieu` (`MaNL`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Seed three example ingredients
+INSERT INTO `nguyenlieu` (`MaNL`, `TenNL`, `DonVi`) VALUES
+  (1, 'Đường', 'gram'),
+  (2, 'Trà Ô Long', 'gram'),
+  (3, 'Sữa tươi', 'ml')
+ON DUPLICATE KEY UPDATE TenNL=VALUES(TenNL), DonVi=VALUES(DonVi);
+
+-- Seed supplier ingredients
+INSERT INTO `ncc_nguyenlieu` (`MaNCC`, `MaNL`, `SoLuong`, `DonGia`) VALUES
+  (1, 1, 50000, 20),
+  (1, 2, 20000, 50),
+  (2, 3, 30000, 40)
+ON DUPLICATE KEY UPDATE SoLuong=VALUES(SoLuong), DonGia=VALUES(DonGia);
+
+-- Import details for ingredients
+CREATE TABLE IF NOT EXISTS `chitietnhap_nl` (
+  `MaPN` int(11) NOT NULL,
+  `MaNL` int(11) NOT NULL,
+  `SoLuong` int(11) NOT NULL,
+  `DonGia` bigint(20) NOT NULL DEFAULT 0,
+  `DonVi` varchar(20) DEFAULT NULL,
+  PRIMARY KEY (`MaPN`,`MaNL`),
+  KEY `fk_ctnnl_nl` (`MaNL`),
+  CONSTRAINT `fk_ctnnl_pn` FOREIGN KEY (`MaPN`) REFERENCES `phieunhap` (`MaPN`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ctnnl_nl` FOREIGN KEY (`MaNL`) REFERENCES `nguyenlieu` (`MaNL`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

@@ -10,12 +10,13 @@ public class HangHoaView {
     public static void menu(LoaiMonDAO dsLoaiMon, MonDAO dsMon, Scanner sc) {
         KhoHang kho = new KhoHang();
         NhapHang nhap = new NhapHang();
+        dao.NguyenLieuDAO dsNguyenLieu = new dao.NguyenLieuDAO();
         while (true) {
             ConsoleUI.printHeader("QUẢN LÝ HÀNG HÓA");
             ConsoleUI.printSection("KHU VỰC QUẢN LÝ");
             System.out.println("│ 1. Loại món                                  │");
             System.out.println("│ 2. Món                                       │");
-            System.out.println("│ 3. Tồn kho / Nhập / Xuất                     │");
+            System.out.println("│ 3. Nguyên liệu                               │");
             ConsoleUI.printSection("ĐIỀU HƯỚNG");
             System.out.println("│ 0. Quay lại                                  │");
             ConsoleUI.printFooter();
@@ -99,38 +100,27 @@ public class HangHoaView {
                 }
             } else if (chonHH == 3) {
                 while (true) {
-                    ConsoleUI.printHeader("NHẬP → KHO → XUẤT");
+                    ConsoleUI.printHeader("NGUYÊN LIỆU");
                     ConsoleUI.printSection("CHỨC NĂNG");
-                    System.out.println("│ 1. Tạo phiếu nhập                     │");
-                    System.out.println("│ 2. Xem tồn kho                        │");
-                    System.out.println("│ 3. Xem danh sách nhà cung cấp                │");
-                    System.out.println("│ 4. Xem sản phẩm của nhà cung cấp      │");
+                    System.out.println("│ 1. Xem danh sách nguyên liệu       │");
+                    System.out.println("│ 2. Thêm nguyên liệu                │");
+                    System.out.println("│ 3. Sửa nguyên liệu                 │");
+                    System.out.println("│ 4. Xóa nguyên liệu                 │");
                     ConsoleUI.printSection("ĐIỀU HƯỚNG");
-                    System.out.println("│ 0. Quay lại                           │");
+                    System.out.println("│ 0. Quay lại                        │");
                     ConsoleUI.printFooter();
                     System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-                    String chonStr = sc.nextLine();
-                    int chon;
-                    try {
-                        chon = Integer.parseInt(chonStr.trim());
-                    } catch (NumberFormatException e) {
-                        System.out.println("Vui lòng nhập số hợp lệ.");
-                        continue;
-                    }
-                    if (chon == 1)
-                        nhap.taoPhieuNhap();
-                    else if (chon == 2)
-                        kho.xemTon();
-                    else if (chon == 3)
-                        kho.xemDanhSachNCC(sc);
-                    else if (chon == 4)
-                        kho.xemSanPhamNCC(sc);
-                    else if (chon == 0)
-                        break;
-                    else
-                        System.out.println("Chức năng không hợp lệ.");
+                    String chonNLStr = sc.nextLine();
+                    int chonNL;
+                    try { chonNL = Integer.parseInt(chonNLStr.trim()); } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); continue; }
+                    if (chonNL == 1) dsNguyenLieu.xuat();
+                    else if (chonNL == 2) dsNguyenLieu.them();
+                    else if (chonNL == 3) dsNguyenLieu.sua();
+                    else if (chonNL == 4) dsNguyenLieu.xoa();
+                    else if (chonNL == 0) break;
+                    else System.out.println("Chức năng không hợp lệ.");
                 }
-            } else if (chonHH == 0) {
+            }  else if (chonHH == 0) {
                 break;
             }
         }

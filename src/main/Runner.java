@@ -7,7 +7,6 @@ import dao.NhanVienDAO;
 import dao.DonHangDAO;
 import dao.ChiTietDonHangDAO;
 import dao.NhaCungCapDAO;
-import dao.GiaoHangDAO;
 import view.NhanVienView;
 import view.HangHoaView;
 import view.KhachHangView;
@@ -67,12 +66,11 @@ public class Runner {
         Scanner sc = new Scanner(System.in);
         // Đăng nhập trước khi vào hệ thống
         boolean loginSuccess = false;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 100; i++) {
             if (dangNhap(sc)) {
                 loginSuccess = true;
                 break;
             }
-            System.out.println("Bạn còn " + (2 - i) + " lần thử.");
         }
         if (!loginSuccess) {
             System.out.println("Đăng nhập thất bại. Thoát chương trình.");
@@ -87,7 +85,6 @@ public class Runner {
         DonHangDAO DonDatHang = new DonHangDAO();
         ChiTietDonHangDAO ChiTietDon = new ChiTietDonHangDAO();
         NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
-        GiaoHangDAO GiaoHang = new GiaoHangDAO();
 
         
 
@@ -127,7 +124,7 @@ public class Runner {
                     NhanVienView.menu(NhanVien, sc);
                     break;
                 case 4:
-                    DonHangView.menu(DonDatHang, GiaoHang, ChiTietDon, sc);
+                    DonHangView.menu(DonDatHang, ChiTietDon, sc);
                     break;
                 case 5:
                     NhaCungCapView.menu(NhaCungCap, sc);

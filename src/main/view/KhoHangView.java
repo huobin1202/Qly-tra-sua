@@ -9,12 +9,12 @@ public class KhoHangView {
         KhoHang kho = new KhoHang();
         NhapHang nhap = new NhapHang();
         while (true) {
-            ConsoleUI.printHeader("NHẬP → KHO → XUẤT");
+            ConsoleUI.printHeader("KHO NGUYÊN LIỆU / NCC");
             ConsoleUI.printSection("CHỨC NĂNG");
-            System.out.println("│ 1. Tạo phiếu nhập                     │");
-            System.out.println("│ 2. Xem tồn kho                        │");
-            System.out.println("│ 3. Xem danh sách nhà cung cấp                │");
-            System.out.println("│ 4. Xem sản phẩm của nhà cung cấp      │");
+            System.out.println("│ 1. Tạo phiếu nhập                  │");
+            System.out.println("│ 2. Xem tồn kho nguyên liệu         │");
+            System.out.println("│ 3. Xem danh sách nhà cung cấp      │");
+            System.out.println("│ 4. Xem nguyên liệu của nhà cung cấp│");
             ConsoleUI.printSection("ĐIỀU HƯỚNG");
             System.out.println("│ 0. Quay lại                           │");
             ConsoleUI.printFooter();
@@ -28,9 +28,9 @@ public class KhoHangView {
                 continue;
             }
             if (chon == 1) nhap.taoPhieuNhap();
-            else if (chon == 2) kho.xemTon();
+            else if (chon == 2) kho.xemTonNguyenLieu();
             else if (chon == 3) kho.xemDanhSachNCC(sc);
-            else if (chon == 4) kho.xemSanPhamNCC(sc);
+            else if (chon == 4) kho.xemNguyenLieuNCC(sc);
             else if (chon == 0) break;
             else System.out.println("Chức năng không hợp lệ.");
         }
