@@ -4,7 +4,7 @@
 - Sử dụng ngôn ngữ Java + JDBC
 - Chạy giao diện trong Console
 - Tiến trình code: 70%
-- Tiến trình báo cáo:    ¯\_(ツ)_/¯
+- Tiến trình báo cáo: -¯\_(ツ)_/¯
 ### Thành viên trong nhóm
 | Họ Tên  | MSSV | % Công việc | Phân công | 
 | ------------- | ------------- | ------------- | ------------- |
