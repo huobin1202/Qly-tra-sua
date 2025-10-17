@@ -1,8 +1,8 @@
 <!-- author: hgbaodev -->
-# Quản lý quán trà sữa
+# Quản lý quán trà sữa theo mô hình offline
 - Đồ án môn Phân tích thiết kế hệ thống thông tin
 - Sử dụng ngôn ngữ Java
-- Tiến trình code: 50%
+- Tiến trình code: 70%
 - Tiến trình báo cáo: -
 ### Thành viên trong nhóm
 | Họ Tên  | MSSV | % Công việc | Phân công | 
@@ -14,9 +14,9 @@
 
 # Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
-    Quản lý hàng hóa: món, loại món
-    Quản lý đặt hàng: đơn hàng, quản lý giao hàng
-    Quản lý nhập/xuất hàng
+    Quản lý hàng hóa: món, loại món, nguyên liệu
+    Quản lý đơn hàng
+    Quản lý nhập hàng: nguyên liệu
     Quản lý kho hàng
     Quản lý nhà cung cấp
     Quản lý khách hàng, nhân viên
