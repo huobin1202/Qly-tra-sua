@@ -1,15 +1,29 @@
 <!-- author: hgbaodev -->
 # Quản lý quán trà sữa
-Đồ án môn Phân tích thiết kế hệ thống thông tin
-# Thành viên trong nhóm
-| Họ Tên  | MSSV | % Công việc |
-| ------------- | ------------- | ------------- | 
-| Hồ Phạm Hữu Bình  | 3123411033  | |
-| Nguyễn Văn Phát  | 3123411220  | |
-| Nguyễn Minh  | 3123411---  | |
-| Võ Lê Chí Dũng  | 3123411---  | |
+- Đồ án môn Phân tích thiết kế hệ thống thông tin
+- Sử dụng ngôn ngữ Java
+- Tiến trình code: 50%
+- Tiến trình báo cáo: -
+### Thành viên trong nhóm
+| Họ Tên  | MSSV | % Công việc | Phân công | 
+| ------------- | ------------- | ------------- | ------------- |
+| Hồ Phạm Hữu Bình  | 3123411033  | 25 | Code chính |
+| Nguyễn Văn Phát  | 3123411220  | 25 | Vẽ báo cáo |
+| Nguyễn Minh  | 3123411---  | 25 | Code phụ |
+| Võ Lê Chí Dũng  | 3123411---  | 25 | Vẽ báo cáo + Code phụ |
 
-## Getting Started
+# Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
+
+    Quản lý hàng hóa: món, loại món
+    Quản lý đặt hàng: đơn hàng, quản lý giao hàng
+    Quản lý nhập/xuất hàng
+    Quản lý kho hàng
+    Quản lý nhà cung cấp
+    Quản lý khách hàng, nhân viên
+    Quản lý tài khoản (login, phân quyền) 
+    Thống kê từng mục
+
+# Getting Started
 
 1. Tải source code về:
 
