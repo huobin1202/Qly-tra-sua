@@ -12,7 +12,8 @@ import view.HangHoaView;
 import view.KhachHangView;
 import view.DonHangView;
 import view.NhaCungCapView;
-
+import view.NhapHangView;
+import dao.GiaoHangDAO;
 import java.sql.*; // Thêm import này
 
 public class Runner {
@@ -85,7 +86,8 @@ public class Runner {
         DonHangDAO DonDatHang = new DonHangDAO();
         ChiTietDonHangDAO ChiTietDon = new ChiTietDonHangDAO();
         NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
-
+        GiaoHangDAO GiaoHang = new GiaoHangDAO();
+        NhapHangView NhapHang = new NhapHangView();
         
 
         while (true) {
@@ -124,13 +126,16 @@ public class Runner {
                     NhanVienView.menu(NhanVien, sc);
                     break;
                 case 4:
-                    DonHangView.menu(DonDatHang, ChiTietDon, sc);
+                    DonHangView.menu(DonDatHang, GiaoHang, ChiTietDon, sc);
                     break;
                 case 5:
                     NhaCungCapView.menu(NhaCungCap, sc);
                     break;
                 case 6:
-                    view.KhoHangView.menu(sc); // reuse view to create and later list
+                    NhapHang.menu(); // Quản lý phiếu nhập
+                    break;
+                case 7:
+                    view.KhoHangView.menu(sc); // Tồn kho
                     break;
                 case 0:
                     System.out.println("Thoát chương trình.");

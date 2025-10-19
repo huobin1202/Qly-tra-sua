@@ -51,19 +51,26 @@ public class LoaiMonDAO {
 
     public void xoa() {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Nhập mã loại món cần xóa: ");
-        int ma = sc.nextInt();
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM loaimon WHERE MaLoai=?")) {
-            ps.setInt(1, ma);
-            int rows = ps.executeUpdate();
-            if (rows > 0)
-                System.out.println("Đã xóa loại món.");
-            else
-                System.out.println("Không tìm thấy loại món.");
-        } catch (SQLException e) {
-            e.printStackTrace();
+        try {
+        while (true) {
+            System.out.print("Nhập mã loại món cần xóa (0: hủy): ");
+            String maStr = sc.nextLine();
+            if (maStr == null) continue; maStr = maStr.trim();
+            if (maStr.equals("0")) { System.out.println("Đã hủy."); break; }
+            int ma; try { ma = Integer.parseInt(maStr); } catch (NumberFormatException e) { System.out.println("Mã không hợp lệ."); continue; }
+            try (Connection conn = DBUtil.getConnection();
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM loaimon WHERE MaLoai=?")) {
+                ps.setInt(1, ma);
+                int rows = ps.executeUpdate();
+                if (rows > 0)
+                    System.out.println("Đã xóa loại món.");
+                else
+                    System.out.println("Không tìm thấy loại món.");
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
+        } finally { sc.close(); }
     }
 
     public void xuat() {

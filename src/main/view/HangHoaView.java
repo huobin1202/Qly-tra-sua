@@ -3,12 +3,12 @@ package view;
 import java.util.Scanner;
 import dao.LoaiMonDAO;
 import dao.MonDAO;
-import dao.KhoHang;
+import dao.KhoHangDAO;
 import dao.NhapHang;
 
 public class HangHoaView {
     public static void menu(LoaiMonDAO dsLoaiMon, MonDAO dsMon, Scanner sc) {
-        KhoHang kho = new KhoHang();
+        KhoHangDAO kho = new KhoHangDAO();
         NhapHang nhap = new NhapHang();
         dao.NguyenLieuDAO dsNguyenLieu = new dao.NguyenLieuDAO();
         while (true) {

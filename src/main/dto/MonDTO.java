@@ -9,11 +9,10 @@ public class MonDTO {
     int maLoai;
 
 
-    public MonDTO(int maMon, String tenMon, String moTa, String tenDonVi, long gia, String tinhTrang, int maLoai) {
+    public MonDTO(int maMon, String tenMon, String moTa, long gia, String tinhTrang, int maLoai) {
         this.maMon = maMon;
         this.tenMon = tenMon;
         this.moTa = moTa;
-        this.tenDonVi = tenDonVi;
         this.gia = gia;
         this.tinhTrang = tinhTrang;
         this.maLoai = maLoai;
@@ -37,12 +36,6 @@ public class MonDTO {
         this.moTa = moTa;
     }
    
-    public String getTenDonVi() {
-        return tenDonVi;
-    }
-    public void setTenDonVi(String tenDonVi) {
-        this.tenDonVi = tenDonVi;
-    }
     public long getGia() {
         return gia;
     }

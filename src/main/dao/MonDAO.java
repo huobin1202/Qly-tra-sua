@@ -15,8 +15,6 @@ public class MonDAO {
             String mota = promptString(sc, "Mô tả (0: hủy)");
             if (mota == null) { System.out.println("Đã hủy thêm món."); return; }
 
-            String tendv = promptString(sc, "Tên đơn vị (0: hủy)");
-            if (tendv == null) { System.out.println("Đã hủy thêm món."); return; }
 
             Integer gia = promptInt(sc, "Giá (số nguyên, 0: hủy)", 0, Integer.MAX_VALUE, true);
             if (gia == null) { System.out.println("Đã hủy thêm món."); return; }
@@ -29,20 +27,19 @@ public class MonDAO {
                 if (ma_loai == null) { System.out.println("Đã hủy thêm món."); return; }
 
                 try (PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO mon (TenMon, MoTa, TenDonVi, Gia, MaLoai, TinhTrang) VALUES (?, ?, ?, ?, ?, ?)")) {
+                        "INSERT INTO mon (TenMon, MoTa, Gia, MaLoai, TinhTrang) VALUES (?, ?, ?, ?, ?, ?)")) {
                     ps.setString(1, ten);
                     ps.setString(2, mota);
-                    ps.setString(3, tendv);
-                    ps.setLong(4, gia);
-                    ps.setInt(5, ma_loai);
-                    ps.setString(6, tinhTrangStr);
+                    ps.setLong(3, gia);
+                    ps.setInt(4, ma_loai);
+                    ps.setString(5, tinhTrangStr);
                     ps.executeUpdate();
                     System.out.println("Đã thêm món.");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-        } finally { }
+        } finally { sc.close(); }
     }
 
     public void sua() {
@@ -59,7 +56,7 @@ public class MonDAO {
             printMonById(conn, id);
 
             while (true) {
-                System.out.println("Chọn cách sửa: 1. Sửa toàn bộ, 2. Tên, 3. Mô tả, 4. Tên đơn vị, 5. Giá, 6. Tình trạng, 7. Mã loại, 0. Hủy");
+                System.out.println("Chọn cách sửa: 1. Sửa toàn bộ, 2. Tên, 3. Mô tả, 4. Giá, 5. Tình trạng, 6. Mã loại, 0. Hủy");
                 Integer choice = promptInt(sc, "Chọn", 0, 7, false);
                 if (choice == null) { System.out.println("Đã hủy sửa món."); return; }
                 switch (choice) {
@@ -69,7 +66,6 @@ public class MonDAO {
                     case 1: {
                         String ten = promptString(sc, "Tên món mới (0: hủy)"); if (ten == null) return;
                         String mota = promptString(sc, "Mô tả mới (0: hủy)"); if (mota == null) return;
-                        String tendv = promptString(sc, "Tên đơn vị mới (0: hủy)"); if (tendv == null) return;
                         Integer gia = promptInt(sc, "Giá mới (0: hủy)", 0, Integer.MAX_VALUE, true); if (gia == null) return;
                         String tinhtrang = promptTinhTrang(sc); if (tinhtrang == null) return;
                         Integer maLoai = promptMaLoai(sc, conn); if (maLoai == null) return;
@@ -77,11 +73,10 @@ public class MonDAO {
                                 "UPDATE mon SET TenMon=?, MoTa=?, TenDonVi=?, Gia=?, TinhTrang=?, MaLoai=? WHERE MaMon=?")) {
                             ps.setString(1, ten);
                             ps.setString(2, mota);
-                            ps.setString(3, tendv);
-                            ps.setLong(4, gia);
-                            ps.setString(5, tinhtrang);
-                            ps.setInt(6, maLoai);
-                            ps.setInt(7, id);
+                            ps.setLong(3, gia);
+                            ps.setString(4, tinhtrang);
+                            ps.setInt(5, maLoai);
+                            ps.setInt(6, id);
                             ps.executeUpdate();
                             System.out.println("Đã sửa món.");
                         }
@@ -102,14 +97,8 @@ public class MonDAO {
                         printMonById(conn, id);
                         return;
                     }
+                  
                     case 4: {
-                        String tendv = promptString(sc, "Tên đơn vị mới (0: hủy)"); if (tendv == null) return;
-                        updateOne(conn, "TenDonVi", tendv, id);
-                        System.out.println("Đã sửa món.");
-                        printMonById(conn, id);
-                        return;
-                    }
-                    case 5: {
                         Integer gia = promptInt(sc, "Giá mới (0: hủy)", 0, Integer.MAX_VALUE, true); if (gia == null) return;
                         try (PreparedStatement ps = conn.prepareStatement("UPDATE mon SET Gia=? WHERE MaMon=?")) {
                             ps.setLong(1, gia);
@@ -120,14 +109,14 @@ public class MonDAO {
                         printMonById(conn, id);
                         return;
                     }
-                    case 6: {
+                    case 5: {
                         String tinhtrang = promptTinhTrang(sc); if (tinhtrang == null) return;
                         updateOne(conn, "TinhTrang", tinhtrang, id);
                         System.out.println("Đã sửa món.");
                         printMonById(conn, id);
                         return;
                     }
-                    case 7: {
+                    case 6: {
                         Integer maLoai = promptMaLoai(sc, conn); if (maLoai == null) return;
                         try (PreparedStatement ps = conn.prepareStatement("UPDATE mon SET MaLoai=? WHERE MaMon=?")) {
                             ps.setInt(1, maLoai);
@@ -144,33 +133,38 @@ public class MonDAO {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
+        } finally { sc.close(); }
     }
 
     public void xoa() {
         Scanner sc = new Scanner(System.in);
         try {
-            System.out.print("Nhập ID món cần xóa: ");
-            int id = sc.nextInt();
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM mon WHERE MaMon=?")) {
-                ps.setInt(1, id);
-                int rows = ps.executeUpdate();
-                if (rows > 0)
-                    System.out.println("Đã xóa món.");
-                else
-                    System.out.println("Không tìm thấy món.");
-            } catch (SQLException e) {
-                e.printStackTrace();
+            while (true) {
+                System.out.print("Nhập ID món cần xóa (0: hủy): ");
+                String idStr = sc.nextLine();
+                if (idStr == null) continue; idStr = idStr.trim();
+                if ("0".equals(idStr)) { System.out.println("Đã hủy."); break; }
+                int id; try { id = Integer.parseInt(idStr); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); continue; }
+                try (Connection conn = DBUtil.getConnection();
+                     PreparedStatement ps = conn.prepareStatement("DELETE FROM mon WHERE MaMon=?")) {
+                    ps.setInt(1, id);
+                    int rows = ps.executeUpdate();
+                    if (rows > 0)
+                        System.out.println("Đã xóa món.");
+                    else
+                        System.out.println("Không tìm thấy món.");
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
-        } finally { }
+        } finally { sc.close(); }
     }
 
     public void xuat() {
         ConsoleUI.printHeader("DANH SÁCH MÓN");
-        System.out.println("┌────┬────────────────────────────┬────────────────────┬────────────┬────────────┬────────────┬────────────┐");
-        System.out.println("│ ID │ Tên                        │ Mô tả              │ Tên DV     │ Giá        │ Loại       │ Tình trạng │");
-        System.out.println("├────┼────────────────────────────┼────────────────────┼────────────┼────────────┼────────────┼────────────┤");
+        System.out.println("┌────┬────────────────────────────┬────────────────────┬────────────┬────────────┬────────────┐");
+        System.out.println("│ ID │ Tên                        │ Mô tả              │ Giá        │ Loại       │ Tình trạng │");
+        System.out.println("├────┼────────────────────────────┼────────────────────┼────────────┼────────────┼────────────┤");
         boolean any = false;
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
@@ -181,15 +175,15 @@ public class MonDAO {
                 "ORDER BY mon.MaMon")) {
             while (rs.next()) {
                 any = true;
-                System.out.printf("│ %-2d │ %-25s │ %-18s │ %-10s │ %-10d │ %-10s │ %-10s │\n",
+                System.out.printf("│ %-2d │ %-25s │ %-18s │ %-10d │ %-10s │ %-10s │\n",
                     rs.getInt("MaMon"), rs.getString("TenMon"), rs.getString("MoTa"),
-                    rs.getString("TenDonVi"), rs.getLong("Gia"), rs.getString("ten_loai"), rs.getString("TinhTrang"));
+                     rs.getLong("Gia"), rs.getString("ten_loai"), rs.getString("TinhTrang"));
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         if (!any) System.out.println("│ Không có dữ liệu                                                                                               │");
-        System.out.println("└────┴────────────────────┴────────────────────┴────────────┴────────────┴────────────┴────────────┘");
+        System.out.println("└────┴────────────────────┴────────────────────┴────────────┴────────────┴────────────┘");
         ConsoleUI.printFooter();
     }
 
@@ -243,22 +237,21 @@ public class MonDAO {
                     e.printStackTrace();
                 }
             }
-        } finally { }
+        } finally { sc.close(); }
     }
 
     private void printMonTable(ResultSet rs) throws SQLException {
-        System.out.println("\n╔════╦════════════════════╦════════════════════╦════════════╦════════════╦═════════════╦════════════╗");
-        System.out.println("║ ID ║ Tên               ║ Mô tả              ║ Tên DV     ║ Giá        ║ Loại       ║ Tình trạng ║");
-        System.out.println("╠════╬════════════════════╬════════════════════╬════════════╬════════════╬════════════╬════════════╣");
+        System.out.println("\n╔════╦════════════════════╦════════════════════╦════════════╦═════════════╦════════════╗");
+        System.out.println("║ ID ║ Tên               ║ Mô tả              ║ Giá        ║ Loại       ║ Tình trạng ║");
+        System.out.println("╠════╬════════════════════╬════════════════════╬════════════╬════════════╬════════════╣");
         boolean any = false;
         while (rs.next()) {
             any = true;
             System.out.printf("║ %-2d ║ %-18s ║ %-18s ║ %-10s ║ %-10d ║ %-10s ║ %-10s ║\n",
-                rs.getInt("MaMon"), rs.getString("TenMon"), rs.getString("MoTa"),
-                rs.getString("TenDonVi"), rs.getLong("Gia"), rs.getString("ten_loai"), rs.getString("TinhTrang"));
+                rs.getInt("MaMon"), rs.getString("TenMon"), rs.getString("MoTa"), rs.getLong("Gia"), rs.getString("ten_loai"), rs.getString("TinhTrang"));
         }
         if (!any) System.out.println("║ Không có kết quả                                                                           ║");
-        System.out.println("╚════╩════════════════════╩════════════════════╩════════════╩════════════╩════════════╩════════════╝");
+        System.out.println("╚════╩════════════════════╩════════════════════╩════════════╩════════════╩════════════╝");
     }
 
     private static String promptString(Scanner sc, String label) {

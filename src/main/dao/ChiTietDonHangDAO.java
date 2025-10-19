@@ -52,9 +52,20 @@ public class ChiTietDonHangDAO {
             while (true) {
                 Integer maMon = promptId(sc, "Nhập mã món (0: hủy)" ); if (maMon == null) { System.out.println("Đã hủy thêm."); return; }
                 if (!existsMon(conn, maMon)) { System.out.println("Món không tồn tại."); continue; }
+                // Không cho phép chọn món thuộc loại topping làm món chính
+                try (PreparedStatement ps = conn.prepareStatement("SELECT MaLoai FROM mon WHERE MaMon=?")) {
+                    ps.setInt(1, maMon);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt("MaLoai") == 4) {
+                            System.out.println("Món thuộc loại topping (MaLoai=4) không thể thêm như món chính.");
+                            continue;
+                        }
+                    }
+                }
                 Integer maTopping = promptInt(sc, "Mã topping (0: không có, -1: hủy)", -1, Integer.MAX_VALUE, false);
                 if (maTopping == null || maTopping == -1) { System.out.println("Đã hủy thêm."); return; }
                 if (maTopping != 0 && !existsMon(conn, maTopping)) { System.out.println("Topping không tồn tại."); continue; }
+                if (maTopping != 0 && !isToppingLoai4(conn, maTopping)) { System.out.println("Chỉ được chọn topping thuộc loại có mã = 4."); continue; }
                 Integer soLuong = promptInt(sc, "Số lượng (>=1, 0: hủy)", 0, Integer.MAX_VALUE, true); if (soLuong == null) { System.out.println("Đã hủy thêm."); return; }
 
                 long giaMon = getGiaMon(conn, maMon);
@@ -90,6 +101,7 @@ public class ChiTietDonHangDAO {
             printChiTietByDon(conn, maDon);
             Integer maMon = promptId(sc, "Nhập mã món của dòng cần sửa (0: hủy)"); if (maMon == null) { System.out.println("Đã hủy."); return; }
             Integer maTopping = promptInt(sc, "Mã topping của dòng cần sửa (0: không có, -1: hủy)", -1, Integer.MAX_VALUE, false); if (maTopping == null || maTopping == -1) { System.out.println("Đã hủy."); return; }
+            if (maTopping != 0 && !isToppingLoai4(conn, maTopping)) { System.out.println("Chỉ được chọn topping thuộc loại có mã = 4."); return; }
 
             if (!existsChiTiet(conn, maDon, maMon, maTopping)) { System.out.println("Không tìm thấy dòng chi tiết."); return; }
 
@@ -125,18 +137,20 @@ public class ChiTietDonHangDAO {
         try (Connection conn = DBUtil.getConnection()) {
             Integer maDon = promptId(sc, "Nhập mã đơn (0: hủy)"); if (maDon == null) { System.out.println("Đã hủy."); return; }
             if (!existsDon(conn, maDon)) { System.out.println("Không tìm thấy đơn."); return; }
-            printChiTietByDon(conn, maDon);
-            Integer maMon = promptId(sc, "Nhập mã món của dòng cần xóa (0: hủy)"); if (maMon == null) { System.out.println("Đã hủy."); return; }
-            Integer maTopping = promptInt(sc, "Mã topping của dòng cần xóa (0: không có, -1: hủy)", -1, Integer.MAX_VALUE, false); if (maTopping == null || maTopping == -1) { System.out.println("Đã hủy."); return; }
-            if (!existsChiTiet(conn, maDon, maMon, maTopping)) { System.out.println("Không tìm thấy dòng chi tiết."); return; }
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM chitietdonhang WHERE MaDon=? AND MaMon=? AND MaTopping=?")) {
-                ps.setInt(1, maDon);
-                ps.setInt(2, maMon);
-                ps.setInt(3, maTopping);
-                ps.executeUpdate();
+            while (true) {
+                printChiTietByDon(conn, maDon);
+                Integer maMon = promptId(sc, "Nhập mã món của dòng cần xóa (0: hủy)"); if (maMon == null) { System.out.println("Đã hủy."); break; }
+                Integer maTopping = promptInt(sc, "Mã topping của dòng cần xóa (0: không có, -1: hủy)", -1, Integer.MAX_VALUE, false); if (maTopping == null || maTopping == -1) { System.out.println("Đã hủy."); break; }
+                if (!existsChiTiet(conn, maDon, maMon, maTopping)) { System.out.println("Không tìm thấy dòng chi tiết."); continue; }
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM chitietdonhang WHERE MaDon=? AND MaMon=? AND MaTopping=?")) {
+                    ps.setInt(1, maDon);
+                    ps.setInt(2, maMon);
+                    ps.setInt(3, maTopping);
+                    ps.executeUpdate();
+                }
+                System.out.println("Đã xóa.");
+                // tiếp tục vòng lặp cho phép xóa liên tục
             }
-            System.out.println("Đã xóa.");
-            printChiTietByDon(conn, maDon);
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
         }
@@ -222,6 +236,18 @@ public class ChiTietDonHangDAO {
             ps.setInt(1, maMon);
             try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
         }
+    }
+
+    private static boolean isToppingLoai4(Connection conn, int maMon) throws SQLException {
+        try (PreparedStatement ps = conn.prepareStatement("SELECT MaLoai FROM mon WHERE MaMon=?")) {
+            ps.setInt(1, maMon);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("MaLoai") == 4;
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean existsChiTiet(Connection conn, int maDon, int maMon, int maTopping) throws SQLException {

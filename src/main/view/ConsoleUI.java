@@ -31,6 +31,15 @@ public class ConsoleUI {
     public static String promptLabel(String label) {
         return label + ": ";
     }
+    
+    public static void pause() {
+        System.out.println("\nNhấn Enter để tiếp tục...");
+        try {
+            System.in.read();
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
 
     private static String repeat(char c, int n) {
         StringBuilder sb = new StringBuilder(n);

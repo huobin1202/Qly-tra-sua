@@ -1,12 +1,12 @@
 package view;
 
 import java.util.Scanner;
-import dao.KhoHang;
+import dao.KhoHangDAO;
 import dao.NhapHang;
 
 public class KhoHangView {
     public static void menu(Scanner sc) {
-        KhoHang kho = new KhoHang();
+        KhoHangDAO kho = new KhoHangDAO();
         NhapHang nhap = new NhapHang();
         while (true) {
             ConsoleUI.printHeader("KHO NGUYÊN LIỆU / NCC");

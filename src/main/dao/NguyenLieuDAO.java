@@ -42,13 +42,15 @@ public class NguyenLieuDAO {
 
     public void xoa() {
         Scanner sc = new Scanner(System.in);
-        Integer id = promptId(sc, "ID nguyên liệu cần xóa (0: hủy)"); if (id == null) { System.out.println("Đã hủy."); return; }
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement("DELETE FROM nguyenlieu WHERE MaNL=?")) {
-            ps.setInt(1, id);
-            int n = ps.executeUpdate();
-            System.out.println(n > 0 ? "Đã xóa." : "Không tìm thấy.");
-        } catch (SQLException e) { e.printStackTrace(); }
+        while (true) {
+            Integer id = promptId(sc, "ID nguyên liệu cần xóa (0: hủy)"); if (id == null) { System.out.println("Đã hủy."); return; }
+            try (Connection conn = DBUtil.getConnection();
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM nguyenlieu WHERE MaNL=?")) {
+                ps.setInt(1, id);
+                int n = ps.executeUpdate();
+                System.out.println(n > 0 ? "Đã xóa." : "Không tìm thấy.");
+            } catch (SQLException e) { e.printStackTrace(); }
+        }
     }
 
     public void xuat() {

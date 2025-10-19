@@ -8,6 +8,7 @@ import view.ConsoleUI;
 public class NhanVienDAO {
     public void them() {
         Scanner sc = new Scanner(System.in);
+        try {
         String tenTK = promptNonEmpty(sc, "Tên tài khoản (0: hủy)"); if (tenTK == null) { System.out.println("Đã hủy."); return; }
         String mk = promptNonEmpty(sc, "Mật khẩu (0: hủy)"); if (mk == null) { System.out.println("Đã hủy."); return; }
         String sdt = promptNonEmpty(sc, "Số điện thoại (0: hủy)"); if (sdt == null) { System.out.println("Đã hủy."); return; }
@@ -30,6 +31,7 @@ public class NhanVienDAO {
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
         }
+        } finally { sc.close(); }
     }
 
     public void sua() {
@@ -91,27 +93,25 @@ public class NhanVienDAO {
             printNVById(conn, id);
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
-        }
+        } finally { sc.close(); }
     }
 
     public void xoa() {
         Scanner sc = new Scanner(System.in);
         try (Connection conn = DBUtil.getConnection()) {
-            Integer id;
             while (true) {
-                id = promptInt(sc, "Nhập ID nhân viên cần xóa (0: hủy)", 1, Integer.MAX_VALUE, true);
+                Integer id = promptInt(sc, "Nhập ID nhân viên cần xóa (0: hủy)", 1, Integer.MAX_VALUE, true);
                 if (id == null) { System.out.println("Đã hủy."); return; }
-                if (existsNV(conn, id)) break;
-                System.out.println("Không tìm thấy nhân viên, vui lòng nhập lại.");
+                if (!existsNV(conn, id)) { System.out.println("Không tìm thấy nhân viên, vui lòng nhập lại."); continue; }
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM nhanvien WHERE MaNV=?")) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                }
+                System.out.println("Xóa thành công!");
             }
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM nhanvien WHERE MaNV=?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-            }
-            System.out.println("Xóa thành công!");
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
-        }
+        } finally { sc.close(); }
     }
 
     public void xuat() {
@@ -183,7 +183,7 @@ public class NhanVienDAO {
             }
         } catch (SQLException e) {
             System.out.println("Lỗi: " + e.getMessage());
-        }
+        } finally { sc.close(); }
         
         System.out.println("╚════╩════════════╩══════════╩══════════════╩════════════╩══════════╩══════════════╝");
     }

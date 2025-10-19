@@ -1,5 +1,7 @@
 package dto;
 import java.util.Scanner;
+
+import controller.Inhapxuat;
 public class NhaCungCapDTO implements Inhapxuat {
     private String maNCC;
     private String tenNCC;

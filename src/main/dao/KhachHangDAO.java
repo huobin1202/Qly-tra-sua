@@ -1,15 +1,16 @@
 package dao;
 import java.util.Scanner;
 
+import controller.IQuanLy;
 import database.DBUtil;
 import view.ConsoleUI;
-import dto.IQuanLy;
 
 import java.sql.*; // Thêm import này
 public class KhachHangDAO implements IQuanLy {
     // Thêm khách hàng vào database
     public void them() {
         Scanner rd = new Scanner(System.in);
+        try {
         String ten = promptNonEmpty(rd, "Nhập tên khách hàng (0: hủy)"); if (ten == null) { System.out.println("Đã hủy."); return; }
         String sdt = promptNonEmpty(rd, "Nhập số điện thoại (0: hủy)"); if (sdt == null) { System.out.println("Đã hủy."); return; }
         String diachi = promptNonEmpty(rd, "Nhập địa chỉ (0: hủy)"); if (diachi == null) { System.out.println("Đã hủy."); return; }
@@ -29,6 +30,7 @@ public class KhachHangDAO implements IQuanLy {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        } finally { rd.close(); }
     }
 
     // Sửa thông tin khách hàng trong database
@@ -98,21 +100,19 @@ public class KhachHangDAO implements IQuanLy {
     public void xoa() {
         Scanner rd = new Scanner(System.in);
         try (Connection conn = DBUtil.getConnection()) {
-            Integer id = promptId(rd, "Nhập ID khách hàng cần xóa (0: hủy)");
-            if (id == null) { System.out.println("Đã hủy."); return; }
-            while (!existsKH(conn, id)) {
-                System.out.println("Không tìm thấy khách hàng, vui lòng nhập lại.");
-                id = promptId(rd, "Nhập ID khách hàng cần xóa (0: hủy)");
+            while (true) {
+                Integer id = promptId(rd, "Nhập ID khách hàng cần xóa (0: hủy)");
                 if (id == null) { System.out.println("Đã hủy."); return; }
-            }
-            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM khachhang WHERE MaKH=?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-                System.out.println("Đã xóa khách hàng.");
+                if (!existsKH(conn, id)) { System.out.println("Không tìm thấy khách hàng, vui lòng nhập lại."); continue; }
+                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM khachhang WHERE MaKH=?")) {
+                    ps.setInt(1, id);
+                    ps.executeUpdate();
+                    System.out.println("Đã xóa khách hàng.");
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
+        } finally { rd.close(); }
     }
 
     // Tìm kiếm khách hàng trong database
@@ -144,7 +144,7 @@ public class KhachHangDAO implements IQuanLy {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-        }
+        } finally { rd.close(); }
     }
 
     private void printCustomerTable(ResultSet rs) throws SQLException {

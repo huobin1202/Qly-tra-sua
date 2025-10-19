@@ -5,7 +5,7 @@ import view.ConsoleUI;
 import java.util.Scanner;
 
 import database.DBUtil;
-public class KhoHang {
+public class KhoHangDAO {
     public void xemDanhSachNCC(Scanner sc) {
         try (java.sql.Connection conn = database.DBUtil.getConnection();
              java.sql.PreparedStatement ps = conn.prepareStatement("SELECT MaNCC, TenNCC FROM nhacungcap")) {

@@ -1,4 +1,4 @@
-package dto;
+package controller;
 public interface IQuanLy extends Inhapxuat {
 
     void them(); // Thêm đối tượng vào danh sách

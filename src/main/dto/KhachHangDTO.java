@@ -1,5 +1,8 @@
 package dto;
 import java.util.Scanner;
+
+import controller.Inhapxuat;
+
 import java.sql.Timestamp;
 
 public class KhachHangDTO implements Inhapxuat {
