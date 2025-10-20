@@ -1,13 +1,12 @@
 package view;
 
 import java.util.Scanner;
-import dao.NhapHang;
 
-public class NhapHangView {
-    private NhapHang nhapHangController;
+public class NhapHang {
+    private dao.NhapHangView nhapHangController;
     private Scanner scanner;
     
-    public NhapHangView() {
+    public NhapHang() {
         this.nhapHangController = new NhapHang();
         this.scanner = new Scanner(System.in);
     }
@@ -100,6 +99,7 @@ public class NhapHangView {
         nhapHangController.xoaPhieuNhap();
         ConsoleUI.pause();
     }
-    
+
+
 
 }
