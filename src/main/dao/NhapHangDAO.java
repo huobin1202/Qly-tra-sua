@@ -534,4 +534,5 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
             e.printStackTrace();
         }
     }
+    
 }

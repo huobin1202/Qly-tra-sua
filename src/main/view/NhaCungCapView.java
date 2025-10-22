@@ -4,7 +4,15 @@ import java.util.Scanner;
 import dao.NhaCungCapDAO;
 
 public class NhaCungCapView {
-    public static void menu(NhaCungCapDAO dsNhaCungCap, Scanner sc) {
+    private NhaCungCapDAO nhaCungCapDAO;
+    private Scanner scanner;
+
+    public NhaCungCapView() {
+        this.nhaCungCapDAO = new NhaCungCapDAO();
+        this.scanner = new Scanner(System.in);
+    }
+
+    public void menu() {
         while (true) {
             ConsoleUI.printHeader("QUẢN LÝ NHÀ CUNG CẤP");
             ConsoleUI.printSection("CHỨC NĂNG");
@@ -17,7 +25,7 @@ public class NhaCungCapView {
             System.out.println("│ 0. Quay lại                                  │");
             ConsoleUI.printFooter();
             System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-            String chonStr = sc.nextLine();
+            String chonStr = scanner.nextLine();
             int chon;
             try {
                 chon = Integer.parseInt(chonStr.trim());
@@ -25,13 +33,50 @@ public class NhaCungCapView {
                 System.out.println("Vui lòng nhập số hợp lệ.");
                 continue;
             }
-            if (chon == 1) dsNhaCungCap.xuat();
-            else if (chon == 2) dsNhaCungCap.them();
-            else if (chon == 3) dsNhaCungCap.sua();
-            else if (chon == 4) dsNhaCungCap.xoa();
-            else if (chon == 5) dsNhaCungCap.timkiem();
-            else if (chon == 0) break;
-            else System.out.println("Chức năng không hợp lệ.");
+            if (chon == 1)
+                xuat();
+            else if (chon == 2)
+                them();
+            else if (chon == 3)
+                sua();
+            else if (chon == 4)
+                xoa();
+            else if (chon == 5)
+                timkiem();
+            else if (chon == 0)
+                break;
+            else
+                System.out.println("Chức năng không hợp lệ.");
         }
+    }
+
+    private void xuat() {
+        ConsoleUI.printHeader("DANH SÁCH NCC");
+        nhaCungCapDAO.xuat();
+        ConsoleUI.pause();
+    }
+
+    private void them() {
+        ConsoleUI.printHeader("THÊM NCC");
+        nhaCungCapDAO.them();
+        ConsoleUI.pause();
+    }
+
+    private void sua() {
+        ConsoleUI.printHeader("SỬA NCC");
+        nhaCungCapDAO.sua();
+        ConsoleUI.pause();
+    }
+
+    private void xoa() {
+        ConsoleUI.printHeader("XÓA NCC");
+        nhaCungCapDAO.xoa();
+        ConsoleUI.pause();
+    }
+
+    private void timkiem() {
+        ConsoleUI.printHeader("TÌM KIẾM NCC");
+        nhaCungCapDAO.timkiem();
+        ConsoleUI.pause();
     }
 }

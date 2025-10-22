@@ -1,13 +1,20 @@
 package view;
 
 import java.util.Scanner;
-import dao.KhoHangDAO;
-import dao.NhapHang;
+import dao.DonHangDAO;
 
 public class KhoHangView {
-    public static void menu(Scanner sc) {
-        KhoHangDAO kho = new KhoHangDAO();
-        NhapHang nhap = new NhapHang();
+    private DonHangDAO.KhoHangDAO khoHangDAO;
+    private NhapHangView nhapHangView;
+    private Scanner scanner;
+    
+    public KhoHangView() {
+        this.khoHangDAO = new DonHangDAO.KhoHangDAO();
+        this.nhapHangView = new NhapHangView();
+        this.scanner = new Scanner(System.in);
+    }
+    
+    public void menu() {
         while (true) {
             ConsoleUI.printHeader("KHO NGUYÊN LIỆU / NCC");
             ConsoleUI.printSection("CHỨC NĂNG");
@@ -19,7 +26,7 @@ public class KhoHangView {
             System.out.println("│ 0. Quay lại                           │");
             ConsoleUI.printFooter();
             System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-            String chonStr = sc.nextLine();
+            String chonStr = scanner.nextLine();
             int chon;
             try {
                 chon = Integer.parseInt(chonStr.trim());
@@ -27,15 +34,38 @@ public class KhoHangView {
                 System.out.println("Vui lòng nhập số hợp lệ.");
                 continue;
             }
-            if (chon == 1) nhap.taoPhieuNhap();
-            else if (chon == 2) kho.xemTonNguyenLieu();
-            else if (chon == 3) kho.xemDanhSachNCC(sc);
-            else if (chon == 4) kho.xemNguyenLieuNCC(sc);
+            if (chon == 1) taoPhieuNhap();
+            else if (chon == 2) xemTonKhoNguyenLieu();
+            else if (chon == 3) xemDanhSachNCC();
+            else if (chon == 4) xemNguyenLieuNCC();
             else if (chon == 0) break;
             else System.out.println("Chức năng không hợp lệ.");
         }
     }
-
+    
+    private void taoPhieuNhap() {
+        ConsoleUI.printHeader("TẠO PHIẾU NHẬP");
+        nhapHangView.taoPhieuNhap();
+        ConsoleUI.pause();
+    }
+    
+    private void xemTonKhoNguyenLieu() {
+        ConsoleUI.printHeader("TỒN KHO NGUYÊN LIỆU");
+        khoHangDAO.xemTonNguyenLieu();
+        ConsoleUI.pause();
+    }
+    
+    private void xemDanhSachNCC() {
+        ConsoleUI.printHeader("DANH SÁCH NHÀ CUNG CẤP");
+        khoHangDAO.xemDanhSachNCC(scanner);
+        ConsoleUI.pause();
+    }
+    
+    private void xemNguyenLieuNCC() {
+        ConsoleUI.printHeader("NGUYÊN LIỆU NHÀ CUNG CẤP");
+        khoHangDAO.xemNguyenLieuNCC(scanner);
+        ConsoleUI.pause();
+    }
 }
 
 

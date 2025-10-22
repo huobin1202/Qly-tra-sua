@@ -1,0 +1,57 @@
+classDiagram
+  class ConsoleUI
+  class DonHangView
+  class KhachHangView
+  class NhanVienView
+  class KhoHangView
+  class HangHoaView
+  class NhaCungCapView
+  class NhapHangView
+
+  class DonHangDAO
+  class ChiTietDonHangDAO
+  class KhachHangDAO
+  class NhanVienDAO
+  class KhoHangDAO
+  class MonDAO
+  class LoaiMonDAO
+  class NhaCungCapDAO
+  class NguyenLieuDAO
+  class NhapHangDAO
+
+  class DonHangDTO
+  class ChiTietDonHangDTO
+  class KhachHangDTO
+  class NhanVienDTO
+  class KhoHangDTO
+  class MonDTO
+  class LoaiMonDTO
+  class NhaCungCapDTO
+  class NguyenLieuDTO
+  class NhapHangDTO
+
+  DonHangView --> DonHangDAO
+  DonHangDAO --> DonHangDTO
+  DonHangDAO --> ChiTietDonHangDTO
+
+  KhachHangView --> KhachHangDAO
+  KhachHangDAO --> KhachHangDTO
+
+  NhanVienView --> NhanVienDAO
+  NhanVienDAO --> NhanVienDTO
+
+  KhoHangView --> KhoHangDAO
+  KhoHangDAO --> KhoHangDTO
+
+  HangHoaView --> MonDAO
+  HangHoaView --> LoaiMonDAO
+  MonDAO --> MonDTO
+  LoaiMonDAO --> LoaiMonDTO
+
+  NhaCungCapView --> NhaCungCapDAO
+  NhaCungCapDAO --> NhaCungCapDTO
+
+  NhapHangView --> NhapHangDAO
+  NhapHangDAO --> NhapHangDTO
+  NhapHangDAO --> NguyenLieuDTO
+

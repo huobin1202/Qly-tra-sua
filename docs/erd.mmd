@@ -1,0 +1,122 @@
+erDiagram
+  NHANVIEN ||--o{ DONDATHANG : tao
+  KHACHHANG ||--o{ DONDATHANG : dat
+  DONDATHANG ||--o{ CHITIETDON : gom
+  MON ||--o{ CHITIETDON : duoc_chon
+  MON ||--o{ MON as TOPPING : topping
+  LOAIMON ||--o{ MON : phan_loai
+
+  NHACUNGCAP ||--o{ NCC_NGUYENLIEU : cung_cap
+  NGUYENLIEU ||--o{ NCC_NGUYENLIEU : duoc_cung_cap
+  KHO_NGUYENLIEU ||--|| NGUYENLIEU : quan_ly
+
+  NHANVIEN ||--o{ PHIEUNHAP : lap
+  NHACUNGCAP ||--o{ PHIEUNHAP : ban
+  PHIEUNHAP ||--o{ CHITIETNHAP_NL : gom
+  NGUYENLIEU ||--o{ CHITIETNHAP_NL : nhap
+
+  NHANVIEN ||--o{ GIAOHANG : phu_trach
+  DONDATHANG ||--o{ GIAOHANG : giao_cho
+
+  NHANVIEN {
+    int MaNV PK
+    varchar TaiKhoan
+    varchar MatKhau
+    varchar HoTen
+    varchar SDT
+    datetime NgayVaoLam
+    varchar ChucVu
+    int Luong
+  }
+
+  KHACHHANG {
+    int MaKH PK
+    varchar SDT
+    varchar HoTen
+    varchar DiaChi
+    datetime NgaySinh
+  }
+
+  DONDATHANG {
+    int MaDon PK
+    int MaNV FK
+    varchar TrangThai
+    datetime NgayDat
+    bigint TongTien
+    int GiamGia
+  }
+
+  CHITIETDON {
+    int MaDon FK
+    int MaMon FK
+    int MaTopping FK
+    int SoLuong
+    bigint DonGia
+    varchar GhiChu
+  }
+
+  LOAIMON {
+    int MaLoai PK
+    varchar TenLoai
+  }
+
+  MON {
+    int MaMon PK
+    varchar TenMon
+    bigint Gia
+    int MaLoai FK
+    text MoTa
+  }
+
+  NHACUNGCAP {
+    int MaNCC PK
+    varchar TenNCC
+    varchar DiaChi
+    varchar SDT
+  }
+
+  NGUYENLIEU {
+    int MaNL PK
+    varchar TenNL
+    varchar DonVi
+    bigint Gia
+  }
+
+  NCC_NGUYENLIEU {
+    int MaNCC FK
+    int MaNL FK
+    int SoLuong
+  }
+
+  KHO_NGUYENLIEU {
+    int MaNL PK, FK
+    int SoLuong
+  }
+
+  PHIEUNHAP {
+    int MaPN PK
+    int MaNV FK
+    int MaNCC FK
+    date Ngay
+    varchar GhiChu
+    bigint ThanhTien
+    varchar TrangThai
+  }
+
+  CHITIETNHAP_NL {
+    int MaPN FK
+    int MaNL FK
+    int SoLuong
+    bigint DonGia
+    varchar DonVi
+  }
+
+  GIAOHANG {
+    int MaGiao PK
+    int MaDon FK
+    int MaNV FK
+    varchar TrangThai
+    datetime ThoiGian
+    varchar DiaChi
+  }
+

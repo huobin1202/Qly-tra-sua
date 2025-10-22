@@ -4,7 +4,15 @@ import java.util.Scanner;
 import dao.NhanVienDAO;
 
 public class NhanVienView {
-    public static void menu(NhanVienDAO dsNhanVien, Scanner sc) {
+    private NhanVienDAO nhanVienDAO;
+    private Scanner scanner;
+    
+    public NhanVienView() {
+        this.nhanVienDAO = new NhanVienDAO();
+        this.scanner = new Scanner(System.in);
+    }
+    
+    public void menu() {
         while (true) {
             ConsoleUI.printHeader("QUẢN LÝ NHÂN VIÊN");
             ConsoleUI.printSection("CHỨC NĂNG");
@@ -17,7 +25,7 @@ public class NhanVienView {
             System.out.println("│ 0. Quay lại                                  │");
             ConsoleUI.printFooter();
             System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-            String chonNVStr = sc.nextLine();
+            String chonNVStr = scanner.nextLine();
             int chonNV;
             try {
                 chonNV = Integer.parseInt(chonNVStr.trim());
@@ -25,13 +33,43 @@ public class NhanVienView {
                 System.out.println("Vui lòng nhập số hợp lệ.");
                 continue;
             }
-            if (chonNV == 1) dsNhanVien.xuat();
-            else if (chonNV == 2) dsNhanVien.them();
-            else if (chonNV == 3) dsNhanVien.sua();
-            else if (chonNV == 4) dsNhanVien.xoa();
-            else if (chonNV == 5) dsNhanVien.timkiem();
+            if (chonNV == 1) xemDanhSachNhanVien();
+            else if (chonNV == 2) themNhanVien();
+            else if (chonNV == 3) suaNhanVien();
+            else if (chonNV == 4) xoaNhanVien();
+            else if (chonNV == 5) timKiemNhanVien();
             else if (chonNV == 0) break;
             else System.out.println("Chức năng không hợp lệ.");
         }
+    }
+    
+    private void xemDanhSachNhanVien() {
+        ConsoleUI.printHeader("DANH SÁCH NHÂN VIÊN");
+        nhanVienDAO.xuat();
+        ConsoleUI.pause();
+    }
+    
+    private void themNhanVien() {
+        ConsoleUI.printHeader("THÊM NHÂN VIÊN MỚI");
+        nhanVienDAO.them();
+        ConsoleUI.pause();
+    }
+    
+    private void suaNhanVien() {
+        ConsoleUI.printHeader("SỬA NHÂN VIÊN");
+        nhanVienDAO.sua();
+        ConsoleUI.pause();
+    }
+    
+    private void xoaNhanVien() {
+        ConsoleUI.printHeader("XÓA NHÂN VIÊN");
+        nhanVienDAO.xoa();
+        ConsoleUI.pause();
+    }
+    
+    private void timKiemNhanVien() {
+        ConsoleUI.printHeader("TÌM KIẾM NHÂN VIÊN");
+        nhanVienDAO.timkiem();
+        ConsoleUI.pause();
     }
 }

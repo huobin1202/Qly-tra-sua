@@ -1,19 +1,6 @@
 import java.util.Scanner;
 
-import dao.KhachHangDAO;
-import dao.LoaiMonDAO;
-import dao.MonDAO;
-import dao.NhanVienDAO;
-import dao.DonHangDAO;
-import dao.ChiTietDonHangDAO;
-import dao.NhaCungCapDAO;
-import view.NhanVienView;
-import view.HangHoaView;
-import view.KhachHangView;
-import view.DonHangView;
-import view.NhaCungCapView;
-import view.NhapHangView;
-import dao.GiaoHangDAO;
+import view.*;
 import java.sql.*; // Thêm import này
 
 public class Runner {
@@ -63,7 +50,6 @@ public class Runner {
     }
 
     public static void main(String[] args) throws Exception {
-        // Ép input luôn UTF-8
         Scanner sc = new Scanner(System.in);
         // Đăng nhập trước khi vào hệ thống
         boolean loginSuccess = false;
@@ -79,14 +65,7 @@ public class Runner {
             return;
         }
 
-        KhachHangDAO KhachHang = new KhachHangDAO();
-        LoaiMonDAO LoaiMon = new LoaiMonDAO();
-        MonDAO Mon = new MonDAO();
-        NhanVienDAO NhanVien = new NhanVienDAO();
-        DonHangDAO DonDatHang = new DonHangDAO();
-        ChiTietDonHangDAO ChiTietDon = new ChiTietDonHangDAO();
-        NhaCungCapDAO NhaCungCap = new NhaCungCapDAO();
-        GiaoHangDAO GiaoHang = new GiaoHangDAO();
+        // DAOs và Views sẽ được khởi tạo khi người dùng chọn menu tương ứng
         NhapHangView NhapHang = new NhapHangView();
         
 
@@ -117,25 +96,31 @@ public class Runner {
 
             switch (chon) {
                 case 1:
-                    HangHoaView.menu(LoaiMon, Mon, sc);
+                    HangHoaView hangHoaView = new HangHoaView();
+                    hangHoaView.menu();
                     break;
                 case 2:
-                    KhachHangView.menu(KhachHang, sc);
+                    KhachHangView khachHangView = new KhachHangView();
+                    khachHangView.menu();
                     break;
                 case 3:
-                    NhanVienView.menu(NhanVien, sc);
+                    NhanVienView nhanVienView = new NhanVienView();
+                    nhanVienView.menu();
                     break;
                 case 4:
-                    DonHangView.menu(DonDatHang, GiaoHang, ChiTietDon, sc);
+                    DonHangView donHangView = new DonHangView();
+                    donHangView.menu();
                     break;
                 case 5:
-                    NhaCungCapView.menu(NhaCungCap, sc);
+                    NhaCungCapView nhaCungCapView = new NhaCungCapView();
+                    nhaCungCapView.menu();
                     break;
                 case 6:
-                    NhapHang.menu(); // Quản lý phiếu nhập
+                    NhapHang.menu();
                     break;
                 case 7:
-                    view.KhoHangView.menu(sc); // Tồn kho
+                    KhoHangView khoHangView = new KhoHangView();
+                    khoHangView.menu();
                     break;
                 case 0:
                     System.out.println("Thoát chương trình.");

@@ -3,11 +3,20 @@ package view;
 import java.util.Scanner;
 
 import dao.DonHangDAO;
-import dao.ChiTietDonHangDAO;
 import dao.GiaoHangDAO;
 
 public class DonHangView {
-    public static void menu(DonHangDAO DonDatHang, GiaoHangDAO GiaoHang, ChiTietDonHangDAO ChiTietDon, Scanner sc) {
+    private DonHangDAO donHangDAO;
+    private GiaoHangDAO giaoHangDAO;
+    private Scanner scanner;
+    
+    public DonHangView() {
+        this.donHangDAO = new DonHangDAO();
+        this.giaoHangDAO = new GiaoHangDAO();
+        this.scanner = new Scanner(System.in);
+    }
+    
+    public void menu() {
         while (true) {
             ConsoleUI.printHeader("QUẢN LÝ ĐẶT HÀNG");
             ConsoleUI.printSection("KHU VỰC QUẢN LÝ");
@@ -17,7 +26,7 @@ public class DonHangView {
             System.out.println("│ 0. Quay lại                                  │");
             ConsoleUI.printFooter();
             System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-            String chonDHStr = sc.nextLine();
+            String chonDHStr = scanner.nextLine();
             int chonDH;
             try {
                 chonDH = Integer.parseInt(chonDHStr.trim());
@@ -40,7 +49,7 @@ public class DonHangView {
                     System.out.println("│ 0. Quay lại                                  │");
                     ConsoleUI.printFooter();
                     System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-                    String chonDonStr = sc.nextLine();
+                    String chonDonStr = scanner.nextLine();
                     int chonDon;
                     try {
                         chonDon = Integer.parseInt(chonDonStr.trim());
@@ -48,13 +57,13 @@ public class DonHangView {
                         System.out.println("Vui lòng nhập số hợp lệ.");
                         continue;
                     }
-                    if (chonDon == 1) DonDatHang.xuat();
-                    else if (chonDon == 2) DonDatHang.xemChiTiet();
-                    else if (chonDon == 3) DonDatHang.them();
-                    else if (chonDon == 4) DonDatHang.sua();
-                    else if (chonDon == 5) DonDatHang.xoa();
-                    else if (chonDon == 6) DonDatHang.timkiem();
-                    else if (chonDon == 7) DonDatHang.xacNhanThanhToan();
+                    if (chonDon == 1) xemDanhSachDonHang();
+                    else if (chonDon == 2) xemChiTietDonHang();
+                    else if (chonDon == 3) themDonHang();
+                    else if (chonDon == 4) suaDonHang();
+                    else if (chonDon == 5) xoaDonHang();
+                    else if (chonDon == 6) timKiemDonHang();
+                    else if (chonDon == 7) xacNhanThanhToan();
                     else if (chonDon == 0) break;
                     else System.out.println("Chức năng không hợp lệ.");
                 }
@@ -70,7 +79,7 @@ public class DonHangView {
                     System.out.println("│ 0. Quay lại                                   │");
                     ConsoleUI.printFooter();
                     System.out.print(ConsoleUI.promptLabel("Chọn chức năng"));
-                    String chonGiaoStr = sc.nextLine();
+                    String chonGiaoStr = scanner.nextLine();
                     int chonGiao;
                     try {
                         chonGiao = Integer.parseInt(chonGiaoStr.trim());
@@ -78,10 +87,10 @@ public class DonHangView {
                         System.out.println("Vui lòng nhập số hợp lệ.");
                         continue;
                     }
-                    if (chonGiao == 1) GiaoHang.xuat();
-                    else if (chonGiao == 2) GiaoHang.them();
-                    else if (chonGiao == 3) GiaoHang.sua();
-                    else if (chonGiao == 4) GiaoHang.xoa();
+                    if (chonGiao == 1) xemDanhSachGiaoHang();
+                    else if (chonGiao == 2) themGiaoHang();
+                    else if (chonGiao == 3) suaGiaoHang();
+                    else if (chonGiao == 4) xoaGiaoHang();
                     else if (chonGiao == 0) break;
                     else System.out.println("Chức năng không hợp lệ.");
                 }
@@ -89,5 +98,73 @@ public class DonHangView {
                 break;
             }
         }
+    }
+    
+    // Don Hang methods
+    private void xemDanhSachDonHang() {
+        ConsoleUI.printHeader("DANH SÁCH ĐƠN HÀNG");
+        donHangDAO.xuat();
+        ConsoleUI.pause();
+    }
+    
+    private void xemChiTietDonHang() {
+        ConsoleUI.printHeader("CHI TIẾT ĐƠN HÀNG");
+        donHangDAO.xemChiTiet();
+        ConsoleUI.pause();
+    }
+    
+    private void themDonHang() {
+        ConsoleUI.printHeader("THÊM ĐƠN HÀNG MỚI");
+        donHangDAO.them();
+        ConsoleUI.pause();
+    }
+    
+    private void suaDonHang() {
+        ConsoleUI.printHeader("SỬA ĐƠN HÀNG");
+        donHangDAO.sua();
+        ConsoleUI.pause();
+    }
+    
+    private void xoaDonHang() {
+        ConsoleUI.printHeader("XÓA ĐƠN HÀNG");
+        donHangDAO.xoa();
+        ConsoleUI.pause();
+    }
+    
+    private void timKiemDonHang() {
+        ConsoleUI.printHeader("TÌM KIẾM ĐƠN HÀNG");
+        donHangDAO.timkiem();
+        ConsoleUI.pause();
+    }
+    
+    private void xacNhanThanhToan() {
+        ConsoleUI.printHeader("XÁC NHẬN THANH TOÁN");
+        donHangDAO.xacNhanThanhToan();
+        ConsoleUI.pause();
+    }
+    
+    // Giao Hang methods
+    private void xemDanhSachGiaoHang() {
+        ConsoleUI.printHeader("DANH SÁCH GIAO HÀNG");
+        giaoHangDAO.xuat();
+        ConsoleUI.pause();
+    }
+    
+    private void themGiaoHang() {
+        ConsoleUI.printHeader("THÊM GIAO HÀNG MỚI");
+        giaoHangDAO.them();
+        ConsoleUI.pause();
+    }
+    
+    private void suaGiaoHang() {
+        ConsoleUI.printHeader("SỬA GIAO HÀNG");
+        giaoHangDAO.sua();
+        ConsoleUI.pause();
+    }
+    
+    private void xoaGiaoHang() {
+        ConsoleUI.printHeader("XÓA GIAO HÀNG");
+        giaoHangDAO.xoa();
+        ConsoleUI.pause();
     }
 }
