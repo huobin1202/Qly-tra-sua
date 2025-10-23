@@ -234,18 +234,17 @@ INSERT INTO `kho_nguyenlieu` (`MaNL`, `SoLuong`, `CapNhat`) VALUES
 CREATE TABLE `loaimon` (
   `MaLoai` int(11) NOT NULL,
   `TenLoai` varchar(50) NOT NULL,
-  `Slug` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `loaimon`
 --
 
-INSERT INTO `loaimon` (`MaLoai`, `TenLoai`, `Slug`) VALUES
-(1, 'Đồ Ăn', 'do-an'),
-(2, 'Trà Sữa', 'tra-sua'),
-(3, 'Cà Phê', 'ca-phe'),
-(4, 'Topping', 'topping');
+INSERT INTO `loaimon` (`MaLoai`, `TenLoai`) VALUES
+(1, 'Đồ Ăn'),
+(2, 'Trà Sữa'),
+(3, 'Cà Phê'),
+(4, 'Topping');
 
 -- --------------------------------------------------------
 

@@ -98,21 +98,23 @@ public class NhapHangMoiSwingView extends JPanel {
         totalAmountLabel.setFont(new Font("Arial", Font.BOLD, 14));
         totalAmountLabel.setForeground(new Color(220, 20, 60));
         
-        importButton = new JButton("📦 Nhập hàng");
+        importButton = new JButton("Nhập hàng");
         importButton.setBackground(new Color(34, 139, 34));
         importButton.setForeground(Color.BLACK);
         importButton.setFocusPainted(false);
         importButton.setFont(new Font("Arial", Font.BOLD, 14));
         
-        editQuantityButton = new JButton("✏️ Sửa số lượng");
+        editQuantityButton = new JButton("Sửa số lượng");
         editQuantityButton.setBackground(new Color(255, 140, 0));
         editQuantityButton.setForeground(Color.BLACK);
         editQuantityButton.setFocusPainted(false);
         
-        deleteProductButton = new JButton("🗑️ Xóa sản phẩm");
+        deleteProductButton = new JButton("Xóa sản phẩm");
         deleteProductButton.setBackground(new Color(220, 20, 60));
         deleteProductButton.setForeground(Color.BLACK);
         deleteProductButton.setFocusPainted(false);
+        importButton.setFont(new Font("Arial", Font.BOLD, 14));
+
         
         // Initialize data lists
         supplierProducts = new ArrayList<>();
@@ -208,13 +210,12 @@ public class NhapHangMoiSwingView extends JPanel {
         scrollPane.setBorder(BorderFactory.createTitledBorder("Bảng sản phẩm được chọn để nhập"));
         scrollPane.setPreferredSize(new Dimension(450, 200));
         
-        // Action buttons
+        // Action buttons (chỉ giữ nút sửa số lượng)
         JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         actionPanel.setBackground(new Color(240, 248, 255));
         actionPanel.add(editQuantityButton);
-        actionPanel.add(deleteProductButton);
         
-        // Bottom panel with total and import button
+        // Bottom panel with total and import/delete buttons
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBackground(new Color(240, 248, 255));
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -226,6 +227,7 @@ public class NhapHangMoiSwingView extends JPanel {
         JPanel importPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         importPanel.setBackground(new Color(240, 248, 255));
         importPanel.add(importButton);
+        importPanel.add(deleteProductButton); // Thêm nút xóa kế nút nhập hàng
         
         bottomPanel.add(totalPanel, BorderLayout.WEST);
         bottomPanel.add(importPanel, BorderLayout.EAST);

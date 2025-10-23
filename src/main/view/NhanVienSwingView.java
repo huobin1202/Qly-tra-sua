@@ -268,6 +268,38 @@ public class NhanVienSwingView extends JPanel {
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
         
+        // Kiểm tra khóa ngoại trước khi xóa
+        try (Connection conn = DBUtil.getConnection()) {
+            // Kiểm tra nhân viên có được sử dụng trong đơn đặt hàng không
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM dondathang WHERE MaNV=?")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Không thể xóa nhân viên này vì đã có đơn đặt hàng liên quan!", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+            
+            // Kiểm tra nhân viên có được sử dụng trong phiếu nhập không
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieunhap WHERE MaNV=?")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Không thể xóa nhân viên này vì đã có phiếu nhập liên quan!", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi kiểm tra ràng buộc: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         int result = JOptionPane.showConfirmDialog(this, 
             "Bạn có chắc chắn muốn xóa nhân viên '" + hoTen + "'?", 
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);

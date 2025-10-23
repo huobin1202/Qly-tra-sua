@@ -33,7 +33,7 @@ public class NhapHangSwingView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Mã NV", "Mã NCC", "Ngày", "Ghi chú", "Thành tiền", "Trạng thái"};
+        String[] columns = {"ID", "Nhân viên", "Nhà cung cấp", "Ngày", "Ghi chú", "Thành tiền", "Trạng thái"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -48,7 +48,7 @@ public class NhapHangSwingView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Mã NV", "Mã NCC", "Trạng thái"});
+        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Nhân viên", "Nhà cung cấp", "Trạng thái"});
         searchField = new JTextField(20);
     }
     
@@ -167,14 +167,19 @@ public class NhapHangSwingView extends JPanel {
         tableModel.setRowCount(0);
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM phieunhap ORDER BY MaPN")) {
+             ResultSet rs = stmt.executeQuery(
+                "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
+                "FROM phieunhap p " +
+                "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
+                "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
+                "ORDER BY p.MaPN")) {
             
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaPN"),
-                    rs.getInt("MaNV"),
-                    rs.getInt("MaNCC"),
+                    rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A",
+                    rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
                     rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
                     rs.getString("GhiChu"),
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
@@ -193,26 +198,34 @@ public class NhapHangSwingView extends JPanel {
         
         tableModel.setRowCount(0);
         try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT * FROM phieunhap WHERE ";
+            String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
+                        "FROM phieunhap p " +
+                        "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
+                        "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
+                        "WHERE ";
             PreparedStatement ps;
             
             if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-                sql = "SELECT * FROM phieunhap ORDER BY MaPN";
+                sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
+                      "FROM phieunhap p " +
+                      "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
+                      "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
+                      "ORDER BY p.MaPN";
                 ps = conn.prepareStatement(sql);
             } else if (searchType.equals("ID")) {
-                sql += "MaPN = ? ORDER BY MaPN";
+                sql += "p.MaPN = ? ORDER BY p.MaPN";
                 ps = conn.prepareStatement(sql);
                 ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Mã NV")) {
-                sql += "MaNV = ? ORDER BY MaPN";
+            } else if (searchType.equals("Nhân viên")) {
+                sql += "nv.HoTen LIKE ? ORDER BY p.MaPN";
                 ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Mã NCC")) {
-                sql += "MaNCC = ? ORDER BY MaPN";
+                ps.setString(1, "%" + searchText + "%");
+            } else if (searchType.equals("Nhà cung cấp")) {
+                sql += "ncc.TenNCC LIKE ? ORDER BY p.MaPN";
                 ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
+                ps.setString(1, "%" + searchText + "%");
             } else {
-                sql += "TrangThai LIKE ? ORDER BY MaPN";
+                sql += "p.TrangThai LIKE ? ORDER BY p.MaPN";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
             }
@@ -222,8 +235,8 @@ public class NhapHangSwingView extends JPanel {
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaPN"),
-                    rs.getInt("MaNV"),
-                    rs.getInt("MaNCC"),
+                    rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A",
+                    rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
                     rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
                     rs.getString("GhiChu"),
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
@@ -249,33 +262,22 @@ public class NhapHangSwingView extends JPanel {
     private void showEditDialog() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn phiếu nhập cần sửa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn phiếu nhập cần xem chi tiết!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        int maNV = (Integer) tableModel.getValueAt(selectedRow, 1);
-        int maNCC = (Integer) tableModel.getValueAt(selectedRow, 2);
-        String ngayStr = (String) tableModel.getValueAt(selectedRow, 3);
-        String ghiChu = (String) tableModel.getValueAt(selectedRow, 4);
-        String thanhTienStr = (String) tableModel.getValueAt(selectedRow, 5);
         String trangThai = (String) tableModel.getValueAt(selectedRow, 6);
         
-        long thanhTien = 0;
-        if (!thanhTienStr.isEmpty()) {
-            try {
-                thanhTien = Long.parseLong(thanhTienStr.replaceAll("[^0-9]", ""));
-            } catch (Exception e) {
-                // Ignore parsing error
-            }
+        // Kiểm tra trạng thái phiếu nhập
+        if ("daxacnhan".equalsIgnoreCase(trangThai) || "Đã xác nhận".equalsIgnoreCase(trangThai)) {
+            JOptionPane.showMessageDialog(this, 
+                "Phiếu nhập đã được xác nhận, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
+                "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         }
         
-        NhapHangDTO nh = new NhapHangDTO(id, maNV, maNCC, ngayStr, ghiChu, thanhTien, trangThai);
-        NhapHangDialog dialog = new NhapHangDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin phiếu nhập", nh);
-        dialog.setVisible(true);
-        if (dialog.isDataChanged()) {
-            loadData();
-        }
+        // Hiển thị dialog chi tiết phiếu nhập (chỉ xem, không sửa)
+        showDetailsDialog(id);
     }
     
     private void performConfirm() {
@@ -345,8 +347,15 @@ public class NhapHangSwingView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
+        showDetailsDialog(id);
+    }
+    
+    private void showDetailsDialog(int id) {
         ChiTietPhieuNhapDialog dialog = new ChiTietPhieuNhapDialog(SwingUtilities.getWindowAncestor(this), "Chi tiết phiếu nhập #" + id, id);
         dialog.setVisible(true);
+        if (dialog.isDataChanged()) {
+            loadData();
+        }
     }
     
     // Inner class for Add/Edit dialog
@@ -747,6 +756,10 @@ public class NhapHangSwingView extends JPanel {
                     JOptionPane.showMessageDialog(this, "Lỗi khi xóa nguyên liệu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
             }
+        }
+        
+        public boolean isDataChanged() {
+            return false; // ChiTietPhieuNhapDialog không cần theo dõi thay đổi
         }
         
         // Inner class for Add/Edit ChiTiet dialog

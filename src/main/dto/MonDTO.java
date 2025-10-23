@@ -3,7 +3,6 @@ public class MonDTO {
     int maMon;
     String tenMon;
     String moTa;
-    String tenDonVi;
     long gia;
     String tinhTrang;
     int maLoai;

@@ -306,9 +306,11 @@ public class NhaCungCapSwingView extends JPanel {
         public NhaCungCapDialog(Window parent, String title, NhaCungCapDTO ncc) {
             super(parent, title, ModalityType.APPLICATION_MODAL);
             this.ncc = ncc;
+            System.out.println("Tạo NhaCungCapDialog với title: " + title);
             initializeComponents();
             setupLayout();
             setupEventHandlers();
+            System.out.println("Dialog đã được khởi tạo hoàn tất");
         }
         
         private void initializeComponents() {
@@ -372,6 +374,18 @@ public class NhaCungCapSwingView extends JPanel {
             cancelButton.setBackground(new Color(220, 220, 220));
             cancelButton.setFocusPainted(false);
             
+            // Thêm event handlers trực tiếp
+            saveButton.addActionListener(e -> {
+                try {
+                    saveData();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    ex.printStackTrace();
+                }
+            });
+            
+            cancelButton.addActionListener(e -> dispose());
+            
             buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
             mainPanel.add(buttonPanel, gbc);
@@ -380,23 +394,8 @@ public class NhaCungCapSwingView extends JPanel {
         }
         
         private void setupEventHandlers() {
-            // Find buttons using the existing findButton method
-            JButton saveButton = findButton("Lưu");
-            JButton cancelButton = findButton("Hủy");
-            
-            if (saveButton != null) {
-                saveButton.addActionListener(e -> {
-                    try {
-                        saveData();
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        ex.printStackTrace();
-                    }
-                });
-            }
-            if (cancelButton != null) {
-                cancelButton.addActionListener(e -> dispose());
-            }
+            // Event handlers đã được thêm trực tiếp trong setupLayout()
+            System.out.println("Event handlers đã được thiết lập trực tiếp trong setupLayout()");
         }
         
         private JButton findButton(String text) {
@@ -425,11 +424,19 @@ public class NhaCungCapSwingView extends JPanel {
         }
 
         private void saveData() {
+            System.out.println("=== BẮT ĐẦU saveData() ===");
+            
             String ten = tenField.getText().trim();
             String sdt = sdtField.getText().trim();
             String diaChi = diaChiField.getText().trim();
             
+            System.out.println("Dữ liệu từ form:");
+            System.out.println("Tên: '" + ten + "'");
+            System.out.println("SĐT: '" + sdt + "'");
+            System.out.println("Địa chỉ: '" + diaChi + "'");
+            
             if (ten.isEmpty() || sdt.isEmpty() || diaChi.isEmpty()) {
+                System.out.println("Lỗi: Thiếu thông tin bắt buộc");
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }

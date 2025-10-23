@@ -37,7 +37,7 @@ public class HangHoaSwingView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Tên", "Mô tả", "Đơn vị", "Giá", "Trạng thái", "Loại"};
+        String[] columns = {"ID", "Tên", "Mô tả", "Giá", "Trạng thái", "Loại"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -186,7 +186,7 @@ public class HangHoaSwingView extends JPanel {
         if (currentView.equals("MON")) {
             tableModel.setColumnIdentifiers(new String[]{"ID", "Tên món", "Mô tả", "Giá", "Trạng thái", "Loại"});
         } else if (currentView.equals("LOAIMON")) {
-            tableModel.setColumnIdentifiers(new String[]{"ID", "Tên loại", "Slug"});
+            tableModel.setColumnIdentifiers(new String[]{"ID", "Tên loại"});
         } else {
             tableModel.setColumnIdentifiers(new String[]{"ID", "Tên nguyên liệu", "Đơn vị"});
         }
@@ -227,7 +227,7 @@ public class HangHoaSwingView extends JPanel {
     }
     
     private void loadLoaiMonData(Connection conn) throws SQLException {
-        String sql = "SELECT MaLoai, TenLoai, Slug FROM loaimon ORDER BY MaLoai";
+        String sql = "SELECT MaLoai, TenLoai FROM loaimon ORDER BY MaLoai";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -235,7 +235,6 @@ public class HangHoaSwingView extends JPanel {
                 Object[] row = {
                     rs.getInt("MaLoai"),
                     rs.getString("TenLoai"),
-                    rs.getString("Slug")
                 };
                 tableModel.addRow(row);
             }
@@ -395,9 +394,8 @@ public class HangHoaSwingView extends JPanel {
         } else if (currentView.equals("LOAIMON")) {
             int id = (Integer) tableModel.getValueAt(selectedRow, 0);
             String ten = (String) tableModel.getValueAt(selectedRow, 1);
-            String slug = (String) tableModel.getValueAt(selectedRow, 2);
             
-            LoaiMonDTO loaiMon = new LoaiMonDTO(id, ten, slug);
+            LoaiMonDTO loaiMon = new LoaiMonDTO(id, ten);
             LoaiMonDialog dialog = new LoaiMonDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin loại món", loaiMon);
             dialog.setVisible(true);
             if (dialog.isDataChanged()) {
@@ -434,13 +432,100 @@ public class HangHoaSwingView extends JPanel {
             type = "nguyên liệu";
         }
         
+        int id = (Integer) tableModel.getValueAt(selectedRow, 0);
+        
+        // Kiểm tra khóa ngoại trước khi xóa
+        try (Connection conn = DBUtil.getConnection()) {
+            if (currentView.equals("MON")) {
+                // Kiểm tra món có được sử dụng trong chi tiết đơn hàng không
+                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM chitietdonhang WHERE MaMon=?")) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this, 
+                                "Không thể xóa món này vì đã được sử dụng trong đơn hàng!", 
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+                
+                // Kiểm tra món có được sử dụng làm topping trong chi tiết đơn hàng không
+                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM chitietdonhang WHERE MaTopping=?")) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this, 
+                                "Không thể xóa món này vì đã được sử dụng làm topping trong đơn hàng!", 
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+            } else if (currentView.equals("LOAIMON")) {
+                // Kiểm tra loại món có được sử dụng trong bảng mon không
+                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM mon WHERE MaLoai=?")) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this, 
+                                "Không thể xóa loại món này vì đã có món sử dụng loại này!", 
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+            } else {
+                // Kiểm tra nguyên liệu có được sử dụng trong chi tiết nhập hàng không
+                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM chitietnhap_nl WHERE MaNL=?")) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this, 
+                                "Không thể xóa nguyên liệu này vì đã được sử dụng trong phiếu nhập hàng!", 
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+                
+                // Kiểm tra nguyên liệu có được sử dụng trong kho không
+                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM kho_nguyenlieu WHERE MaNL=?")) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this, 
+                                "Không thể xóa nguyên liệu này vì đã có trong kho!", 
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+                
+                // Kiểm tra nguyên liệu có được sử dụng trong nhà cung cấp không
+                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM ncc_nguyenlieu WHERE MaNL=?")) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) > 0) {
+                            JOptionPane.showMessageDialog(this, 
+                                "Không thể xóa nguyên liệu này vì đã được nhà cung cấp cung cấp!", 
+                                "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi kiểm tra ràng buộc: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         int result = JOptionPane.showConfirmDialog(this, 
             "Bạn có chắc chắn muốn xóa " + type + " '" + name + "'?", 
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
             try (Connection conn = DBUtil.getConnection()) {
-                int id = (Integer) tableModel.getValueAt(selectedRow, 0);
                 String tableName;
                 String idColumn;
                 
@@ -489,7 +574,7 @@ public class HangHoaSwingView extends JPanel {
             moTaField = new JTextField(20);
             donViField = new JTextField(20);
             giaField = new JTextField(20);
-            tinhTrangCombo = new JComboBox<>(new String[]{"Còn hàng", "Hết hàng", "Tạm ngừng"});
+            tinhTrangCombo = new JComboBox<>(new String[]{"Đang bán", "Tạm ngừng"});
             loaiCombo = new JComboBox<>();
             
             // Load loại món
@@ -547,11 +632,6 @@ public class HangHoaSwingView extends JPanel {
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(moTaField, gbc);
             
-            // Đơn vị
-            gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Đơn vị:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(donViField, gbc);
             
             // Giá
             gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
@@ -695,7 +775,7 @@ public class HangHoaSwingView extends JPanel {
     
     // Inner class for NguyenLieu Add/Edit dialog
     private class LoaiMonDialog extends JDialog {
-        private JTextField tenField, slugField;
+        private JTextField tenField;
         private boolean dataChanged = false;
         private LoaiMonDTO loaiMon;
         
@@ -712,11 +792,9 @@ public class HangHoaSwingView extends JPanel {
             setLocationRelativeTo(getParent());
             
             tenField = new JTextField(20);
-            slugField = new JTextField(20);
             
             if (loaiMon != null) {
                 tenField.setText(loaiMon.getTenLoai());
-                slugField.setText(loaiMon.getSlug());
             }
         }
         
@@ -732,10 +810,7 @@ public class HangHoaSwingView extends JPanel {
             gbc.gridx = 1;
             formPanel.add(tenField, gbc);
             
-            gbc.gridx = 0; gbc.gridy = 1;
-            formPanel.add(new JLabel("Slug:"), gbc);
-            gbc.gridx = 1;
-            formPanel.add(slugField, gbc);
+    
             
             JPanel buttonPanel = new JPanel(new FlowLayout());
             JButton saveButton = new JButton("Lưu");
@@ -760,7 +835,6 @@ public class HangHoaSwingView extends JPanel {
         private void setupEventHandlers() {
             // Enter key in text fields
             tenField.addActionListener(e -> saveData());
-            slugField.addActionListener(e -> saveData());
         }
         
         private JButton findButton(String text) {
@@ -790,32 +864,25 @@ public class HangHoaSwingView extends JPanel {
         
         private void saveData() {
             String ten = tenField.getText().trim();
-            String slug = slugField.getText().trim();
             
             if (ten.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập tên loại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            if (slug.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Vui lòng nhập slug!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
+          
             
             try (Connection conn = DBUtil.getConnection()) {
                 if (loaiMon == null) {
                     // Thêm mới
-                    PreparedStatement ps = conn.prepareStatement("INSERT INTO loaimon (TenLoai, Slug) VALUES (?, ?)");
+                    PreparedStatement ps = conn.prepareStatement("INSERT INTO loaimon (TenLoai) VALUES (?)");
                     ps.setString(1, ten);
-                    ps.setString(2, slug);
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm loại món thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     // Cập nhật
-                    PreparedStatement ps = conn.prepareStatement("UPDATE loaimon SET TenLoai=?, Slug=? WHERE MaLoai=?");
+                    PreparedStatement ps = conn.prepareStatement("UPDATE loaimon SET TenLoai=? WHERE MaLoai=?");
                     ps.setString(1, ten);
-                    ps.setString(2, slug);
-                    ps.setInt(3, loaiMon.getMaLoai());
+                    ps.setInt(2, loaiMon.getMaLoai());
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Cập nhật loại món thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
