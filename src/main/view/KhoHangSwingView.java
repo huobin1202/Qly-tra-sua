@@ -140,7 +140,7 @@ public class KhoHangSwingView extends JPanel {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(
                  "SELECT nl.MaNL, nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) AS SoLuong " +
-                 "FROM nguyenlieu nl LEFT JOIN kho_nguyenlieu k ON nl.MaNL = k.MaNL " +
+                 "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL " +
                  "ORDER BY nl.MaNL")) {
 
             while (rs.next()) {
@@ -164,12 +164,12 @@ public class KhoHangSwingView extends JPanel {
         tableModel.setRowCount(0);
         try (Connection conn = DBUtil.getConnection()) {
             String sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) AS SoLuong " +
-                        "FROM nguyenlieu nl LEFT JOIN kho_nguyenlieu k ON nl.MaNL = k.MaNL WHERE ";
+                        "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL WHERE ";
             PreparedStatement ps;
 
             if (searchType.equals("Tất cả") || searchText.isEmpty()) {
                 sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) AS SoLuong " +
-                      "FROM nguyenlieu nl LEFT JOIN kho_nguyenlieu k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
+                      "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
                 ps = conn.prepareStatement(sql);
             } else if (searchType.equals("Mã NL")) {
                 sql += "nl.MaNL = ? ORDER BY nl.MaNL";
@@ -222,7 +222,7 @@ public class KhoHangSwingView extends JPanel {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(
                  "SELECT nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) as SoLuong " +
-                 "FROM nguyenlieu nl LEFT JOIN kho_nguyenlieu k ON nl.MaNL = k.MaNL " +
+                 "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL " +
                  "WHERE COALESCE(k.SoLuong, 0) <= 10 " +
                  "ORDER BY COALESCE(k.SoLuong, 0) ASC")) {
             
@@ -385,9 +385,9 @@ public class KhoHangSwingView extends JPanel {
             }
             
             try (Connection conn = DBUtil.getConnection()) {
-                // Kiểm tra xem đã có record trong kho_nguyenlieu chưa
+                // Kiểm tra xem đã có record trong khohang chưa
                 boolean exists = false;
-                try (PreparedStatement ps = conn.prepareStatement("SELECT 1 FROM kho_nguyenlieu WHERE MaNL = ?")) {
+                try (PreparedStatement ps = conn.prepareStatement("SELECT 1 FROM khohang WHERE MaNL = ?")) {
                     ps.setInt(1, maNL);
                     ResultSet rs = ps.executeQuery();
                     exists = rs.next();
@@ -395,14 +395,14 @@ public class KhoHangSwingView extends JPanel {
                 
                 if (exists) {
                     // Cập nhật
-                    try (PreparedStatement ps = conn.prepareStatement("UPDATE kho_nguyenlieu SET SoLuong = ? WHERE MaNL = ?")) {
+                    try (PreparedStatement ps = conn.prepareStatement("UPDATE khohang SET SoLuong = ? WHERE MaNL = ?")) {
                         ps.setInt(1, soLuongMoi);
                         ps.setInt(2, maNL);
                         ps.executeUpdate();
                     }
                 } else {
                     // Thêm mới
-                    try (PreparedStatement ps = conn.prepareStatement("INSERT INTO kho_nguyenlieu (MaNL, SoLuong) VALUES (?, ?)")) {
+                    try (PreparedStatement ps = conn.prepareStatement("INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?)")) {
                         ps.setInt(1, maNL);
                         ps.setInt(2, soLuongMoi);
                         ps.executeUpdate();

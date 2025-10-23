@@ -359,7 +359,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                     }
                     
                     // Trừ số lượng trong kho
-                    String sqlKho = "UPDATE kho_nguyenlieu SET SoLuong = SoLuong - ? WHERE MaNL = ?";
+                    String sqlKho = "UPDATE khohang SET SoLuong = SoLuong - ? WHERE MaNL = ?";
                     try (PreparedStatement psKho = conn.prepareStatement(sqlKho)) {
                         psKho.setInt(1, soLuong);
                         psKho.setInt(2, maNL);
@@ -521,7 +521,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     
     // Cập nhật kho nguyên liệu
     private void capNhatKhoNguyenLieu(int maNL, int soLuong) {
-        String sql = "INSERT INTO kho_nguyenlieu (MaNL, SoLuong) VALUES (?, ?) ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
+        String sql = "INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?) ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

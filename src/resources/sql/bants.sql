@@ -209,20 +209,20 @@ INSERT INTO `khachhang` (`MaKH`, `SDT`, `HoTen`, `DiaChi`, `NgaySinh`) VALUES
 -- --------------------------------------------------------
 
 --
--- Table structure for table `kho_nguyenlieu`
+-- Table structure for table `khohang`
 --
 
-CREATE TABLE `kho_nguyenlieu` (
+CREATE TABLE `khohang` (
   `MaNL` int(11) NOT NULL,
   `SoLuong` int(11) NOT NULL DEFAULT 0,
   `CapNhat` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `kho_nguyenlieu`
+-- Dumping data for table `khohang`
 --
 
-INSERT INTO `kho_nguyenlieu` (`MaNL`, `SoLuong`, `CapNhat`) VALUES
+INSERT INTO `khohang` (`MaNL`, `SoLuong`, `CapNhat`) VALUES
 (1, 9899, '2025-10-18 05:42:15');
 
 -- --------------------------------------------------------
@@ -233,7 +233,7 @@ INSERT INTO `kho_nguyenlieu` (`MaNL`, `SoLuong`, `CapNhat`) VALUES
 
 CREATE TABLE `loaimon` (
   `MaLoai` int(11) NOT NULL,
-  `TenLoai` varchar(50) NOT NULL,
+  `TenLoai` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -258,31 +258,32 @@ CREATE TABLE `mon` (
   `MoTa` varchar(500) DEFAULT NULL,
   `Gia` bigint(20) NOT NULL,
   `TinhTrang` varchar(20) NOT NULL DEFAULT 'ban',
-  `MaLoai` int(11) NOT NULL
+  `MaLoai` int(11) NOT NULL,
+  `Anh` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `mon`
 --
 
-INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `Gia`, `TinhTrang`, `MaLoai`) VALUES
-(1, 'No Topping', '', 0, 'ban', 4),
-(2, 'Trân Châu Tuyết Sợi', '', 10000, 'ban', 4),
-(3, 'Trân Châu Đen', '', 10000, 'ban', 4),
-(4, 'Trân Châu Trắng', '', 10000, 'ban', 4),
-(5, 'Trà Sữa Trân Châu', '', 50000, 'ban', 2),
-(6, 'Trà Sữa Sương Sáo', '', 45000, 'ban', 2),
-(7, 'Trà Sữa Matcha(L)', '', 50000, 'ban', 2),
-(8, 'Sữa Tươi Trân Châu Đường Đen', '', 45000, 'ban', 2),
-(9, 'Bánh Flan', '', 10000, 'ban', 2),
-(10, 'Hướng dương', '', 10000, 'ban', 1),
-(11, 'Cafe truyền thống', '', 35000, 'ban', 3),
-(12, 'Espresso', '', 45000, 'ban', 3),
-(13, 'Trà Sữa Matcha(XL)', '', 25000, 'ban', 2),
-(14, 'Trà Sữa Ô Long', '', 20000, 'ban', 2),
-(15, 'Trà Đào', '', 40000, 'ban', 2),
-(16, 'Trà Đào(L)', '', 50000, 'ban', 2),
-(18, 'Trà Nhãn - Sen', '', 45000, 'ban', 2);
+INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `Gia`, `TinhTrang`, `MaLoai`, `Anh`) VALUES
+(1, 'No Topping', '', 0, 'ban', 4, 'images/no_topping.jpg'),
+(2, 'Trân Châu Tuyết Sợi', '', 10000, 'ban', 4, 'images/tran_chau_tuyet_soi.jpg'),
+(3, 'Trân Châu Đen', '', 10000, 'ban', 4, 'images/tran_chau_den.jpg'),
+(4, 'Trân Châu Trắng', '', 10000, 'ban', 4, 'images/tran_chau_trang.jpg'),
+(5, 'Trà Sữa Trân Châu', '', 50000, 'ban', 2, 'images/tra_sua_tran_chau.jpg'),
+(6, 'Trà Sữa Sương Sáo', '', 45000, 'ban', 2, 'images/tra_sua_suong_sao.jpg'),
+(7, 'Trà Sữa Matcha(L)', '', 50000, 'ban', 2, 'images/tra_sua_matcha_l.jpg'),
+(8, 'Sữa Tươi Trân Châu Đường Đen', '', 45000, 'ban', 2, 'images/sua_tuoi_tran_chau_duong_den.jpg'),
+(9, 'Bánh Flan', '', 10000, 'ban', 2, 'images/banh_flan.jpg'),
+(10, 'Hướng dương', '', 10000, 'ban', 1, 'images/huong_duong.jpg'),
+(11, 'Cafe truyền thống', '', 35000, 'ban', 3, 'images/cafe_truyen_thong.jpg'),
+(12, 'Espresso', '', 45000, 'ban', 3, 'images/espresso.jpg'),
+(13, 'Trà Sữa Matcha(XL)', '', 25000, 'ban', 2, 'images/tra_sua_matcha_xl.jpg'),
+(14, 'Trà Sữa Ô Long', '', 20000, 'ban', 2, 'images/tra_sua_o_long.jpg'),
+(15, 'Trà Đào', '', 40000, 'ban', 2, 'images/tra_dao.jpg'),
+(16, 'Trà Đào(L)', '', 50000, 'ban', 2, 'images/tra_dao_l.jpg'),
+(18, 'Trà Nhãn - Sen', '', 45000, 'ban', 2, 'images/tra_nhan_sen.jpg');
 
 -- --------------------------------------------------------
 
@@ -402,7 +403,6 @@ CREATE TABLE `phieunhap` (
   `MaNV` int(11) NOT NULL,
   `MaNCC` int(11) NOT NULL,
   `Ngay` timestamp NOT NULL DEFAULT current_timestamp(),
-  `GhiChu` varchar(250) DEFAULT NULL,
   `ThanhTien` bigint(20) NOT NULL DEFAULT 0,
   `TrangThai` varchar(45) NOT NULL DEFAULT 'chuaxacnhan' COMMENT 'chuaxacnhan - chưa xác nhận\ndaxacnhan - đã xác nhận'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -411,14 +411,14 @@ CREATE TABLE `phieunhap` (
 -- Dumping data for table `phieunhap`
 --
 
-INSERT INTO `phieunhap` (`MaPN`, `MaNV`, `MaNCC`, `Ngay`, `GhiChu`, `ThanhTien`, `TrangThai`) VALUES
-(2, 1, 1, '2025-10-18 05:42:10', '', 197980, 'daxacnhan'),
-(3, 1, 3, '2025-10-19 08:30:00', 'Nhập nguyên liệu cho tháng 10', 450000, 'daxacnhan'),
-(4, 5, 4, '2025-10-20 14:15:00', 'Nhập trà sữa cao cấp', 320000, 'daxacnhan'),
-(5, 1, 5, '2025-10-21 09:45:00', 'Nhập sữa tươi Đà Lạt', 180000, 'chuaxacnhan'),
-(6, 6, 6, '2025-10-22 16:20:00', 'Nhập topping premium', 250000, 'daxacnhan'),
-(7, 1, 7, '2025-10-23 11:10:00', 'Nhập đường mía chất lượng cao', 120000, 'daxacnhan'),
-(8, 5, 2, '2025-10-24 13:30:00', 'Nhập nguyên liệu dự trữ', 380000, 'chuaxacnhan');
+INSERT INTO `phieunhap` (`MaPN`, `MaNV`, `MaNCC`, `Ngay`, `ThanhTien`, `TrangThai`) VALUES
+(2, 1, 1, '2025-10-18 05:42:10',  197980, 'Chưa xác nhận'),
+(3, 1, 3, '2025-10-19 08:30:00',  450000, 'Chưa xác nhận'),
+(4, 5, 4, '2025-10-20 14:15:00',  320000, 'Chưa xác nhận'),
+(5, 1, 5, '2025-10-21 09:45:00',  180000, 'Chưa xác nhận'),
+(6, 6, 6, '2025-10-22 16:20:00',  250000, 'Đã xác nhận'),
+(7, 1, 7, '2025-10-23 11:10:00',  120000, 'Đã xác nhận'),
+(8, 5, 2, '2025-10-24 13:30:00',  380000, 'Chưa xác nhận');
 
 --
 -- Indexes for dumped tables
@@ -460,9 +460,9 @@ ALTER TABLE `khachhang`
   ADD PRIMARY KEY (`MaKH`);
 
 --
--- Indexes for table `kho_nguyenlieu`
+-- Indexes for table `khohang`
 --
-ALTER TABLE `kho_nguyenlieu`
+ALTER TABLE `khohang`
   ADD PRIMARY KEY (`MaNL`);
 
 --
@@ -600,9 +600,9 @@ ALTER TABLE `giaohang`
   ADD CONSTRAINT `fk_khachhang_giao` FOREIGN KEY (`MaKH`) REFERENCES `khachhang` (`MaKH`);
 
 --
--- Constraints for table `kho_nguyenlieu`
+-- Constraints for table `khohang`
 --
-ALTER TABLE `kho_nguyenlieu`
+ALTER TABLE `khohang`
   ADD CONSTRAINT `fk_kho_nl` FOREIGN KEY (`MaNL`) REFERENCES `nguyenlieu` (`MaNL`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --

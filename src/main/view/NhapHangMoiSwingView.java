@@ -587,7 +587,7 @@ public class NhapHangMoiSwingView extends JPanel {
             conn.setAutoCommit(false);
             
             // 1. Create import receipt
-            String insertReceipt = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, GhiChu, ThanhTien, TrangThai) VALUES (?, ?, NOW(), ?, ?, 'chuaxacnhan')";
+            String insertReceipt = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, NOW(), ?, 'chuaxacnhan')";
             
             try (PreparedStatement ps = conn.prepareStatement(insertReceipt, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, Session.currentMaNV);
@@ -638,7 +638,7 @@ public class NhapHangMoiSwingView extends JPanel {
                                 }
                                 
                                 // 4. Update warehouse inventory
-                                String updateWarehouse = "INSERT INTO kho_nguyenlieu (MaNL, SoLuong) VALUES (?, ?) ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
+                                String updateWarehouse = "INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?) ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
                                 try (PreparedStatement psWarehouse = conn.prepareStatement(updateWarehouse)) {
                                     psWarehouse.setInt(1, product.getMaNL());
                                     psWarehouse.setInt(2, product.getSoLuong());

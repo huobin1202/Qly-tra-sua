@@ -547,7 +547,7 @@ public class DonHangDAO {
             System.out.println("├────┼────────────────────────────┼──────────┼──────────┤");
             boolean any = false;
             String sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, IFNULL(k.SoLuong,0) SoLuong " +
-                         "FROM nguyenlieu nl LEFT JOIN kho_nguyenlieu k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
+                         "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
             try (Connection conn = DBUtil.getConnection();
                  Statement st = conn.createStatement();
                  ResultSet rs = st.executeQuery(sql)) {

@@ -33,7 +33,7 @@ public class NhapHangSwingView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Nhân viên", "Nhà cung cấp", "Ngày", "Ghi chú", "Thành tiền", "Trạng thái"};
+        String[] columns = {"ID", "Nhân viên", "Nhà cung cấp", "Ngày", "Thành tiền", "Trạng thái"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -72,10 +72,6 @@ public class NhapHangSwingView extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.setBackground(new Color(240, 248, 255));
         
-        JButton addButton = new JButton("➕ Thêm mới");
-        addButton.setBackground(new Color(34, 139, 34));
-        addButton.setForeground(Color.BLACK);
-        addButton.setFocusPainted(false);
         
         JButton editButton = new JButton("✏️ Sửa");
         editButton.setBackground(new Color(255, 140, 0));
@@ -97,7 +93,6 @@ public class NhapHangSwingView extends JPanel {
         viewDetailsButton.setForeground(Color.BLACK);
         viewDetailsButton.setFocusPainted(false);
         
-        buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(confirmButton);
@@ -142,7 +137,6 @@ public class NhapHangSwingView extends JPanel {
         // Event handlers
         searchButton.addActionListener(e -> performSearch());
         refreshButton.addActionListener(e -> loadData());
-        addButton.addActionListener(e -> showAddDialog());
         editButton.addActionListener(e -> showEditDialog());
         deleteButton.addActionListener(e -> performDelete());
         confirmButton.addActionListener(e -> performConfirm());
@@ -181,7 +175,6 @@ public class NhapHangSwingView extends JPanel {
                     rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A",
                     rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
                     rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
-                    rs.getString("GhiChu"),
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
                     rs.getString("TrangThai")
                 };
@@ -238,7 +231,6 @@ public class NhapHangSwingView extends JPanel {
                     rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A",
                     rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
                     rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
-                    rs.getString("GhiChu"),
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
                     rs.getString("TrangThai")
                 };
@@ -267,10 +259,10 @@ public class NhapHangSwingView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String trangThai = (String) tableModel.getValueAt(selectedRow, 6);
+        String trangThai = (String) tableModel.getValueAt(selectedRow, 5);
         
         // Kiểm tra trạng thái phiếu nhập
-        if ("daxacnhan".equalsIgnoreCase(trangThai) || "Đã xác nhận".equalsIgnoreCase(trangThai)) {
+        if ("Đã xác nhận".equalsIgnoreCase(trangThai) || "Đã xác nhận".equalsIgnoreCase(trangThai)) {
             JOptionPane.showMessageDialog(this, 
                 "Phiếu nhập đã được xác nhận, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
                 "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -288,9 +280,9 @@ public class NhapHangSwingView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String trangThai = (String) tableModel.getValueAt(selectedRow, 6);
+        String trangThai = (String) tableModel.getValueAt(selectedRow, 5);
         
-        if ("daxacnhan".equalsIgnoreCase(trangThai) || "Đã xác nhận".equalsIgnoreCase(trangThai)) {
+        if ("Đã xác nhận".equalsIgnoreCase(trangThai) || "Đã xác nhận".equalsIgnoreCase(trangThai)) {
             JOptionPane.showMessageDialog(this, "Phiếu nhập này đã được xác nhận!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -302,7 +294,7 @@ public class NhapHangSwingView extends JPanel {
         if (result == JOptionPane.YES_OPTION) {
             try (Connection conn = DBUtil.getConnection();
                  PreparedStatement ps = conn.prepareStatement("UPDATE phieunhap SET TrangThai = ? WHERE MaPN = ?")) {
-                ps.setString(1, "daxacnhan");
+                ps.setString(1, "Đã xác nhận");
                 ps.setInt(2, id);
                 ps.executeUpdate();
                 JOptionPane.showMessageDialog(this, "Xác nhận thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -360,7 +352,7 @@ public class NhapHangSwingView extends JPanel {
     
     // Inner class for Add/Edit dialog
     private class NhapHangDialog extends JDialog {
-        private JTextField maNVField, maNCCField, ngayField, ghiChuField, thanhTienField;
+        private JTextField maNVField, maNCCField, ngayField, thanhTienField;
         private JComboBox<String> trangThaiCombo;
         private boolean dataChanged = false;
         private NhapHangDTO nh;
@@ -380,15 +372,13 @@ public class NhapHangSwingView extends JPanel {
             maNVField = new JTextField(20);
             maNCCField = new JTextField(20);
             ngayField = new JTextField(20);
-            ghiChuField = new JTextField(20);
             thanhTienField = new JTextField(20);
-            trangThaiCombo = new JComboBox<>(new String[]{"chuaxacnhan", "daxacnhan"});
+            trangThaiCombo = new JComboBox<>(new String[]{"Chưa xác nhận", "Đã xác nhận"});
             
             if (nh != null) {
                 maNVField.setText(String.valueOf(nh.getMaNV()));
                 maNCCField.setText(String.valueOf(nh.getMaNCC()));
                 ngayField.setText(nh.getNgay());
-                ghiChuField.setText(nh.getGhiChu());
                 thanhTienField.setText(String.valueOf(nh.getThanhTien()));
                 trangThaiCombo.setSelectedItem(nh.getTrangThaiString());
             } else {
@@ -396,7 +386,7 @@ public class NhapHangSwingView extends JPanel {
                 maNVField.setText(String.valueOf(database.Session.currentMaNV));
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                 ngayField.setText(dateFormat.format(new java.util.Date()));
-                trangThaiCombo.setSelectedItem("chuaxacnhan");
+                trangThaiCombo.setSelectedItem("Chưa xác nhận");
             }
         }
         
@@ -427,11 +417,7 @@ public class NhapHangSwingView extends JPanel {
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(ngayField, gbc);
             
-            // Ghi chú
-            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Ghi chú:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(ghiChuField, gbc);
+      
             
             // Thành tiền
             gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
@@ -507,7 +493,6 @@ public class NhapHangSwingView extends JPanel {
             String maNVStr = maNVField.getText().trim();
             String maNCCStr = maNCCField.getText().trim();
             String ngay = ngayField.getText().trim();
-            String ghiChu = ghiChuField.getText().trim();
             String thanhTienStr = thanhTienField.getText().trim();
             String trangThai = (String) trangThaiCombo.getSelectedItem();
             
@@ -531,26 +516,24 @@ public class NhapHangSwingView extends JPanel {
                 if (nh == null) {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, GhiChu, ThanhTien, TrangThai) VALUES (?, ?, ?, ?, ?, ?)");
+                        "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, ?, ?, ?, ?)");
                     ps.setInt(1, maNV);
                     ps.setInt(2, maNCC);
                     ps.setString(3, ngay);
-                    ps.setString(4, ghiChu);
-                    ps.setLong(5, thanhTien);
-                    ps.setString(6, trangThai);
+                    ps.setLong(4, thanhTien);
+                    ps.setString(5, trangThai);
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     // Sửa
                     PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE phieunhap SET MaNV=?, MaNCC=?, Ngay=?, GhiChu=?, ThanhTien=?, TrangThai=? WHERE MaPN=?");
+                        "UPDATE phieunhap SET MaNV=?, MaNCC=?, Ngay=?, ThanhTien=?, TrangThai=? WHERE MaPN=?");
                     ps.setInt(1, maNV);
                     ps.setInt(2, maNCC);
                     ps.setString(3, ngay);
-                    ps.setString(4, ghiChu);
-                    ps.setLong(5, thanhTien);
-                    ps.setString(6, trangThai);
-                    ps.setInt(7, nh.getMaPN());
+                    ps.setLong(4, thanhTien);
+                    ps.setString(5, trangThai);
+                    ps.setInt(6, nh.getMaPN());
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }

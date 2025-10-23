@@ -319,7 +319,8 @@ public class NhanVienSwingView extends JPanel {
     
     // Inner class for Add/Edit dialog
     private class NhanVienDialog extends JDialog {
-        private JTextField taiKhoanField, matKhauField, hoTenField, sdtField, ngayVaoLamField, chucVuField, luongField;
+        private JTextField taiKhoanField, matKhauField, hoTenField, sdtField, ngayVaoLamField, luongField;
+        private JComboBox<String> chucVuCombo;
         private boolean dataChanged = false;
         private NhanVienDTO nv;
         
@@ -340,10 +341,11 @@ public class NhanVienSwingView extends JPanel {
             hoTenField = new JTextField(20);
             sdtField = new JTextField(20);
             ngayVaoLamField = new JTextField(20);
-            chucVuField = new JTextField(20);
+            chucVuCombo = new JComboBox<>(new String[]{"Nhân viên", "Quản lý"});
             luongField = new JTextField(20);
             
             if (nv != null) {
+                // Sửa nhân viên - hiển thị thông tin hiện tại
                 taiKhoanField.setText(nv.getTaiKhoan());
                 matKhauField.setText(nv.getMatKhau());
                 hoTenField.setText(nv.getHoTen());
@@ -352,8 +354,12 @@ public class NhanVienSwingView extends JPanel {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                     ngayVaoLamField.setText(dateFormat.format(nv.getNgayVaoLam()));
                 }
-                chucVuField.setText(nv.getChucVu());
+                chucVuCombo.setSelectedItem(nv.getChucVu());
                 luongField.setText(String.valueOf(nv.getLuong()));
+            } else {
+                // Thêm nhân viên mới - tự động set ngày hiện tại
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                ngayVaoLamField.setText(dateFormat.format(new java.util.Date()));
             }
         }
         
@@ -400,7 +406,7 @@ public class NhanVienSwingView extends JPanel {
             gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Chức vụ:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(chucVuField, gbc);
+            mainPanel.add(chucVuCombo, gbc);
             
             // Lương
             gbc.gridx = 0; gbc.gridy = 6; gbc.anchor = GridBagConstraints.EAST;
@@ -463,21 +469,27 @@ public class NhanVienSwingView extends JPanel {
             String taiKhoan = taiKhoanField.getText().trim();
             String matKhau = matKhauField.getText().trim();
             String hoTen = hoTenField.getText().trim();
-            String sdt = sdtField.getText().trim();
             String ngayVaoLamStr = ngayVaoLamField.getText().trim();
-            String chucVu = chucVuField.getText().trim();
+            String chucVu = (String) chucVuCombo.getSelectedItem();
             String luongStr = luongField.getText().trim();
-            
-            if (taiKhoan.isEmpty() || hoTen.isEmpty() || sdt.isEmpty() || chucVu.isEmpty() || luongStr.isEmpty()) {
+            String sdtStr = sdtField.getText().trim();
+            if (taiKhoan.isEmpty() || hoTen.isEmpty() || sdtStr.isEmpty() || chucVu.isEmpty() || luongStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             int luong;
+            int sdt;
             try {
                 luong = Integer.parseInt(luongStr);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Lương phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            } 
+            try {
+                sdt = Integer.parseInt(sdtStr);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
@@ -494,7 +506,7 @@ public class NhanVienSwingView extends JPanel {
                     ps.setString(1, taiKhoan);
                     ps.setString(2, matKhau);
                     ps.setString(3, hoTen);
-                    ps.setString(4, sdt);
+                    ps.setInt(4, sdt);
                     
                     if (!ngayVaoLamStr.isEmpty()) {
                         ps.setString(5, ngayVaoLamStr );
@@ -515,7 +527,7 @@ public class NhanVienSwingView extends JPanel {
                         ps.setString(1, taiKhoan);
                         ps.setString(2, matKhau);
                         ps.setString(3, hoTen);
-                        ps.setString(4, sdt);
+                        ps.setInt(4, sdt);
                         
                         if (!ngayVaoLamStr.isEmpty()) {
                             ps.setString(5, ngayVaoLamStr );
@@ -531,7 +543,7 @@ public class NhanVienSwingView extends JPanel {
                             "UPDATE nhanvien SET TaiKhoan=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=? WHERE MaNV=?");
                         ps.setString(1, taiKhoan);
                         ps.setString(2, hoTen);
-                        ps.setString(3, sdt);
+                        ps.setInt(3, sdt);
                         
                         if (!ngayVaoLamStr.isEmpty()) {
                             ps.setString(4, ngayVaoLamStr );

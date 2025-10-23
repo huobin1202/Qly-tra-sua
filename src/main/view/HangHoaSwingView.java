@@ -2,6 +2,7 @@ package view;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.sql.*;
 import database.DBUtil;
@@ -22,6 +23,7 @@ public class HangHoaSwingView extends JPanel {
         updateTableHeaders();
         loadData();
     }
+    
     
     public String getCurrentView() {
         return currentView;
@@ -47,7 +49,7 @@ public class HangHoaSwingView extends JPanel {
         
         table = new JTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(25);
+        table.setRowHeight(80); // Increased height to accommodate images
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
@@ -55,6 +57,7 @@ public class HangHoaSwingView extends JPanel {
         searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Tên", "Trạng thái"});
         searchField = new JTextField(20);
         categoryCombo = new JComboBox<>(new String[]{"Món", "Loại món", "Nguyên liệu"});
+        
     }
     
     private void setupLayout() {
@@ -138,6 +141,10 @@ public class HangHoaSwingView extends JPanel {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Danh sách hàng hóa"));
         
+        // Center panel with table
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        
         // Layout
         JPanel northContainer = new JPanel();
         northContainer.setLayout(new BoxLayout(northContainer, BoxLayout.Y_AXIS));
@@ -145,7 +152,7 @@ public class HangHoaSwingView extends JPanel {
         northContainer.add(controlPanel);
         northContainer.add(topPanel);
         add(northContainer, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
         
         // Event handlers
         searchButton.addActionListener(e -> performSearch());
@@ -164,6 +171,7 @@ public class HangHoaSwingView extends JPanel {
                 }
             }
         });
+        
         
         // Enter key in search field
         searchField.addActionListener(e -> performSearch());
@@ -184,12 +192,19 @@ public class HangHoaSwingView extends JPanel {
     
     private void updateTableHeaders() {
         if (currentView.equals("MON")) {
-            tableModel.setColumnIdentifiers(new String[]{"ID", "Tên món", "Mô tả", "Giá", "Trạng thái", "Loại"});
+            tableModel.setColumnIdentifiers(new String[]{"ID", "Tên món", "Mô tả", "Giá", "Trạng thái", "Loại", "Ảnh"});
         } else if (currentView.equals("LOAIMON")) {
             tableModel.setColumnIdentifiers(new String[]{"ID", "Tên loại"});
         } else {
             tableModel.setColumnIdentifiers(new String[]{"ID", "Tên nguyên liệu", "Đơn vị"});
         }
+        
+        // Set custom renderer for image column after table is updated
+        SwingUtilities.invokeLater(() -> {
+            if (currentView.equals("MON") && table.getColumnCount() > 6) {
+                table.getColumnModel().getColumn(6).setCellRenderer(new ImageCellRenderer());
+            }
+        });
     }
     
     private void loadData() {
@@ -205,10 +220,15 @@ public class HangHoaSwingView extends JPanel {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+        
+        // Set renderer after data is loaded
+        if (currentView.equals("MON") && table.getColumnCount() > 6) {
+            table.getColumnModel().getColumn(6).setCellRenderer(new ImageCellRenderer());
+        }
     }
     
     private void loadMonData(Connection conn) throws SQLException {
-        String sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
+        String sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
             
@@ -219,7 +239,8 @@ public class HangHoaSwingView extends JPanel {
                     rs.getString("MoTa"),
                     String.format("%,d", rs.getLong("Gia")) + " VNĐ",
                     rs.getString("TinhTrang"),
-                    rs.getString("TenLoai")
+                    rs.getString("TenLoai"),
+                    rs.getString("Anh")
                 };
                 tableModel.addRow(row);
             }
@@ -273,14 +294,19 @@ public class HangHoaSwingView extends JPanel {
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+        
+        // Set renderer after search is completed
+        if (currentView.equals("MON") && table.getColumnCount() > 6) {
+            table.getColumnModel().getColumn(6).setCellRenderer(new ImageCellRenderer());
+        }
     }
     
     private void searchMonData(Connection conn, String searchText, String searchType) throws SQLException {
-        String sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
+        String sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
         PreparedStatement ps;
         
         if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-            sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
+            sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
             ps = conn.prepareStatement(sql);
         } else if (searchType.equals("ID")) {
             sql += "m.MaMon = ? ORDER BY m.MaMon";
@@ -304,7 +330,8 @@ public class HangHoaSwingView extends JPanel {
                 rs.getString("MoTa"),
                 String.format("%,d", rs.getLong("Gia")) + " VNĐ",
                 rs.getString("TinhTrang"),
-                rs.getString("TenLoai")
+                rs.getString("TenLoai"),
+                rs.getString("Anh")
             };
             tableModel.addRow(row);
         }
@@ -375,6 +402,7 @@ public class HangHoaSwingView extends JPanel {
             String giaStr = (String) tableModel.getValueAt(selectedRow, 3);
             String tinhTrang = (String) tableModel.getValueAt(selectedRow, 4);
             String loai = (String) tableModel.getValueAt(selectedRow, 5);
+            String anh = (String) tableModel.getValueAt(selectedRow, 6);
             
             long gia = 0;
             if (!giaStr.isEmpty()) {
@@ -385,7 +413,21 @@ public class HangHoaSwingView extends JPanel {
                 }
             }
             
-            MonDTO mon = new MonDTO(id, ten, moTa, gia, tinhTrang, 0);
+            // Get MaLoai from TenLoai
+            int maLoai = 1;
+            try (Connection conn = DBUtil.getConnection()) {
+                try (PreparedStatement ps = conn.prepareStatement("SELECT MaLoai FROM loaimon WHERE TenLoai = ?")) {
+                    ps.setString(1, loai);
+                    ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        maLoai = rs.getInt("MaLoai");
+                    }
+                }
+            } catch (SQLException e) {
+                // Use default value
+            }
+            
+            MonDTO mon = new MonDTO(id, ten, moTa, gia, tinhTrang, maLoai, anh);
             MonDialog dialog = new MonDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin món", mon);
             dialog.setVisible(true);
             if (dialog.isDataChanged()) {
@@ -490,7 +532,7 @@ public class HangHoaSwingView extends JPanel {
                 }
                 
                 // Kiểm tra nguyên liệu có được sử dụng trong kho không
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM kho_nguyenlieu WHERE MaNL=?")) {
+                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM khohang WHERE MaNL=?")) {
                     ps.setInt(1, id);
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next() && rs.getInt(1) > 0) {
@@ -553,8 +595,10 @@ public class HangHoaSwingView extends JPanel {
     
     // Inner class for Mon Add/Edit dialog
     private class MonDialog extends JDialog {
-        private JTextField tenField, moTaField, donViField, giaField;
+        private JTextField tenField, moTaField, donViField, giaField, anhField;
         private JComboBox<String> tinhTrangCombo, loaiCombo;
+        private JButton chooseImageButton;
+        private JLabel imagePreviewLabel;
         private boolean dataChanged = false;
         private MonDTO mon;
         
@@ -567,15 +611,27 @@ public class HangHoaSwingView extends JPanel {
         }
         
         private void initializeComponents() {
-            setSize(450, 400);
+            setSize(500, 500);
             setLocationRelativeTo(getParent());
             
-            tenField = new JTextField(20);
-            moTaField = new JTextField(20);
-            donViField = new JTextField(20);
-            giaField = new JTextField(20);
+            tenField = new JTextField(25);
+            moTaField = new JTextField(25);
+            donViField = new JTextField(25);
+            giaField = new JTextField(25);
+            anhField = new JTextField(25);
+            anhField.setEditable(false);
             tinhTrangCombo = new JComboBox<>(new String[]{"Đang bán", "Tạm ngừng"});
             loaiCombo = new JComboBox<>();
+            
+            chooseImageButton = new JButton("Chọn ảnh");
+            chooseImageButton.setBackground(new Color(70, 130, 180));
+            chooseImageButton.setForeground(Color.BLACK);
+            chooseImageButton.setFocusPainted(false);
+            chooseImageButton.addActionListener(e -> chooseImage());
+            
+            imagePreviewLabel = new JLabel("Chưa chọn ảnh", JLabel.CENTER);
+            imagePreviewLabel.setBorder(BorderFactory.createEtchedBorder());
+            imagePreviewLabel.setPreferredSize(new Dimension(150, 150));
             
             // Load loại món
             loadLoaiMon();
@@ -586,6 +642,15 @@ public class HangHoaSwingView extends JPanel {
                 // donViField.setText(mon.getTenDonVi()); // Method not available
                 giaField.setText(String.valueOf(mon.getGia()));
                 tinhTrangCombo.setSelectedItem(mon.getTinhTrang());
+                anhField.setText(mon.getAnh() != null ? mon.getAnh() : "");
+                
+                // Load existing image if available
+                if (mon.getAnh() != null && !mon.getAnh().trim().isEmpty()) {
+                    loadImagePreview(mon.getAnh());
+                } else {
+                    imagePreviewLabel.setText("Chưa có ảnh");
+                    imagePreviewLabel.setIcon(null);
+                }
                 
                 // Set loại món safely
                 try {
@@ -595,6 +660,10 @@ public class HangHoaSwingView extends JPanel {
                 } catch (Exception e) {
                     // Ignore error, keep default selection
                 }
+            } else {
+                // For new items, show default state
+                imagePreviewLabel.setText("Chưa chọn ảnh");
+                imagePreviewLabel.setIcon(null);
             }
         }
         
@@ -619,40 +688,67 @@ public class HangHoaSwingView extends JPanel {
             
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(10, 10, 10, 10);
+            gbc.fill = GridBagConstraints.HORIZONTAL; // Fill horizontally
             
             // Tên món
             gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST;
+            gbc.weightx = 0; // Label doesn't expand
             mainPanel.add(new JLabel("Tên món:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1; // Text field expands
             mainPanel.add(tenField, gbc);
             
             // Mô tả
             gbc.gridx = 0; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
+            gbc.weightx = 0;
             mainPanel.add(new JLabel("Mô tả:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1;
             mainPanel.add(moTaField, gbc);
             
-            
             // Giá
-            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
+            gbc.weightx = 0;
             mainPanel.add(new JLabel("Giá (VNĐ):"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1;
             mainPanel.add(giaField, gbc);
             
             // Trạng thái
-            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
+            gbc.weightx = 0;
             mainPanel.add(new JLabel("Trạng thái:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1;
             mainPanel.add(tinhTrangCombo, gbc);
             
             // Loại
-            gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
+            gbc.weightx = 0;
             mainPanel.add(new JLabel("Loại:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1;
             mainPanel.add(loaiCombo, gbc);
             
-            // Buttons
+            // Ảnh
+            gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
+            gbc.weightx = 0;
+            mainPanel.add(new JLabel("Ảnh:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            gbc.weightx = 1;
+            JPanel imagePanel = new JPanel(new BorderLayout());
+            imagePanel.add(anhField, BorderLayout.CENTER);
+            imagePanel.add(chooseImageButton, BorderLayout.EAST);
+            mainPanel.add(imagePanel, gbc);
+            
+            // Image preview
             gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
+            mainPanel.add(imagePreviewLabel, gbc);
+            
+            // Buttons
+            gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.weightx = 0;
             JPanel buttonPanel = new JPanel(new FlowLayout());
             
             JButton saveButton = new JButton("Lưu");
@@ -737,27 +833,31 @@ public class HangHoaSwingView extends JPanel {
                     }
                 }
                 
+                String anh = anhField.getText().trim();
+                
                 if (mon == null) {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO mon (TenMon, MoTa, Gia, TinhTrang, MaLoai) VALUES (?, ?, ?, ?, ?)");
+                        "INSERT INTO mon (TenMon, MoTa, Gia, TinhTrang, MaLoai, Anh) VALUES (?, ?, ?, ?, ?, ?)");
                     ps.setString(1, ten);
                     ps.setString(2, moTa);
                     ps.setLong(3, gia);
                     ps.setString(4, tinhTrang);
                     ps.setInt(5, maLoai);
+                    ps.setString(6, anh);
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     // Sửa
                     PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE mon SET TenMon=?, MoTa=?, Gia=?, TinhTrang=?, MaLoai=? WHERE MaMon=?");
+                        "UPDATE mon SET TenMon=?, MoTa=?, Gia=?, TinhTrang=?, MaLoai=?, Anh=? WHERE MaMon=?");
                     ps.setString(1, ten);
                     ps.setString(2, moTa);
                     ps.setLong(3, gia);
                     ps.setString(4, tinhTrang);
                     ps.setInt(5, maLoai);
-                    ps.setInt(6, mon.getMaMon());
+                    ps.setString(6, anh);
+                    ps.setInt(7, mon.getMaMon());
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
@@ -770,6 +870,83 @@ public class HangHoaSwingView extends JPanel {
         
         public boolean isDataChanged() {
             return dataChanged;
+        }
+        
+        private void chooseImage() {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setCurrentDirectory(new java.io.File("src/images"));
+            fileChooser.setDialogTitle("Chọn ảnh món");
+            fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
+                @Override
+                public boolean accept(java.io.File f) {
+                    return f.isDirectory() || f.getName().toLowerCase().endsWith(".jpg") || 
+                           f.getName().toLowerCase().endsWith(".jpeg") || 
+                           f.getName().toLowerCase().endsWith(".png") || 
+                           f.getName().toLowerCase().endsWith(".gif");
+                }
+                
+                @Override
+                public String getDescription() {
+                    return "Image files (*.jpg, *.jpeg, *.png, *.gif)";
+                }
+            });
+            
+            if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                java.io.File selectedFile = fileChooser.getSelectedFile();
+                String relativePath = getRelativePath(selectedFile);
+                anhField.setText(relativePath);
+                loadImagePreview(relativePath);
+            }
+        }
+        
+        private String getRelativePath(java.io.File file) {
+            String fullPath = file.getAbsolutePath();
+            String srcPath = new java.io.File("src").getAbsolutePath();
+            
+            if (fullPath.startsWith(srcPath)) {
+                return fullPath.substring(srcPath.length() + 1).replace("\\", "/");
+            }
+            return file.getName();
+        }
+        
+        private void loadImagePreview(String imagePath) {
+            if (imagePath == null || imagePath.trim().isEmpty()) {
+                imagePreviewLabel.setText("Chưa chọn ảnh");
+                imagePreviewLabel.setIcon(null);
+                return;
+            }
+            
+            try {
+                String fullPath = "src/" + imagePath;
+                java.io.File imageFile = new java.io.File(fullPath);
+                
+                if (imageFile.exists()) {
+                    ImageIcon icon = new ImageIcon(fullPath);
+                    Image image = icon.getImage();
+                    
+                    // Scale image to fit in preview
+                    int maxWidth = 140;
+                    int maxHeight = 140;
+                    int width = image.getWidth(null);
+                    int height = image.getHeight(null);
+                    
+                    double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
+                    int newWidth = (int) (width * scale);
+                    int newHeight = (int) (height * scale);
+                    
+                    Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                    ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                    
+                    imagePreviewLabel.setText("");
+                    imagePreviewLabel.setIcon(scaledIcon);
+                } else {
+                    imagePreviewLabel.setText("Không tìm thấy ảnh");
+                    imagePreviewLabel.setIcon(null);
+                }
+            } catch (Exception e) {
+                imagePreviewLabel.setText("Lỗi tải ảnh");
+                imagePreviewLabel.setIcon(null);
+            }
         }
     }
     
@@ -1033,6 +1210,66 @@ public class HangHoaSwingView extends JPanel {
         
         public boolean isDataChanged() {
             return dataChanged;
+        }
+    }
+    
+    // Custom cell renderer for image column
+    private class ImageCellRenderer extends DefaultTableCellRenderer {
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            JLabel label = new JLabel();
+            label.setOpaque(true);
+            label.setHorizontalAlignment(JLabel.CENTER);
+            label.setVerticalAlignment(JLabel.CENTER);
+            
+            // Set background color based on selection
+            if (isSelected) {
+                label.setBackground(table.getSelectionBackground());
+                label.setForeground(table.getSelectionForeground());
+            } else {
+                label.setBackground(table.getBackground());
+                label.setForeground(table.getForeground());
+            }
+            
+            if (value != null && !value.toString().trim().isEmpty()) {
+                String imagePath = value.toString();
+                try {
+                    String fullPath = "src/" + imagePath;
+                    java.io.File imageFile = new java.io.File(fullPath);
+                    
+                    if (imageFile.exists()) {
+                        ImageIcon icon = new ImageIcon(fullPath);
+                        Image image = icon.getImage();
+                        
+                        // Scale image to fit in cell (60x60)
+                        int maxWidth = 60;
+                        int maxHeight = 60;
+                        int width = image.getWidth(null);
+                        int height = image.getHeight(null);
+                        
+                        double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
+                        int newWidth = (int) (width * scale);
+                        int newHeight = (int) (height * scale);
+                        
+                        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                        
+                        label.setIcon(scaledIcon);
+                        label.setText("");
+                    } else {
+                        label.setIcon(null);
+                        label.setText("No Image");
+                    }
+                } catch (Exception e) {
+                    label.setIcon(null);
+                    label.setText("Error");
+                }
+            } else {
+                label.setIcon(null);
+                label.setText("No Image");
+            }
+            
+            return label;
         }
     }
 }
