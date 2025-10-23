@@ -587,18 +587,17 @@ public class NhapHangMoiSwingView extends JPanel {
             conn.setAutoCommit(false);
             
             // 1. Create import receipt
-            String insertReceipt = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, NOW(), ?, 'chuaxacnhan')";
+            String insertReceipt = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, NOW(), ?, 'Chưa xác nhận')";
             
             try (PreparedStatement ps = conn.prepareStatement(insertReceipt, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, Session.currentMaNV);
                 ps.setInt(2, currentSupplierId);
-                ps.setString(3, "Nhập hàng từ " + supplierCombo.getSelectedItem());
                 
                 long totalAmount = 0;
                 for (SanPhamChonNhapDTO product : selectedProducts) {
                     totalAmount += product.getThanhTien();
                 }
-                ps.setLong(4, totalAmount);
+                ps.setLong(3, totalAmount);
                 
                 ps.executeUpdate();
                 

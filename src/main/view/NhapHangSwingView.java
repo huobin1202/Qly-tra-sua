@@ -516,7 +516,7 @@ public class NhapHangSwingView extends JPanel {
                 if (nh == null) {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, ?, ?, ?, ?)");
+                        "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, ?, ?, ?)");
                     ps.setInt(1, maNV);
                     ps.setInt(2, maNCC);
                     ps.setString(3, ngay);
