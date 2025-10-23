@@ -3,6 +3,7 @@ package controller;
 import java.util.List;
 
 import dto.NhapHangDTO;
+import dto.ChiTietNhapHangDTO;
 
 public interface IQuanLyPhieuNhap {
     // CRUD operations
@@ -23,4 +24,12 @@ public interface IQuanLyPhieuNhap {
     // Display operations
     void hienThiPhieuNhap(NhapHangDTO phieu);
     void hienThiDanhSachPhieuNhap(List<NhapHangDTO> danhSach);
+    
+    // Chi tiết phiếu nhập operations
+    boolean themChiTietPhieuNhap(int maPN, int maNL, int soLuong, long donGia, String donVi);
+    List<ChiTietNhapHangDTO> layChiTietPhieuNhap(int maPN);
+    ChiTietNhapHangDTO layChiTietPhieuNhapTheoMa(int maPN, int maNL);
+    boolean capNhatChiTietPhieuNhap(ChiTietNhapHangDTO chiTiet);
+    boolean xoaChiTietPhieuNhap(int maPN, int maNL);
+    void hienThiChiTietPhieuNhap(int maPN);
 }

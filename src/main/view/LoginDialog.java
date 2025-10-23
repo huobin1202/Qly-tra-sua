@@ -9,6 +9,8 @@ import java.sql.*;
 public class LoginDialog extends JDialog {
     private JTextField usernameField;
     private JPasswordField passwordField;
+    private JButton loginButton;
+    private JButton cancelButton;
     private boolean loginSuccessful = false;
     
     public LoginDialog(Frame parent) {
@@ -19,7 +21,7 @@ public class LoginDialog extends JDialog {
     }
     
     private void initializeComponents() {
-        setSize(400, 300);
+        setSize(700, 500);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
@@ -32,12 +34,11 @@ public class LoginDialog extends JDialog {
         
         // Header
         JPanel headerPanel = new JPanel();
-        headerPanel.setBackground(new Color(70, 130, 180));
+        headerPanel.setBackground(new Color(76, 175, 80)); // green
         headerPanel.setPreferredSize(new Dimension(0, 80));
-        
-        JLabel titleLabel = new JLabel("CHÀO MỪNG ĐẾN VỚI HỆ THỐNG");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        titleLabel.setForeground(Color.WHITE);
+        JLabel titleLabel = new JLabel("Đăng Nhập");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setForeground(Color.BLACK);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         headerPanel.add(titleLabel);
         
@@ -51,7 +52,7 @@ public class LoginDialog extends JDialog {
         
         // Username
         gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST;
-        JLabel userLabel = new JLabel("👤 Tên tài khoản:");
+        JLabel userLabel = new JLabel("Username:");
         userLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         mainPanel.add(userLabel, gbc);
         
@@ -61,43 +62,63 @@ public class LoginDialog extends JDialog {
         
         // Password
         gbc.gridx = 0; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
-        JLabel passLabel = new JLabel("🔒 Mật khẩu:");
+        JLabel passLabel = new JLabel("Password:");
         passLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         mainPanel.add(passLabel, gbc);
         
         gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
         passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
         mainPanel.add(passwordField, gbc);
+
+        // Forgot password link (right aligned under password)
+        gbc.gridx = 1; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
+        JLabel forgotLabel = new JLabel("<html><a href=''>Quên mật khẩu</a></html>");
+        forgotLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        forgotLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        forgotLabel.setForeground(new Color(33, 150, 243));
+        mainPanel.add(forgotLabel, gbc);
         
         // Buttons
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(new Color(240, 248, 255));
         
-        JButton loginButton = new JButton("Đăng nhập");
+        loginButton = new JButton("Đăng Nhập");
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
-        loginButton.setPreferredSize(new Dimension(100, 35));
-        loginButton.setBackground(new Color(70, 130, 180));
-        loginButton.setForeground(Color.WHITE);
+        loginButton.setPreferredSize(new Dimension(150, 35));
+        loginButton.setBackground(new Color(76, 175, 80));
+        loginButton.setForeground(Color.BLACK);
         loginButton.setFocusPainted(false);
         
-        JButton cancelButton = new JButton("Hủy");
-        cancelButton.setFont(new Font("Arial", Font.PLAIN, 14));
-        cancelButton.setPreferredSize(new Dimension(100, 35));
-        cancelButton.setBackground(new Color(220, 220, 220));
-        cancelButton.setFocusPainted(false);
+        // Hover effect
+        loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                loginButton.setBackground(new Color(56, 142, 60));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                loginButton.setBackground(new Color(76, 175, 80));
+            }
+        });
         
         buttonPanel.add(loginButton);
-        buttonPanel.add(cancelButton);
         mainPanel.add(buttonPanel, gbc);
+
+        // Sign up link under button
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+        JLabel signupLabel = new JLabel("<html><a href=''>Chưa có tài khoản?</a></html>");
+        signupLabel.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        signupLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        mainPanel.add(signupLabel, gbc);
         
         add(headerPanel, BorderLayout.NORTH);
         add(mainPanel, BorderLayout.CENTER);
+
+        // Set default button to allow Enter key to trigger login anywhere
+        getRootPane().setDefaultButton(loginButton);
     }
     
     private void setupEventHandlers() {
         // Login button
-        JButton loginButton = findButton("Đăng nhập");
         if (loginButton != null) {
             loginButton.addActionListener(new ActionListener() {
                 @Override
@@ -106,16 +127,34 @@ public class LoginDialog extends JDialog {
                 }
             });
         }
-        
-        // Cancel button
-        JButton cancelButton = findButton("Hủy");
-        if (cancelButton != null) {
-            cancelButton.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    dispose();
+
+        // Optional links
+        // Show placeholder actions for forgot password and signup
+        for (Component comp : getContentPane().getComponents()) {
+            if (comp instanceof JPanel) {
+                for (Component c2 : ((JPanel) comp).getComponents()) {
+                    if (c2 instanceof JPanel) {
+                        for (Component c3 : ((JPanel) c2).getComponents()) {
+                            if (c3 instanceof JLabel) {
+                                JLabel l = (JLabel) c3;
+                                if (l.getText().contains("Quên mật khẩu")) {
+                                    l.addMouseListener(new java.awt.event.MouseAdapter() {
+                                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                                            JOptionPane.showMessageDialog(LoginDialog.this, "Vui lòng liên hệ quản trị để đặt lại mật khẩu.");
+                                        }
+                                    });
+                                } else if (l.getText().contains("Chưa có tài khoản")) {
+                                    l.addMouseListener(new java.awt.event.MouseAdapter() {
+                                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                                            JOptionPane.showMessageDialog(LoginDialog.this, "Tính năng đăng ký sẽ được bổ sung sau.");
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
                 }
-            });
+            }
         }
         
         // Enter key on password field

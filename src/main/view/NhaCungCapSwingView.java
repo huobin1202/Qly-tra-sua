@@ -3,19 +3,18 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.*;
 import database.DBUtil;
+import dto.NhaCungCapDTO;
 
 public class NhaCungCapSwingView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
-    private MainSwingApp parent;
+    private MainFrameInterface parent;
     
-    public NhaCungCapSwingView(MainSwingApp parent) {
+    public NhaCungCapSwingView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
@@ -50,28 +49,42 @@ public class NhaCungCapSwingView extends JPanel {
         
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(70, 130, 180));
-        headerPanel.setPreferredSize(new Dimension(0, 60));
         
-        JLabel titleLabel = new JLabel("QUẢN LÝ NHÀ CUNG CẤP");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
         
         // Back button
-        JButton backButton = new JButton("← Quay lại");
-        backButton.setFont(new Font("Arial", Font.PLAIN, 12));
-        backButton.setBackground(new Color(100, 149, 237));
-        backButton.setForeground(Color.WHITE);
-        backButton.setFocusPainted(false);
-        backButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        headerPanel.add(backButton, BorderLayout.WEST);
+    
         
-        // Search panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Top panel - chứa search và buttons trong cùng một hàng
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(240, 248, 255));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Button panel (bên trái) - Thêm/Sửa/Xóa
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+        
+        JButton addButton = new JButton("➕ Thêm mới");
+        addButton.setBackground(new Color(34, 139, 34));
+        addButton.setForeground(Color.BLACK);
+        addButton.setFocusPainted(false);
+        
+        JButton editButton = new JButton("✏️ Sửa");
+        editButton.setBackground(new Color(255, 140, 0));
+        editButton.setForeground(Color.BLACK);
+        editButton.setFocusPainted(false);
+        
+        JButton deleteButton = new JButton("🗑️ Xóa");
+        deleteButton.setBackground(new Color(220, 20, 60));
+        deleteButton.setForeground(Color.BLACK);
+        deleteButton.setFocusPainted(false);
+        
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+        
+        // Search panel (bên phải) - Tìm kiếm
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         searchPanel.setBackground(new Color(240, 248, 255));
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         searchPanel.add(new JLabel("Tìm kiếm:"));
         searchPanel.add(searchCombo);
@@ -79,52 +92,33 @@ public class NhaCungCapSwingView extends JPanel {
         
         JButton searchButton = new JButton("🔍 Tìm");
         searchButton.setBackground(new Color(70, 130, 180));
-        searchButton.setForeground(Color.WHITE);
+        searchButton.setForeground(Color.BLACK);
         searchButton.setFocusPainted(false);
         searchPanel.add(searchButton);
         
         JButton refreshButton = new JButton("🔄 Làm mới");
         refreshButton.setBackground(new Color(34, 139, 34));
-        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
         searchPanel.add(refreshButton);
         
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.setBackground(new Color(240, 248, 255));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JButton addButton = new JButton("➕ Thêm mới");
-        addButton.setBackground(new Color(34, 139, 34));
-        addButton.setForeground(Color.WHITE);
-        addButton.setFocusPainted(false);
-        
-        JButton editButton = new JButton("✏️ Sửa");
-        editButton.setBackground(new Color(255, 140, 0));
-        editButton.setForeground(Color.WHITE);
-        editButton.setFocusPainted(false);
-        
-        JButton deleteButton = new JButton("🗑️ Xóa");
-        deleteButton.setBackground(new Color(220, 20, 60));
-        deleteButton.setForeground(Color.WHITE);
-        deleteButton.setFocusPainted(false);
-        
-        buttonPanel.add(addButton);
-        buttonPanel.add(editButton);
-        buttonPanel.add(deleteButton);
+        // Thêm button panel và search panel vào top panel
+        topPanel.add(buttonPanel, BorderLayout.WEST);
+        topPanel.add(searchPanel, BorderLayout.EAST);
         
         // Table panel
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Danh sách nhà cung cấp"));
         
-        // Add components
-        add(headerPanel, BorderLayout.NORTH);
-        add(searchPanel, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.NORTH);
+        // Layout
+        JPanel northContainer = new JPanel();
+        northContainer.setLayout(new BoxLayout(northContainer, BoxLayout.Y_AXIS));
+        northContainer.add(headerPanel);
+        northContainer.add(topPanel);
+        add(northContainer, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         
         // Event handlers
-        backButton.addActionListener(e -> parent.showMainMenu());
         searchButton.addActionListener(e -> performSearch());
         refreshButton.addActionListener(e -> loadData());
         addButton.addActionListener(e -> showAddDialog());
@@ -206,9 +200,11 @@ public class NhaCungCapSwingView extends JPanel {
     }
     
     private void showAddDialog() {
+        System.out.println("Mở dialog thêm nhà cung cấp...");
         NhaCungCapDialog dialog = new NhaCungCapDialog(SwingUtilities.getWindowAncestor(this), "Thêm nhà cung cấp mới", null);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
+            System.out.println("Dữ liệu đã thay đổi, tải lại...");
             loadData();
         }
     }
@@ -225,10 +221,13 @@ public class NhaCungCapSwingView extends JPanel {
         String sdt = (String) tableModel.getValueAt(selectedRow, 2);
         String diaChi = (String) tableModel.getValueAt(selectedRow, 3);
         
+        System.out.println("Mở dialog sửa nhà cung cấp - ID: " + id + ", Tên: " + ten);
+        
         NhaCungCapDTO ncc = new NhaCungCapDTO(String.valueOf(id), ten, sdt, diaChi);
         NhaCungCapDialog dialog = new NhaCungCapDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhà cung cấp", ncc);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
+            System.out.println("Dữ liệu đã thay đổi, tải lại...");
             loadData();
         }
     }
@@ -243,6 +242,38 @@ public class NhaCungCapSwingView extends JPanel {
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String ten = (String) tableModel.getValueAt(selectedRow, 1);
         
+        // Kiểm tra xem nhà cung cấp có đang được sử dụng không
+        try (Connection conn = DBUtil.getConnection()) {
+            // Kiểm tra trong bảng phieunhap
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieunhap WHERE MaNCC=?")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Không thể xóa nhà cung cấp này vì đã có phiếu nhập liên quan!", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+            
+            // Kiểm tra trong bảng ncc_nguyenlieu
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM ncc_nguyenlieu WHERE MaNCC=?")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Không thể xóa nhà cung cấp này vì đã có nguyên liệu liên quan!", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi kiểm tra ràng buộc: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         int result = JOptionPane.showConfirmDialog(this, 
             "Bạn có chắc chắn muốn xóa nhà cung cấp '" + ten + "'?", 
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
@@ -251,10 +282,16 @@ public class NhaCungCapSwingView extends JPanel {
             try (Connection conn = DBUtil.getConnection();
                  PreparedStatement ps = conn.prepareStatement("DELETE FROM nhacungcap WHERE MaNCC=?")) {
                 ps.setInt(1, id);
-                ps.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData();
+                int rowsAffected = ps.executeUpdate();
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    loadData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Không tìm thấy nhà cung cấp để xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (SQLException e) {
+                System.err.println("Lỗi xóa nhà cung cấp: " + e.getMessage());
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -283,9 +320,15 @@ public class NhaCungCapSwingView extends JPanel {
             diaChiField = new JTextField(20);
             
             if (ncc != null) {
-                tenField.setText(ncc.getTenNCC());
-                sdtField.setText(ncc.getSdt());
-                diaChiField.setText(ncc.getDiaChi());
+                tenField.setText(ncc.getTenNCC() != null ? ncc.getTenNCC() : "");
+                sdtField.setText(ncc.getSdt() != null ? ncc.getSdt() : "");
+                diaChiField.setText(ncc.getDiaChi() != null ? ncc.getDiaChi() : "");
+                System.out.println("Khởi tạo dialog sửa với dữ liệu:");
+                System.out.println("Tên: " + ncc.getTenNCC());
+                System.out.println("SĐT: " + ncc.getSdt());
+                System.out.println("Địa chỉ: " + ncc.getDiaChi());
+            } else {
+                System.out.println("Khởi tạo dialog thêm mới");
             }
         }
         
@@ -322,7 +365,7 @@ public class NhaCungCapSwingView extends JPanel {
             
             JButton saveButton = new JButton("Lưu");
             saveButton.setBackground(new Color(34, 139, 34));
-            saveButton.setForeground(Color.WHITE);
+            saveButton.setForeground(Color.BLACK);
             saveButton.setFocusPainted(false);
             
             JButton cancelButton = new JButton("Hủy");
@@ -337,11 +380,19 @@ public class NhaCungCapSwingView extends JPanel {
         }
         
         private void setupEventHandlers() {
+            // Find buttons using the existing findButton method
             JButton saveButton = findButton("Lưu");
             JButton cancelButton = findButton("Hủy");
             
             if (saveButton != null) {
-                saveButton.addActionListener(e -> saveData());
+                saveButton.addActionListener(e -> {
+                    try {
+                        saveData();
+                    } catch (Exception ex) {
+                        JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        ex.printStackTrace();
+                    }
+                });
             }
             if (cancelButton != null) {
                 cancelButton.addActionListener(e -> dispose());
@@ -372,7 +423,7 @@ public class NhaCungCapSwingView extends JPanel {
             }
             return null;
         }
-        
+
         private void saveData() {
             String ten = tenField.getText().trim();
             String sdt = sdtField.getText().trim();
@@ -383,31 +434,52 @@ public class NhaCungCapSwingView extends JPanel {
                 return;
             }
             
+            System.out.println("Đang lưu dữ liệu nhà cung cấp...");
+            System.out.println("Tên: " + ten);
+            System.out.println("SĐT: " + sdt);
+            System.out.println("Địa chỉ: " + diaChi);
+            System.out.println("Mode: " + (ncc == null ? "Thêm mới" : "Sửa"));
+            
             try (Connection conn = DBUtil.getConnection()) {
+                System.out.println("Kết nối database thành công!");
+                
                 if (ncc == null) {
                     // Thêm mới
-                    PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)");
-                    ps.setString(1, ten);
-                    ps.setString(2, sdt);
-                    ps.setString(3, diaChi);
-                    ps.executeUpdate();
-                    JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    System.out.println("Thực hiện INSERT...");
+                    try (PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
+                        ps.setString(1, ten);
+                        ps.setString(2, sdt);
+                        ps.setString(3, diaChi);
+                        int result = ps.executeUpdate();
+                        System.out.println("INSERT thành công! Rows affected: " + result);
+                        JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 } else {
                     // Sửa
-                    PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?");
-                    ps.setString(1, ten);
-                    ps.setString(2, sdt);
-                    ps.setString(3, diaChi);
-                    ps.setInt(4, Integer.parseInt(ncc.getMaNCC()));
-                    ps.executeUpdate();
-                    JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    System.out.println("Thực hiện UPDATE...");
+                    System.out.println("MaNCC: " + ncc.getMaNCC());
+                    try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?")) {
+                        ps.setString(1, ten);
+                        ps.setString(2, sdt);
+                        ps.setString(3, diaChi);
+                        ps.setInt(4, Integer.parseInt(ncc.getMaNCC()));
+                        int result = ps.executeUpdate();
+                        System.out.println("UPDATE thành công! Rows affected: " + result);
+                        JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    }
                 }
                 dataChanged = true;
                 dispose();
             } catch (SQLException e) {
+                System.err.println("Lỗi SQL: " + e.getMessage());
+                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } catch (Exception e) {
+                System.err.println("Lỗi khác: " + e.getMessage());
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(this, "Lỗi: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
         

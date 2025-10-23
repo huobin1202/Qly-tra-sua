@@ -15,9 +15,9 @@ public class KhachHangSwingView extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
-    private MainSwingApp parent;
+    private MainFrameInterface parent;
     
-    public KhachHangSwingView(MainSwingApp parent) {
+    public KhachHangSwingView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
@@ -52,28 +52,42 @@ public class KhachHangSwingView extends JPanel {
         
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(70, 130, 180));
-        headerPanel.setPreferredSize(new Dimension(0, 60));
-        
-        JLabel titleLabel = new JLabel("QUẢN LÝ KHÁCH HÀNG");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
+
         
         // Back button
-        JButton backButton = new JButton("← Quay lại");
-        backButton.setFont(new Font("Arial", Font.PLAIN, 12));
-        backButton.setBackground(new Color(100, 149, 237));
-        backButton.setForeground(Color.WHITE);
-        backButton.setFocusPainted(false);
-        backButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        headerPanel.add(backButton, BorderLayout.WEST);
+     
         
-        // Search panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Top panel - chứa search và buttons trong cùng một hàng
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(240, 248, 255));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Button panel (bên trái) - Thêm/Sửa/Xóa
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+        
+        JButton addButton = new JButton("➕ Thêm mới");
+        addButton.setBackground(new Color(34, 139, 34));
+        addButton.setForeground(Color.BLACK);
+        addButton.setFocusPainted(false);
+        
+        JButton editButton = new JButton("✏️ Sửa");
+        editButton.setBackground(new Color(255, 140, 0));
+        editButton.setForeground(Color.BLACK);
+        editButton.setFocusPainted(false);
+        
+        JButton deleteButton = new JButton("🗑️ Xóa");
+        deleteButton.setBackground(new Color(220, 20, 60));
+        deleteButton.setForeground(Color.BLACK);
+        deleteButton.setFocusPainted(false);
+        
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+        
+        // Search panel (bên phải) - Tìm kiếm
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         searchPanel.setBackground(new Color(240, 248, 255));
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         searchPanel.add(new JLabel("Tìm kiếm:"));
         searchPanel.add(searchCombo);
@@ -81,52 +95,33 @@ public class KhachHangSwingView extends JPanel {
         
         JButton searchButton = new JButton("🔍 Tìm");
         searchButton.setBackground(new Color(70, 130, 180));
-        searchButton.setForeground(Color.WHITE);
+        searchButton.setForeground(Color.BLACK);
         searchButton.setFocusPainted(false);
         searchPanel.add(searchButton);
         
         JButton refreshButton = new JButton("🔄 Làm mới");
         refreshButton.setBackground(new Color(34, 139, 34));
-        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
         searchPanel.add(refreshButton);
         
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.setBackground(new Color(240, 248, 255));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JButton addButton = new JButton("➕ Thêm mới");
-        addButton.setBackground(new Color(34, 139, 34));
-        addButton.setForeground(Color.WHITE);
-        addButton.setFocusPainted(false);
-        
-        JButton editButton = new JButton("✏️ Sửa");
-        editButton.setBackground(new Color(255, 140, 0));
-        editButton.setForeground(Color.WHITE);
-        editButton.setFocusPainted(false);
-        
-        JButton deleteButton = new JButton("🗑️ Xóa");
-        deleteButton.setBackground(new Color(220, 20, 60));
-        deleteButton.setForeground(Color.WHITE);
-        deleteButton.setFocusPainted(false);
-        
-        buttonPanel.add(addButton);
-        buttonPanel.add(editButton);
-        buttonPanel.add(deleteButton);
+        // Thêm button panel và search panel vào top panel
+        topPanel.add(buttonPanel, BorderLayout.WEST);
+        topPanel.add(searchPanel, BorderLayout.EAST);
         
         // Table panel
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Danh sách khách hàng"));
         
-        // Add components
-        add(headerPanel, BorderLayout.NORTH);
-        add(searchPanel, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.NORTH);
+        // Layout
+        JPanel northContainer = new JPanel();
+        northContainer.setLayout(new BoxLayout(northContainer, BoxLayout.Y_AXIS));
+        northContainer.add(headerPanel);
+        northContainer.add(topPanel);
+        add(northContainer, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         
         // Event handlers
-        backButton.addActionListener(e -> parent.showMainMenu());
         searchButton.addActionListener(e -> performSearch());
         refreshButton.addActionListener(e -> loadData());
         addButton.addActionListener(e -> showAddDialog());
@@ -354,7 +349,7 @@ public class KhachHangSwingView extends JPanel {
             
             JButton saveButton = new JButton("Lưu");
             saveButton.setBackground(new Color(34, 139, 34));
-            saveButton.setForeground(Color.WHITE);
+            saveButton.setForeground(Color.BLACK);
             saveButton.setFocusPainted(false);
             
             JButton cancelButton = new JButton("Hủy");

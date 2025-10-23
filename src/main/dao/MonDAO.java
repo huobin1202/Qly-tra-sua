@@ -27,7 +27,7 @@ public class MonDAO {
                 if (ma_loai == null) { System.out.println("Đã hủy thêm món."); return; }
 
                 try (PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO mon (TenMon, MoTa, Gia, MaLoai, TinhTrang) VALUES (?, ?, ?, ?, ?, ?)")) {
+                        "INSERT INTO mon (TenMon, MoTa, Gia, MaLoai, TinhTrang) VALUES (?, ?, ?, ?, ?)")) {
                     ps.setString(1, ten);
                     ps.setString(2, mota);
                     ps.setLong(3, gia);
@@ -70,7 +70,7 @@ public class MonDAO {
                         String tinhtrang = promptTinhTrang(sc); if (tinhtrang == null) return;
                         Integer maLoai = promptMaLoai(sc, conn); if (maLoai == null) return;
                         try (PreparedStatement ps = conn.prepareStatement(
-                                "UPDATE mon SET TenMon=?, MoTa=?, TenDonVi=?, Gia=?, TinhTrang=?, MaLoai=? WHERE MaMon=?")) {
+                                "UPDATE mon SET TenMon=?, MoTa=?, Gia=?, TinhTrang=?, MaLoai=? WHERE MaMon=?")) {
                             ps.setString(1, ten);
                             ps.setString(2, mota);
                             ps.setLong(3, gia);

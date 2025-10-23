@@ -3,8 +3,6 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import database.DBUtil;
@@ -15,9 +13,9 @@ public class NhanVienSwingView extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
-    private MainSwingApp parent;
+    private MainFrameInterface parent;
     
-    public NhanVienSwingView(MainSwingApp parent) {
+    public NhanVienSwingView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
@@ -27,7 +25,7 @@ public class NhanVienSwingView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Tài khoản", "Họ tên", "Số điện thoại", "Ngày vào làm", "Chức vụ", "Lương"};
+        String[] columns = {"ID", "Tài khoản","Mật khẩu", "Họ tên", "Số điện thoại", "Ngày vào làm", "Chức vụ", "Lương"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -50,30 +48,37 @@ public class NhanVienSwingView extends JPanel {
         setLayout(new BorderLayout());
         setBackground(new Color(240, 248, 255));
         
-        // Header
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(70, 130, 180));
-        headerPanel.setPreferredSize(new Dimension(0, 60));
+        // Top panel - chứa search và buttons trong cùng một hàng
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(240, 248, 255));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        JLabel titleLabel = new JLabel("QUẢN LÝ NHÂN VIÊN");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(Color.WHITE);
-        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        headerPanel.add(titleLabel, BorderLayout.CENTER);
+        // Button panel (bên trái) - Thêm/Sửa/Xóa
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setBackground(new Color(240, 248, 255));
         
-        // Back button
-        JButton backButton = new JButton("← Quay lại");
-        backButton.setFont(new Font("Arial", Font.PLAIN, 12));
-        backButton.setBackground(new Color(100, 149, 237));
-        backButton.setForeground(Color.WHITE);
-        backButton.setFocusPainted(false);
-        backButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        headerPanel.add(backButton, BorderLayout.WEST);
+        JButton addButton = new JButton("➕ Thêm mới");
+        addButton.setBackground(new Color(34, 139, 34));
+        addButton.setForeground(Color.BLACK);
+        addButton.setFocusPainted(false);
         
-        // Search panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton editButton = new JButton("✏️ Sửa");
+        editButton.setBackground(new Color(255, 140, 0));
+        editButton.setForeground(Color.BLACK);
+        editButton.setFocusPainted(false);
+        
+        JButton deleteButton = new JButton("🗑️ Xóa");
+        deleteButton.setBackground(new Color(220, 20, 60));
+        deleteButton.setForeground(Color.BLACK);
+        deleteButton.setFocusPainted(false);
+        
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+        
+        // Search panel (bên phải) - Tìm kiếm
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         searchPanel.setBackground(new Color(240, 248, 255));
-        searchPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         searchPanel.add(new JLabel("Tìm kiếm:"));
         searchPanel.add(searchCombo);
@@ -81,52 +86,29 @@ public class NhanVienSwingView extends JPanel {
         
         JButton searchButton = new JButton("🔍 Tìm");
         searchButton.setBackground(new Color(70, 130, 180));
-        searchButton.setForeground(Color.WHITE);
+        searchButton.setForeground(Color.BLACK);
         searchButton.setFocusPainted(false);
         searchPanel.add(searchButton);
         
         JButton refreshButton = new JButton("🔄 Làm mới");
         refreshButton.setBackground(new Color(34, 139, 34));
-        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
         searchPanel.add(refreshButton);
         
-        // Button panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonPanel.setBackground(new Color(240, 248, 255));
-        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JButton addButton = new JButton("➕ Thêm mới");
-        addButton.setBackground(new Color(34, 139, 34));
-        addButton.setForeground(Color.WHITE);
-        addButton.setFocusPainted(false);
-        
-        JButton editButton = new JButton("✏️ Sửa");
-        editButton.setBackground(new Color(255, 140, 0));
-        editButton.setForeground(Color.WHITE);
-        editButton.setFocusPainted(false);
-        
-        JButton deleteButton = new JButton("🗑️ Xóa");
-        deleteButton.setBackground(new Color(220, 20, 60));
-        deleteButton.setForeground(Color.WHITE);
-        deleteButton.setFocusPainted(false);
-        
-        buttonPanel.add(addButton);
-        buttonPanel.add(editButton);
-        buttonPanel.add(deleteButton);
+        // Thêm button panel và search panel vào top panel
+        topPanel.add(buttonPanel, BorderLayout.WEST);
+        topPanel.add(searchPanel, BorderLayout.EAST);
         
         // Table panel
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Danh sách nhân viên"));
         
-        // Add components
-        add(headerPanel, BorderLayout.NORTH);
-        add(searchPanel, BorderLayout.NORTH);
-        add(buttonPanel, BorderLayout.NORTH);
+        // Layout
+        add(topPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         
         // Event handlers
-        backButton.addActionListener(e -> parent.showMainMenu());
         searchButton.addActionListener(e -> performSearch());
         refreshButton.addActionListener(e -> loadData());
         addButton.addActionListener(e -> showAddDialog());
@@ -159,6 +141,7 @@ public class NhanVienSwingView extends JPanel {
                 Object[] row = {
                     rs.getInt("MaNV"),
                     rs.getString("TaiKhoan"),
+                    rs.getString("MatKhau"),
                     rs.getString("HoTen"),
                     rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
@@ -208,6 +191,7 @@ public class NhanVienSwingView extends JPanel {
                 Object[] row = {
                     rs.getInt("MaNV"),
                     rs.getString("TaiKhoan"),
+                    rs.getString("MatKhau"),
                     rs.getString("HoTen"),
                     rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
@@ -240,11 +224,12 @@ public class NhanVienSwingView extends JPanel {
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String taiKhoan = (String) tableModel.getValueAt(selectedRow, 1);
-        String hoTen = (String) tableModel.getValueAt(selectedRow, 2);
-        String sdt = (String) tableModel.getValueAt(selectedRow, 3);
-        String ngayVaoLamStr = (String) tableModel.getValueAt(selectedRow, 4);
-        String chucVu = (String) tableModel.getValueAt(selectedRow, 5);
-        String luongStr = (String) tableModel.getValueAt(selectedRow, 6);
+        String matKhau = (String) tableModel.getValueAt(selectedRow, 2);
+        String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
+        String sdt = (String) tableModel.getValueAt(selectedRow, 4);
+        String ngayVaoLamStr = (String) tableModel.getValueAt(selectedRow, 5);
+        String chucVu = (String) tableModel.getValueAt(selectedRow, 6);
+        String luongStr = (String) tableModel.getValueAt(selectedRow, 7);
         
         Timestamp ngayVaoLam = null;
         if (!ngayVaoLamStr.isEmpty()) {
@@ -265,7 +250,7 @@ public class NhanVienSwingView extends JPanel {
             }
         }
         
-        NhanVienDTO nv = new NhanVienDTO(id, taiKhoan, "", hoTen, sdt, ngayVaoLam, chucVu, luong);
+        NhanVienDTO nv = new NhanVienDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, chucVu, luong);
         NhanVienDialog dialog = new NhanVienDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhân viên", nv);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
@@ -281,7 +266,7 @@ public class NhanVienSwingView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String hoTen = (String) tableModel.getValueAt(selectedRow, 2);
+        String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
         
         int result = JOptionPane.showConfirmDialog(this, 
             "Bạn có chắc chắn muốn xóa nhân viên '" + hoTen + "'?", 
@@ -328,6 +313,7 @@ public class NhanVienSwingView extends JPanel {
             
             if (nv != null) {
                 taiKhoanField.setText(nv.getTaiKhoan());
+                matKhauField.setText(nv.getMatKhau());
                 hoTenField.setText(nv.getHoTen());
                 sdtField.setText(nv.getSdt());
                 if (nv.getNgayVaoLam() != null) {
@@ -396,12 +382,14 @@ public class NhanVienSwingView extends JPanel {
             
             JButton saveButton = new JButton("Lưu");
             saveButton.setBackground(new Color(34, 139, 34));
-            saveButton.setForeground(Color.WHITE);
+            saveButton.setForeground(Color.BLACK);
             saveButton.setFocusPainted(false);
+            saveButton.addActionListener(e -> saveData());
             
             JButton cancelButton = new JButton("Hủy");
             cancelButton.setBackground(new Color(220, 220, 220));
             cancelButton.setFocusPainted(false);
+            cancelButton.addActionListener(e -> dispose());
             
             buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
@@ -411,15 +399,7 @@ public class NhanVienSwingView extends JPanel {
         }
         
         private void setupEventHandlers() {
-            JButton saveButton = findButton("Lưu");
-            JButton cancelButton = findButton("Hủy");
-            
-            if (saveButton != null) {
-                saveButton.addActionListener(e -> saveData());
-            }
-            if (cancelButton != null) {
-                cancelButton.addActionListener(e -> dispose());
-            }
+            // Event handlers are already set in setupLayout()
         }
         
         private JButton findButton(String text) {
@@ -485,7 +465,7 @@ public class NhanVienSwingView extends JPanel {
                     ps.setString(4, sdt);
                     
                     if (!ngayVaoLamStr.isEmpty()) {
-                        ps.setString(5, ngayVaoLamStr + " 10:00:00");
+                        ps.setString(5, ngayVaoLamStr );
                     } else {
                         ps.setNull(5, Types.TIMESTAMP);
                     }
@@ -506,7 +486,7 @@ public class NhanVienSwingView extends JPanel {
                         ps.setString(4, sdt);
                         
                         if (!ngayVaoLamStr.isEmpty()) {
-                            ps.setString(5, ngayVaoLamStr + " 10:00:00");
+                            ps.setString(5, ngayVaoLamStr );
                         } else {
                             ps.setNull(5, Types.TIMESTAMP);
                         }
@@ -522,7 +502,7 @@ public class NhanVienSwingView extends JPanel {
                         ps.setString(3, sdt);
                         
                         if (!ngayVaoLamStr.isEmpty()) {
-                            ps.setString(4, ngayVaoLamStr + " 10:00:00");
+                            ps.setString(4, ngayVaoLamStr );
                         } else {
                             ps.setNull(4, Types.TIMESTAMP);
                         }

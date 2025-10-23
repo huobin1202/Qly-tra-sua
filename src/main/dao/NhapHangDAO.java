@@ -7,10 +7,12 @@ import java.util.List;
 import controller.IQuanLyPhieuNhap;
 import database.DBUtil;
 import dto.NhapHangDTO;
+import dto.ChiTietNhapHangDTO;
 
 public class NhapHangDAO implements IQuanLyPhieuNhap {
     
     // Tạo phiếu nhập mới với kiểm tra ràng buộc trong Java
+    @Override
     public boolean taoPhieuNhap(NhapHangDTO phieuNhap) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -93,6 +95,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Lấy phiếu nhập theo mã
+    @Override
     public NhapHangDTO layPhieuNhapTheoMa(int maPN) {
         String sql = "SELECT * FROM phieunhap WHERE MaPN = ?";
         
@@ -121,6 +124,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Lấy tất cả phiếu nhập
+    @Override
     public List<NhapHangDTO> layTatCaPhieuNhap() {
         List<NhapHangDTO> danhSach = new ArrayList<>();
         String sql = "SELECT * FROM phieunhap ORDER BY Ngay DESC";
@@ -147,6 +151,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Tìm kiếm phiếu nhập theo trạng thái
+    @Override
     public List<NhapHangDTO> timPhieuNhapTheoTrangThai(String trangThai) {
         List<NhapHangDTO> danhSach = new ArrayList<>();
         String sql = "SELECT * FROM phieunhap WHERE TrangThai = ? ORDER BY Ngay DESC";
@@ -176,6 +181,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Tìm kiếm phiếu nhập theo nhà cung cấp
+    @Override
     public List<NhapHangDTO> timPhieuNhapTheoNCC(int maNCC) {
         List<NhapHangDTO> danhSach = new ArrayList<>();
         String sql = "SELECT * FROM phieunhap WHERE MaNCC = ? ORDER BY Ngay DESC";
@@ -205,6 +211,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Cập nhật phiếu nhập (chỉ khi chưa xác nhận)
+    @Override
     public boolean capNhatPhieuNhap(NhapHangDTO phieuNhap) {
         // Kiểm tra trạng thái trước khi cập nhật
         NhapHangDTO phieuHienTai = layPhieuNhapTheoMa(phieuNhap.getMaPN());
@@ -232,6 +239,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Xác nhận phiếu nhập với kiểm tra ràng buộc trong Java
+    @Override
     public boolean xacNhanPhieuNhap(int maPN) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -274,6 +282,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Xóa phiếu nhập với kiểm tra ràng buộc trong Java
+    @Override
     public boolean xoaPhieuNhap(int maPN) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -366,12 +375,14 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Kiểm tra phiếu nhập có tồn tại và chưa xác nhận không
+    @Override
     public boolean kiemTraCoTheSuaXoa(int maPN) {
         NhapHangDTO phieu = layPhieuNhapTheoMa(maPN);
         return phieu != null && phieu.isChuaXacNhan();
     }
     
     // Hiển thị thông tin phiếu nhập
+    @Override
     public void hienThiPhieuNhap(NhapHangDTO phieu) {
         if (phieu != null) {
             System.out.println("=== THÔNG TIN PHIẾU NHẬP ===");
@@ -387,6 +398,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Hiển thị danh sách phiếu nhập
+    @Override
     public void hienThiDanhSachPhieuNhap(List<NhapHangDTO> danhSach) {
         if (danhSach.isEmpty()) {
             System.out.println("Không có phiếu nhập nào!");
@@ -411,6 +423,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Thêm chi tiết phiếu nhập với kiểm tra ràng buộc trong Java
+    @Override
     public boolean themChiTietPhieuNhap(int maPN, int maNL, int soLuong, long donGia, String donVi) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -533,6 +546,237 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+    // ========== CHI TIẾT PHIẾU NHẬP ==========
+    
+    // Lấy tất cả chi tiết phiếu nhập theo mã phiếu
+    @Override
+    public List<ChiTietNhapHangDTO> layChiTietPhieuNhap(int maPN) {
+        List<ChiTietNhapHangDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, ctn.DonVi " +
+                    "FROM chitietnhap_nl ctn " +
+                    "JOIN nguyenlieu nl ON ctn.MaNL = nl.MaNL " +
+                    "WHERE ctn.MaPN = ? " +
+                    "ORDER BY ctn.MaNL";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, maPN);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    ChiTietNhapHangDTO chiTiet = new ChiTietNhapHangDTO(
+                        rs.getInt("MaPN"),
+                        rs.getInt("MaNL"),
+                        rs.getString("TenNL"),
+                        rs.getInt("SoLuong"),
+                        rs.getLong("DonGia"),
+                        rs.getString("DonVi")
+                    );
+                    danhSach.add(chiTiet);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return danhSach;
+    }
+    
+    // Cập nhật chi tiết phiếu nhập
+    @Override
+    public boolean capNhatChiTietPhieuNhap(ChiTietNhapHangDTO chiTiet) {
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            // 1. Kiểm tra phiếu nhập tồn tại và chưa xác nhận
+            NhapHangDTO phieuHienTai = layPhieuNhapTheoMa(chiTiet.getMaPN());
+            if (phieuHienTai == null) {
+                System.out.println("❌ Phiếu nhập không tồn tại!");
+                return false;
+            }
+            
+            if (phieuHienTai.isDaXacNhan()) {
+                System.out.println("❌ Không thể sửa chi tiết phiếu nhập đã xác nhận!");
+                return false;
+            }
+            
+            // 2. Lấy thông tin chi tiết cũ để tính toán chênh lệch
+            ChiTietNhapHangDTO chiTietCu = layChiTietPhieuNhapTheoMa(chiTiet.getMaPN(), chiTiet.getMaNL());
+            if (chiTietCu == null) {
+                System.out.println("❌ Chi tiết phiếu nhập không tồn tại!");
+                return false;
+            }
+            
+            // 3. Tính chênh lệch số lượng và tiền
+            int chenhLechSoLuong = chiTiet.getSoLuong() - chiTietCu.getSoLuong();
+            long chenhLechTien = chiTiet.getThanhTien() - chiTietCu.getThanhTien();
+            
+            // 4. Kiểm tra số lượng có sẵn từ nhà cung cấp (nếu tăng số lượng)
+            if (chenhLechSoLuong > 0) {
+                if (!kiemTraSoLuongNCC(phieuHienTai.getMaNCC(), chiTiet.getMaNL(), chenhLechSoLuong)) {
+                    System.out.println("❌ Số lượng yêu cầu vượt quá số lượng có sẵn từ nhà cung cấp!");
+                    return false;
+                }
+            }
+            
+            // 5. Cập nhật chi tiết phiếu nhập
+            String sql = "UPDATE chitietnhap_nl SET SoLuong = ?, DonGia = ?, DonVi = ? WHERE MaPN = ? AND MaNL = ?";
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, chiTiet.getSoLuong());
+                ps.setLong(2, chiTiet.getDonGia());
+                ps.setString(3, chiTiet.getDonVi());
+                ps.setInt(4, chiTiet.getMaPN());
+                ps.setInt(5, chiTiet.getMaNL());
+                
+                int result = ps.executeUpdate();
+                
+                if (result > 0) {
+                    // 6. Cập nhật số lượng nhà cung cấp
+                    capNhatSoLuongNCC(phieuHienTai.getMaNCC(), chiTiet.getMaNL(), -chenhLechSoLuong);
+                    
+                    // 7. Cập nhật kho nguyên liệu
+                    capNhatKhoNguyenLieu(chiTiet.getMaNL(), chenhLechSoLuong);
+                    
+                    // 8. Cập nhật tổng tiền phiếu nhập
+                    capNhatTongTienPhieuNhap(chiTiet.getMaPN(), chenhLechTien);
+                    
+                    conn.commit();
+                    System.out.println("✅ Cập nhật chi tiết phiếu nhập thành công!");
+                    return true;
+                } else {
+                    System.out.println("❌ Không thể cập nhật chi tiết phiếu nhập!");
+                    conn.rollback();
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("❌ Lỗi khi cập nhật chi tiết phiếu nhập: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Xóa chi tiết phiếu nhập
+    @Override
+    public boolean xoaChiTietPhieuNhap(int maPN, int maNL) {
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            // 1. Kiểm tra phiếu nhập tồn tại và chưa xác nhận
+            NhapHangDTO phieuHienTai = layPhieuNhapTheoMa(maPN);
+            if (phieuHienTai == null) {
+                System.out.println("❌ Phiếu nhập không tồn tại!");
+                return false;
+            }
+            
+            if (phieuHienTai.isDaXacNhan()) {
+                System.out.println("❌ Không thể xóa chi tiết phiếu nhập đã xác nhận!");
+                return false;
+            }
+            
+            // 2. Lấy thông tin chi tiết để tính toán
+            ChiTietNhapHangDTO chiTiet = layChiTietPhieuNhapTheoMa(maPN, maNL);
+            if (chiTiet == null) {
+                System.out.println("❌ Chi tiết phiếu nhập không tồn tại!");
+                return false;
+            }
+            
+            // 3. Xóa chi tiết phiếu nhập
+            String sql = "DELETE FROM chitietnhap_nl WHERE MaPN = ? AND MaNL = ?";
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, maPN);
+                ps.setInt(2, maNL);
+                
+                int result = ps.executeUpdate();
+                
+                if (result > 0) {
+                    // 4. Hoàn trả số lượng về nhà cung cấp
+                    capNhatSoLuongNCC(phieuHienTai.getMaNCC(), maNL, chiTiet.getSoLuong());
+                    
+                    // 5. Trừ số lượng trong kho
+                    capNhatKhoNguyenLieu(maNL, -chiTiet.getSoLuong());
+                    
+                    // 6. Cập nhật tổng tiền phiếu nhập
+                    capNhatTongTienPhieuNhap(maPN, -chiTiet.getThanhTien());
+                    
+                    conn.commit();
+                    System.out.println("✅ Xóa chi tiết phiếu nhập thành công!");
+                    return true;
+                } else {
+                    System.out.println("❌ Không thể xóa chi tiết phiếu nhập!");
+                    conn.rollback();
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("❌ Lỗi khi xóa chi tiết phiếu nhập: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Lấy chi tiết phiếu nhập theo mã phiếu và mã nguyên liệu
+    @Override
+    public ChiTietNhapHangDTO layChiTietPhieuNhapTheoMa(int maPN, int maNL) {
+        String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, ctn.DonVi " +
+                    "FROM chitietnhap_nl ctn " +
+                    "JOIN nguyenlieu nl ON ctn.MaNL = nl.MaNL " +
+                    "WHERE ctn.MaPN = ? AND ctn.MaNL = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, maPN);
+            ps.setInt(2, maNL);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new ChiTietNhapHangDTO(
+                        rs.getInt("MaPN"),
+                        rs.getInt("MaNL"),
+                        rs.getString("TenNL"),
+                        rs.getInt("SoLuong"),
+                        rs.getLong("DonGia"),
+                        rs.getString("DonVi")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    // Hiển thị chi tiết phiếu nhập
+    @Override
+    public void hienThiChiTietPhieuNhap(int maPN) {
+        List<ChiTietNhapHangDTO> chiTietList = layChiTietPhieuNhap(maPN);
+        
+        if (chiTietList.isEmpty()) {
+            System.out.println("Phiếu nhập #" + maPN + " chưa có chi tiết nào!");
+            return;
+        }
+        
+        System.out.println("=== CHI TIẾT PHIẾU NHẬP #" + maPN + " ===");
+        System.out.printf("%-8s %-20s %-10s %-15s %-10s %-15s%n", 
+                         "Mã NL", "Tên nguyên liệu", "Số lượng", "Đơn giá", "Đơn vị", "Thành tiền");
+        System.out.println("----------------------------------------------------------------------------");
+        
+        long tongTien = 0;
+        for (ChiTietNhapHangDTO chiTiet : chiTietList) {
+            System.out.printf("%-8d %-20s %-10d %-15d %-10s %-15d%n",
+                             chiTiet.getMaNL(),
+                             chiTiet.getTenNL(),
+                             chiTiet.getSoLuong(),
+                             chiTiet.getDonGia(),
+                             chiTiet.getDonVi(),
+                             chiTiet.getThanhTien());
+            tongTien += chiTiet.getThanhTien();
+        }
+        
+        System.out.println("----------------------------------------------------------------------------");
+        System.out.printf("%-60s %-15d%n", "TỔNG TIỀN:", tongTien);
+        System.out.println("================================================");
     }
     
 }
