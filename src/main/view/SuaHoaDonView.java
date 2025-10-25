@@ -11,7 +11,7 @@ import dto.ChiTietDonHangDTO;
 import dto.MonDTO;
 import dto.LoaiMonDTO;
 
-public class SuaHoaDonSwingView extends JDialog {
+public class SuaHoaDonView extends JDialog {
     // Thông tin hóa đơn
     private JTextField maHDField;
     private JTextField nhanVienField;
@@ -45,7 +45,7 @@ public class SuaHoaDonSwingView extends JDialog {
     private final DonHangDTO currentOrder;
     private int currentCategoryId = 1; // Sẽ được cập nhật từ database
     
-    public SuaHoaDonSwingView(Window parent, int maDon) {
+    public SuaHoaDonView(Window parent, int maDon) {
         super(parent, "Cập nhật hóa đơn", ModalityType.APPLICATION_MODAL);
         this.currentOrder = new DonHangDTO();
         this.currentOrder.setMaDon(maDon);

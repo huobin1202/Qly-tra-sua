@@ -12,7 +12,7 @@ import dto.SanPhamChonNhapDTO;
 import dto.NhaCungCapDTO;
 import database.Session;
 
-public class NhapHangMoiSwingView extends JPanel {
+public class NhapHangMoiView extends JPanel {
     // Left panel components
     private JTable supplierProductsTable;
     private DefaultTableModel supplierProductsTableModel;
@@ -39,7 +39,7 @@ public class NhapHangMoiSwingView extends JPanel {
     private int currentReceiptCode;
     private int currentSupplierId;
     
-    public NhapHangMoiSwingView() {
+    public NhapHangMoiView() {
         initializeComponents();
         setupLayout();
         setupEventHandlers();

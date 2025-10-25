@@ -14,7 +14,7 @@ import dto.ChiTietNhapHangDTO;
 import dao.NhapHangDAO;
 import controller.TrangThaiPhieuNhap;
 
-public class NhapHangSwingView extends JPanel {
+public class NhapHangView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
@@ -22,7 +22,7 @@ public class NhapHangSwingView extends JPanel {
     private MainFrameInterface parent;
     private NhapHangDAO nhapHangDAO;
     
-    public NhapHangSwingView(MainFrameInterface parent) {
+    public NhapHangView(MainFrameInterface parent) {
         this.parent = parent;
         this.nhapHangDAO = new NhapHangDAO();
         initializeComponents();

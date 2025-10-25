@@ -345,8 +345,8 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         mainPanel.add(new NhanVienSwing(this), "NHAN_VIEN");
         mainPanel.add(new DonHangView(this), "DON_HANG");
         mainPanel.add(new KhoHangView(this), "KHO_HANG");
-        mainPanel.add(new NhapHangMoiSwingView(), "NHAP_HANG_MOI");
-        mainPanel.add(new NhapHangSwingView(this), "NHAP_HANG");
+        mainPanel.add(new NhapHangMoiView(), "NHAP_HANG_MOI");
+        mainPanel.add(new NhapHangView(this), "NHAP_HANG");
         // Tạo các view riêng biệt cho từng loại hàng hóa
         mainPanel.add(createMonView(), "MON");
         mainPanel.add(createLoaiMonView(), "LOAIMON");

@@ -227,7 +227,7 @@ public class DonHangView extends JPanel {
         }
         
         // Mở giao diện sửa hóa đơn mới
-        SuaHoaDonSwingView editDialog = new SuaHoaDonSwingView(SwingUtilities.getWindowAncestor(this), id);
+        SuaHoaDonView editDialog = new SuaHoaDonView(SwingUtilities.getWindowAncestor(this), id);
         editDialog.setVisible(true);
         
         // Làm mới dữ liệu sau khi đóng dialog
