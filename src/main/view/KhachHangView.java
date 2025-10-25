@@ -3,21 +3,19 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import database.DBUtil;
 import dto.KhachHangDTO;
 
-public class KhachHangSwingView extends JPanel {
+public class KhachHangView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
     
-    public KhachHangSwingView(MainFrameInterface parent) {
+    public KhachHangView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
@@ -300,7 +298,7 @@ public class KhachHangSwingView extends JPanel {
             ngaySinhField = new JTextField(20);
             
             if (kh != null) {
-                sdtField.setText(kh.getSdt());
+                sdtField.setText(kh.getSoDienThoai());
                 hoTenField.setText(kh.getHoTen());
                 diaChiField.setText(kh.getDiaChi());
                 if (kh.getNgaySinh() != null) {

@@ -1,212 +1,306 @@
 package dao;
-import java.util.Scanner;
 
-import controller.IQuanLy;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import database.DBUtil;
-import view.ConsoleUI;
+import dto.NhaCungCapDTO;
+import dto.NhaCungCapSanPhamDTO;
 
-import java.sql.*; // Thêm import này
-public class NhaCungCapDAO implements IQuanLy {
-    // Thêm khách hàng vào database
-    public void them() {
-        Scanner rd = new Scanner(System.in);
-        try {
-        String ten = promptNonEmpty(rd, "Nhập tên nhà cung cấp (0: hủy)"); if (ten == null) { System.out.println("Đã hủy."); return; }
-        String sdt = promptNonEmpty(rd, "Nhập số điện thoại (0: hủy)"); if (sdt == null) { System.out.println("Đã hủy."); return; }
-        String diachi = promptNonEmpty(rd, "Nhập địa chỉ (0: hủy)"); if (diachi == null) { System.out.println("Đã hủy."); return; }
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
-            ps.setString(1, ten);
-            ps.setString(2, sdt);
-            ps.setString(3, diachi);
-            ps.executeUpdate();
-            System.out.println("Đã thêm nhà cung cấp vào database.");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        } finally { rd.close(); }
-    }
-
-    // Sửa thông tin khách hàng trong database
-    public void sua() {
-        Scanner rd = new Scanner(System.in);
-        try (Connection conn = DBUtil.getConnection()) {
-            Integer id = promptId(rd, "Nhập ID nhà cung cấp cần sửa (0: hủy)");
-            if (id == null) { System.out.println("Đã hủy."); return; }
-            while (!existsNCC(conn, id)) {
-                System.out.println("Không tìm thấy nhà cung cấp, vui lòng nhập lại.");
-                id = promptId(rd, "Nhập ID nhà cung cấp cần sửa (0: hủy)");
-                if (id == null) { System.out.println("Đã hủy."); return; }
-            }
-            printNCCById(conn, id);
-            System.out.println("Chọn: 1. Sửa toàn bộ, 2. Tên, 3. SĐT, 4. Địa chỉ, 0. Hủy");
-            Integer ch = promptInt(rd, "Chọn", 0, 4, false);
-            if (ch == null || ch == 0) { System.out.println("Đã hủy."); return; }
-            switch (ch) {
-                case 1: {
-                    String ten = promptNonEmpty(rd, "Nhập tên nhà cung cấp mới (0: hủy)"); if (ten == null) return;
-                    String sdt = promptNonEmpty(rd, "Nhập số điện thoại mới (0: hủy)"); if (sdt == null) return;
-                    String diachi = promptNonEmpty(rd, "Nhập địa chỉ mới (0: hủy)"); if (diachi == null) return;
-                    try (PreparedStatement ps = conn.prepareStatement("UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?")) {
-                        ps.setString(1, ten);
-                        ps.setString(2, sdt);
-                        ps.setString(3, diachi);
-                        ps.setInt(4, id);
-                        ps.executeUpdate();
-                    }
-                    break;
-                }
-                case 2: {
-                    String ten = promptNonEmpty(rd, "Nhập tên nhà cung cấp mới (0: hủy)"); if (ten == null) return;
-                    updateOne(conn, "TenNCC", ten, id);
-                    break;
-                }
-                case 3: {
-                    String sdt = promptNonEmpty(rd, "Nhập số điện thoại mới (0: hủy)"); if (sdt == null) return;
-                    updateOne(conn, "SDT", sdt, id);
-                    break;
-                }
-                case 4: {
-                    String diachi = promptNonEmpty(rd, "Nhập địa chỉ mới (0: hủy)"); if (diachi == null) return;
-                    updateOne(conn, "DiaChi", diachi, id);
-                    break;
-                }
-            }
-            System.out.println("Đã sửa thông tin nhà cung cấp.");
-            printNCCById(conn, id);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally { rd.close(); }
-    }
-
-    // Xóa khách hàng khỏi database
-    public void xoa() {
-        Scanner rd = new Scanner(System.in);
-        try (Connection conn = DBUtil.getConnection()) {
-            while (true) {
-                Integer id = promptId(rd, "Nhập ID nhà cung cấp cần xóa (0: hủy)");
-                if (id == null) { System.out.println("Đã hủy."); return; }
-                if (!existsNCC(conn, id)) { System.out.println("Không tìm thấy nhà cung cấp, vui lòng nhập lại."); continue; }
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM nhacungcap WHERE MaNCC=?")) {
-                    ps.setInt(1, id);
-                    ps.executeUpdate();
-                    System.out.println("Đã xóa nhà cung cấp.");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally { rd.close(); }
-    }
-
-    // Tìm kiếm khách hàng trong database
-    public void timkiem() {
-        Scanner rd = new Scanner(System.in);
-        System.out.println("Tìm theo: 1.ID  2.Tên");
-        System.out.print("Chọn: ");
-        String chStr = rd.nextLine();
-        int ch; try { ch = Integer.parseInt(chStr.trim()); } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); return; }
-        try (Connection conn = DBUtil.getConnection()) {
-            if (ch == 1) {
-                System.out.print("Nhập ID: ");
-                String idStr = rd.nextLine();
-                int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM nhacungcap WHERE MaNCC=?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) { printNCC(rs); }
-                }
-            } else {
-                System.out.print("Nhập tên: ");
-                String ten = rd.nextLine();
-                try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM nhacungcap WHERE TenNCC LIKE ?")) {
-                    ps.setString(1, "%" + ten + "%");
-                    try (ResultSet rs = ps.executeQuery()) { printNCC(rs); }
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally { rd.close(); }
-    }
-    @Override
-    public void nhap() {
-    }
-    public void xuat() {
-        ConsoleUI.printHeader("DANH SÁCH NHÀ CUNG CẤP");
+public class NhaCungCapDAO {
+    
+    // Lấy tất cả nhà cung cấp
+    public List<NhaCungCapDTO> layTatCaNhaCungCap() {
+        List<NhaCungCapDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT * FROM nhacungcap ORDER BY MaNCC";
+        
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM nhacungcap ORDER BY MaNCC")) {
-            printNCC(rs);
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                NhaCungCapDTO nhaCungCap = new NhaCungCapDTO();
+                nhaCungCap.setMaNCC(rs.getInt("MaNCC"));
+                nhaCungCap.setTenNCC(rs.getString("TenNCC"));
+                nhaCungCap.setSoDienThoai(rs.getString("SDT"));
+                nhaCungCap.setDiaChi(rs.getString("DiaChi"));
+                danhSach.add(nhaCungCap);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        ConsoleUI.printFooter();
+        return danhSach;
     }
-
-    private void printNCC(ResultSet rs) throws SQLException {
-        System.out.println("┌────┬────────────────────┬──────────────┬──────────────────────────┐");
-        System.out.println("│ ID │ Tên                │ SĐT          │ Địa chỉ                 │");
-        System.out.println("├────┼────────────────────┼────────────┼──────────────────────────┤");
-        boolean any = false;
-        while (rs.next()) {
-            any = true;
-            System.out.printf("│ %-2d │ %-18s │ %-10s │ %-24s │\n",
-                rs.getInt("MaNCC"), rs.getString("TenNCC"), rs.getString("SDT"), rs.getString("DiaChi"));
+    
+    // Tìm kiếm nhà cung cấp
+    public List<NhaCungCapDTO> timKiemNhaCungCap(String searchType, String searchText) {
+        List<NhaCungCapDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT * FROM nhacungcap WHERE ";
+        PreparedStatement ps;
+        
+        try (Connection conn = DBUtil.getConnection()) {
+            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+                sql = "SELECT * FROM nhacungcap ORDER BY MaNCC";
+                ps = conn.prepareStatement(sql);
+            } else if (searchType.equals("ID")) {
+                sql += "MaNCC = ? ORDER BY MaNCC";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, Integer.parseInt(searchText));
+            } else {
+                sql += "TenNCC LIKE ? ORDER BY MaNCC";
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, "%" + searchText + "%");
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    NhaCungCapDTO nhaCungCap = new NhaCungCapDTO();
+                    nhaCungCap.setMaNCC(rs.getInt("MaNCC"));
+                    nhaCungCap.setTenNCC(rs.getString("TenNCC"));
+                    nhaCungCap.setSoDienThoai(rs.getString("SDT"));
+                    nhaCungCap.setDiaChi(rs.getString("DiaChi"));
+                    danhSach.add(nhaCungCap);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        if (!any) System.out.println("│ Không có dữ liệu                                        │");
-        System.out.println("└────┴────────────────────┴────────────┴──────────────────────────┘");
+        return danhSach;
     }
-
-    private static String promptNonEmpty(Scanner sc, String label) {
-        while (true) {
-            System.out.print(label + ": ");
-            String s = sc.nextLine();
-            if (s == null) continue;
-            s = s.trim();
-            if (s.equals("0")) return null;
-            if (!s.isEmpty()) return s;
-            System.out.println("Vui lòng không để trống.");
+    
+    // Lấy nhà cung cấp theo mã
+    public NhaCungCapDTO layNhaCungCapTheoMa(int maNCC) {
+        String sql = "SELECT * FROM nhacungcap WHERE MaNCC = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNCC);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    NhaCungCapDTO nhaCungCap = new NhaCungCapDTO();
+                    nhaCungCap.setMaNCC(rs.getInt("MaNCC"));
+                    nhaCungCap.setTenNCC(rs.getString("TenNCC"));
+                    nhaCungCap.setSoDienThoai(rs.getString("SDT"));
+                    nhaCungCap.setDiaChi(rs.getString("DiaChi"));
+                    return nhaCungCap;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return null;
     }
-
-    private static Integer promptInt(Scanner sc, String label, int min, int max, boolean allowZeroAsCancel) {
-        while (true) {
-            System.out.print(label + ": ");
-            String s = sc.nextLine();
-            if (s == null) continue;
-            s = s.trim();
-            if (allowZeroAsCancel && s.equals("0")) return null;
-            try {
-                int v = Integer.parseInt(s);
-                if (v < min || v > max) { System.out.println("Giá trị nằm ngoài phạm vi."); continue; }
-                return v;
-            } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); }
+    
+    // Thêm nhà cung cấp mới
+    public boolean themNhaCungCap(NhaCungCapDTO nhaCungCap) {
+        String sql = "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            ps.setString(1, nhaCungCap.getTenNCC());
+            ps.setString(2, nhaCungCap.getSoDienThoai());
+            ps.setString(3, nhaCungCap.getDiaChi());
+            
+            int result = ps.executeUpdate();
+            
+            if (result > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        nhaCungCap.setMaNCC(rs.getInt(1));
+                        return true;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
-
-    private static Integer promptId(Scanner sc, String label) {
-        return promptInt(sc, label, 1, Integer.MAX_VALUE, true);
-    }
-
-    private static boolean existsNCC(Connection conn, int id) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement("SELECT 1 FROM nhacungcap WHERE MaNCC=?")) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+    
+    // Cập nhật nhà cung cấp
+    public boolean capNhatNhaCungCap(NhaCungCapDTO nhaCungCap) {
+        String sql = "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, nhaCungCap.getTenNCC());
+            ps.setString(2, nhaCungCap.getSoDienThoai());
+            ps.setString(3, nhaCungCap.getDiaChi());
+            ps.setInt(4, nhaCungCap.getMaNCC());
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
-
-    private static void updateOne(Connection conn, String column, String value, int id) throws SQLException {
-        String sql = "UPDATE nhacungcap SET " + column + "=? WHERE MaNCC=?";
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, value);
-            ps.setInt(2, id);
-            ps.executeUpdate();
+    
+    // Xóa nhà cung cấp
+    public boolean xoaNhaCungCap(int maNCC) {
+        String sql = "DELETE FROM nhacungcap WHERE MaNCC = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNCC);
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
-
-    private void printNCCById(Connection conn, int id) throws SQLException {
-        try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM nhacungcap WHERE MaNCC=?")) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) { printNCC(rs); }
+    
+    // Lấy danh sách nhà cung cấp cho combo box
+    public List<NhaCungCapDTO> layDanhSachNhaCungCapChoCombo() {
+        List<NhaCungCapDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT MaNCC, TenNCC FROM nhacungcap ORDER BY TenNCC";
+        
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                NhaCungCapDTO nhaCungCap = new NhaCungCapDTO();
+                nhaCungCap.setMaNCC(rs.getInt("MaNCC"));
+                nhaCungCap.setTenNCC(rs.getString("TenNCC"));
+                danhSach.add(nhaCungCap);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return danhSach;
+    }
+    
+    // ========== SẢN PHẨM NHÀ CUNG CẤP ==========
+    
+    // Lấy sản phẩm theo nhà cung cấp
+    public List<NhaCungCapSanPhamDTO> laySanPhamTheoNCC(int maNCC) {
+        List<NhaCungCapSanPhamDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT ncc.MaNCC, ncc.TenNCC, nl.MaNL, nl.TenNL, nl.DonVi, nccnl.SoLuong, nccnl.DonGia " +
+                    "FROM nhacungcap ncc " +
+                    "JOIN ncc_nguyenlieu nccnl ON ncc.MaNCC = nccnl.MaNCC " +
+                    "JOIN nguyenlieu nl ON nccnl.MaNL = nl.MaNL " +
+                    "WHERE ncc.MaNCC = ? " +
+                    "ORDER BY nl.TenNL";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNCC);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    NhaCungCapSanPhamDTO sanPham = new NhaCungCapSanPhamDTO();
+                    sanPham.setMaNCC(rs.getInt("MaNCC"));
+                    sanPham.setTenNCC(rs.getString("TenNCC"));
+                    sanPham.setMaNL(rs.getInt("MaNL"));
+                    sanPham.setTenNL(rs.getString("TenNL"));
+                    sanPham.setDonVi(rs.getString("DonVi"));
+                    sanPham.setSoLuong(rs.getInt("SoLuong"));
+                    sanPham.setDonGia(rs.getLong("DonGia"));
+                    danhSach.add(sanPham);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return danhSach;
+    }
+    
+    // Lấy tất cả sản phẩm nhà cung cấp
+    public List<NhaCungCapSanPhamDTO> layTatCaSanPhamNCC() {
+        List<NhaCungCapSanPhamDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT ncc.MaNCC, ncc.TenNCC, nl.MaNL, nl.TenNL, nl.DonVi, nccnl.SoLuong, nccnl.DonGia " +
+                    "FROM nhacungcap ncc " +
+                    "JOIN ncc_nguyenlieu nccnl ON ncc.MaNCC = nccnl.MaNCC " +
+                    "JOIN nguyenlieu nl ON nccnl.MaNL = nl.MaNL " +
+                    "ORDER BY ncc.TenNCC, nl.TenNL";
+        
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                NhaCungCapSanPhamDTO sanPham = new NhaCungCapSanPhamDTO();
+                sanPham.setMaNCC(rs.getInt("MaNCC"));
+                sanPham.setTenNCC(rs.getString("TenNCC"));
+                sanPham.setMaNL(rs.getInt("MaNL"));
+                sanPham.setTenNL(rs.getString("TenNL"));
+                sanPham.setDonVi(rs.getString("DonVi"));
+                sanPham.setSoLuong(rs.getInt("SoLuong"));
+                sanPham.setDonGia(rs.getLong("DonGia"));
+                danhSach.add(sanPham);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return danhSach;
+    }
+    
+    // Thêm sản phẩm cho nhà cung cấp
+    public boolean themSanPhamNCC(int maNCC, int maNL, int soLuong, long donGia) {
+        String sql = "INSERT INTO ncc_nguyenlieu (MaNCC, MaNL, SoLuong, DonGia) VALUES (?, ?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?, DonGia = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNCC);
+            ps.setInt(2, maNL);
+            ps.setInt(3, soLuong);
+            ps.setLong(4, donGia);
+            ps.setInt(5, soLuong);
+            ps.setLong(6, donGia);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Cập nhật sản phẩm nhà cung cấp
+    public boolean capNhatSanPhamNCC(int maNCC, int maNL, int soLuong, long donGia) {
+        String sql = "UPDATE ncc_nguyenlieu SET SoLuong = ?, DonGia = ? WHERE MaNCC = ? AND MaNL = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, soLuong);
+            ps.setLong(2, donGia);
+            ps.setInt(3, maNCC);
+            ps.setInt(4, maNL);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Xóa sản phẩm nhà cung cấp
+    public boolean xoaSanPhamNCC(int maNCC, int maNL) {
+        String sql = "DELETE FROM ncc_nguyenlieu WHERE MaNCC = ? AND MaNL = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNCC);
+            ps.setInt(2, maNL);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

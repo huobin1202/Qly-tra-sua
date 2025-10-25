@@ -4,6 +4,7 @@ public class SanPhamChonNhapDTO {
     private int stt;
     private int maNL;
     private String tenNL;
+    private String donVi;
     private int soLuong;
     private long donGia;
     private long thanhTien;
@@ -12,10 +13,11 @@ public class SanPhamChonNhapDTO {
     public SanPhamChonNhapDTO() {}
 
     // Constructor đầy đủ
-    public SanPhamChonNhapDTO(int stt, int maNL, String tenNL, int soLuong, long donGia) {
+    public SanPhamChonNhapDTO(int stt, int maNL, String tenNL, String donVi, int soLuong, long donGia) {
         this.stt = stt;
         this.maNL = maNL;
         this.tenNL = tenNL;
+        this.donVi = donVi;
         this.soLuong = soLuong;
         this.donGia = donGia;
         this.thanhTien = soLuong * donGia;
@@ -30,6 +32,9 @@ public class SanPhamChonNhapDTO {
 
     public String getTenNL() { return tenNL; }
     public void setTenNL(String tenNL) { this.tenNL = tenNL; }
+
+    public String getDonVi() { return donVi; }
+    public void setDonVi(String donVi) { this.donVi = donVi; }
 
     public int getSoLuong() { return soLuong; }
     public void setSoLuong(int soLuong) { 
@@ -62,6 +67,7 @@ public class SanPhamChonNhapDTO {
                 "stt=" + stt +
                 ", maNL=" + maNL +
                 ", tenNL='" + tenNL + '\'' +
+                ", donVi='" + donVi + '\'' +
                 ", soLuong=" + soLuong +
                 ", donGia=" + donGia +
                 ", thanhTien=" + thanhTien +

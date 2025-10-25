@@ -5,18 +5,23 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import database.DBUtil;
 import dto.DonHangDTO;
+import dto.ChiTietDonHangDTO;
+import dao.DonHangDAO;
 
-public class DonHangSwingView extends JPanel {
+public class DonHangView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
+    private DonHangDAO donHangDAO;
     
-    public DonHangSwingView(MainFrameInterface parent) {
+    public DonHangView(MainFrameInterface parent) {
         this.parent = parent;
+        this.donHangDAO = new DonHangDAO();
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -134,6 +139,7 @@ public class DonHangSwingView extends JPanel {
     private void setupEventHandlers() {
         // Double click to edit
         table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
                     showEditDialog();
@@ -147,24 +153,23 @@ public class DonHangSwingView extends JPanel {
     
     private void loadData() {
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM dondathang ORDER BY MaDon")) {
-            
+        try {
+            List<DonHangDTO> danhSach = donHangDAO.layTatCaDonHang();
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-            while (rs.next()) {
+            
+            for (DonHangDTO donHang : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaDon"),
-                    rs.getInt("MaNV"),
-                    rs.getString("Loai"),
-                    rs.getString("TrangThai"),
-                    rs.getTimestamp("NgayDat") != null ? dateFormat.format(rs.getTimestamp("NgayDat")) : "",
-                    String.format("%,d", rs.getLong("TongTien")) + " VNĐ",
-                    rs.getInt("GiamGia") + "%"
+                    donHang.getMaDon(),
+                    donHang.getMaNV(),
+                    donHang.getLoai(),
+                    donHang.getTrangThai(),
+                    donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
+                    String.format("%,d", donHang.getTongTien()) + " VNĐ",
+                    donHang.getGiamGia() + "%"
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -174,49 +179,24 @@ public class DonHangSwingView extends JPanel {
         String searchType = (String) searchCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT * FROM dondathang WHERE ";
-            PreparedStatement ps;
-            
-            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-                sql = "SELECT * FROM dondathang ORDER BY MaDon";
-                ps = conn.prepareStatement(sql);
-            } else if (searchType.equals("ID")) {
-                sql += "MaDon = ? ORDER BY MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Mã NV")) {
-                sql += "MaNV = ? ORDER BY MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Loại")) {
-                sql += "Loai LIKE ? ORDER BY MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            } else {
-                sql += "TrangThai LIKE ? ORDER BY MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            }
-            
-            ResultSet rs = ps.executeQuery();
+        try {
+            List<DonHangDTO> danhSach = donHangDAO.timKiemDonHang(searchType, searchText);
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-            while (rs.next()) {
+            
+            for (DonHangDTO donHang : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaDon"),
-                    rs.getInt("MaNV"),
-                    rs.getString("Loai"),
-                    rs.getString("TrangThai"),
-                    rs.getTimestamp("NgayDat") != null ? dateFormat.format(rs.getTimestamp("NgayDat")) : "",
-                    String.format("%,d", rs.getLong("TongTien")) + " VNĐ",
-                    rs.getInt("GiamGia") + "%"
+                    donHang.getMaDon(),
+                    donHang.getMaNV(),
+                    donHang.getLoai(),
+                    donHang.getTrangThai(),
+                    donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
+                    String.format("%,d", donHang.getTongTien()) + " VNĐ",
+                    donHang.getGiamGia() + "%"
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -236,47 +216,22 @@ public class DonHangSwingView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        int maNV = (Integer) tableModel.getValueAt(selectedRow, 1);
-        String loai = (String) tableModel.getValueAt(selectedRow, 2);
         String trangThai = (String) tableModel.getValueAt(selectedRow, 3);
-        String ngayDatStr = (String) tableModel.getValueAt(selectedRow, 4);
-        String tongTienStr = (String) tableModel.getValueAt(selectedRow, 5);
-        String giamGiaStr = (String) tableModel.getValueAt(selectedRow, 6);
         
-        Timestamp ngayDat = null;
-        if (!ngayDatStr.isEmpty()) {
-            try {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                ngayDat = new Timestamp(dateFormat.parse(ngayDatStr).getTime());
-            } catch (Exception e) {
-                // Ignore parsing error
-            }
+        // Kiểm tra trạng thái thanh toán
+        if ("1".equals(trangThai) || "Đã thanh toán".equals(trangThai)) {
+            JOptionPane.showMessageDialog(this, 
+                "Đơn hàng đã thanh toán, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
+                "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
         }
         
-        long tongTien = 0;
-        if (!tongTienStr.isEmpty()) {
-            try {
-                tongTien = Long.parseLong(tongTienStr.replaceAll("[^0-9]", ""));
-            } catch (Exception e) {
-                // Ignore parsing error
-            }
-        }
+        // Mở giao diện sửa hóa đơn mới
+        SuaHoaDonSwingView editDialog = new SuaHoaDonSwingView(SwingUtilities.getWindowAncestor(this), id);
+        editDialog.setVisible(true);
         
-        int giamGia = 0;
-        if (!giamGiaStr.isEmpty()) {
-            try {
-                giamGia = Integer.parseInt(giamGiaStr.replaceAll("[^0-9]", ""));
-            } catch (Exception e) {
-                // Ignore parsing error
-            }
-        }
-        
-        DonHangDTO dh = new DonHangDTO(id, maNV, loai, trangThai, ngayDat, tongTien, giamGia);
-        DonHangDialog dialog = new DonHangDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin đơn hàng", dh);
-        dialog.setVisible(true);
-        if (dialog.isDataChanged()) {
-            loadData();
-        }
+        // Làm mới dữ liệu sau khi đóng dialog
+        loadData();
     }
     
     private void showDetailDialog() {
@@ -288,50 +243,40 @@ public class DonHangSwingView extends JPanel {
         
         int maDon = (Integer) tableModel.getValueAt(selectedRow, 0);
         
-        // Hiển thị chi tiết đơn hàng
-        try (Connection conn = DBUtil.getConnection()) {
+        try {
+            // Lấy thông tin đơn hàng
+            DonHangDTO donHang = donHangDAO.layDonHangVoiTenNV(maDon);
+            if (donHang == null) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy đơn hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Lấy chi tiết đơn hàng
+            List<ChiTietDonHangDTO> chiTietList = donHangDAO.layChiTietDonHang(maDon);
+            
             StringBuilder detail = new StringBuilder();
             detail.append("CHI TIẾT ĐƠN HÀNG #").append(maDon).append("\n\n");
-            
-            // Thông tin đơn hàng
-            try (PreparedStatement ps = conn.prepareStatement("SELECT * FROM dondathang WHERE MaDon = ?")) {
-                ps.setInt(1, maDon);
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    detail.append("Mã đơn: ").append(rs.getInt("MaDon")).append("\n");
-                    detail.append("Mã NV: ").append(rs.getInt("MaNV")).append("\n");
-                    detail.append("Loại: ").append(rs.getString("Loai")).append("\n");
-                    detail.append("Trạng thái: ").append(rs.getString("TrangThai")).append("\n");
-                    detail.append("Ngày đặt: ").append(rs.getTimestamp("NgayDat")).append("\n");
-                    detail.append("Tổng tiền: ").append(String.format("%,d", rs.getLong("TongTien"))).append(" VNĐ\n");
-                    detail.append("Giảm giá: ").append(rs.getInt("GiamGia")).append("%\n\n");
-                }
-            }
+            detail.append("Mã đơn: ").append(donHang.getMaDon()).append("\n");
+            detail.append("Mã NV: ").append(donHang.getMaNV()).append("\n");
+            detail.append("Loại: ").append(donHang.getLoai()).append("\n");
+            detail.append("Trạng thái: ").append(donHang.getTrangThai()).append("\n");
+            detail.append("Ngày đặt: ").append(donHang.getNgayDat()).append("\n");
+            detail.append("Tổng tiền: ").append(String.format("%,d", donHang.getTongTien())).append(" VNĐ\n");
+            detail.append("Giảm giá: ").append(donHang.getGiamGia()).append("%\n\n");
             
             // Chi tiết món
             detail.append("CHI TIẾT MÓN:\n");
-            try (PreparedStatement ps = conn.prepareStatement(
-                "SELECT ctdh.*, m1.TenMon AS TenMon, m2.TenMon AS TenTopping FROM chitietdonhang ctdh " +
-                "LEFT JOIN mon m1 ON ctdh.MaMon = m1.MaMon " +
-                "LEFT JOIN mon m2 ON ctdh.MaTopping = m2.MaMon WHERE ctdh.MaDon = ?")) {
-                ps.setInt(1, maDon);
-                ResultSet rs = ps.executeQuery();
-                
-                if (!rs.next()) {
-                    detail.append("Không có chi tiết món.\n");
-                } else {
-                    do {
-                        long giaMon = rs.getLong("GiaMon");
-                        long giaTopping = rs.getLong("GiaTopping");
-                        int soLuong = rs.getInt("SoLuong");
-                        long thanhTien = (giaMon + giaTopping) * soLuong;
-                        String toppingName = rs.getString("TenTopping");
-                        detail.append("- ")
-                              .append(rs.getString("TenMon"))
-                              .append(toppingName != null && !toppingName.isEmpty() ? " + " + toppingName : "")
-                              .append(" x").append(soLuong)
-                              .append(" = ").append(String.format("%,d", thanhTien)).append(" VNĐ\n");
-                    } while (rs.next());
+            if (chiTietList.isEmpty()) {
+                detail.append("Không có chi tiết món.\n");
+            } else {
+                for (ChiTietDonHangDTO chiTiet : chiTietList) {
+                    long thanhTien = (chiTiet.getGiaMon() + chiTiet.getGiaTopping()) * chiTiet.getSoLuong();
+                    String toppingName = chiTiet.getTenTopping();
+                    detail.append("- ")
+                          .append(chiTiet.getTenMon())
+                          .append(toppingName != null && !toppingName.isEmpty() ? " + " + toppingName : "")
+                          .append(" x").append(chiTiet.getSoLuong())
+                          .append(" = ").append(String.format("%,d", thanhTien)).append(" VNĐ\n");
                 }
             }
             
@@ -344,7 +289,7 @@ public class DonHangSwingView extends JPanel {
             
             JOptionPane.showMessageDialog(this, scrollPane, "Chi tiết đơn hàng", JOptionPane.INFORMATION_MESSAGE);
             
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải chi tiết: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -363,22 +308,15 @@ public class DonHangSwingView extends JPanel {
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection()) {
-                // Xóa chi tiết đơn hàng trước
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM chitietdonhang WHERE MaDon = ?")) {
-                    ps.setInt(1, id);
-                    ps.executeUpdate();
+            try {
+                boolean success = donHangDAO.xoaDonHang(id);
+                if (success) {
+                    JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    loadData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Không thể xóa đơn hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
-                
-                // Xóa đơn hàng
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM dondathang WHERE MaDon = ?")) {
-                    ps.setInt(1, id);
-                    ps.executeUpdate();
-                }
-                
-                JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }

@@ -48,7 +48,7 @@ public class NhapHangMoiSwingView extends JPanel {
     
     private void initializeComponents() {
         // Left panel - Supplier products
-        String[] supplierColumns = {"Mã NL", "Tên nguyên liệu", "Số lượng", "Đơn giá"};
+        String[] supplierColumns = {"Mã NL", "Tên nguyên liệu", "Đơn vị", "Số lượng", "Đơn giá"};
         supplierProductsTableModel = new DefaultTableModel(supplierColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -74,7 +74,7 @@ public class NhapHangMoiSwingView extends JPanel {
         refreshButton.setFocusPainted(false);
         
         // Right panel - Import receipt details
-        String[] selectedColumns = {"STT", "Mã NL", "Tên nguyên liệu", "Số lượng", "Đơn giá"};
+        String[] selectedColumns = {"STT", "Mã NL", "Tên nguyên liệu", "Đơn vị", "Số lượng", "Đơn giá"};
         selectedProductsTableModel = new DefaultTableModel(selectedColumns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -264,6 +264,7 @@ public class NhapHangMoiSwingView extends JPanel {
         
         // Double click to edit quantity
         selectedProductsTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
                     editQuantity();
@@ -288,7 +289,7 @@ public class NhapHangMoiSwingView extends JPanel {
             
             while (rs.next()) {
                 NhaCungCapDTO supplier = new NhaCungCapDTO(
-                    String.valueOf(rs.getInt("MaNCC")),
+                    rs.getInt("MaNCC"),
                     rs.getString("TenNCC"),
                     rs.getString("SDT"),
                     rs.getString("DiaChi")
@@ -298,7 +299,7 @@ public class NhapHangMoiSwingView extends JPanel {
             }
             
             if (!suppliers.isEmpty()) {
-                currentSupplierId = Integer.parseInt(suppliers.get(0).getMaNCC());
+                currentSupplierId = suppliers.get(0).getMaNCC();
                 loadSupplierProducts();
             }
         } catch (SQLException e) {
@@ -339,6 +340,7 @@ public class NhapHangMoiSwingView extends JPanel {
                     Object[] row = {
                         product.getMaNL(),
                         product.getTenNL(),
+                        product.getDonVi(),
                         product.getSoLuong(),
                         String.format("%,d", product.getDonGia()) + " VNĐ"
                     };
@@ -362,6 +364,7 @@ public class NhapHangMoiSwingView extends JPanel {
                 Object[] row = {
                     product.getMaNL(),
                     product.getTenNL(),
+                    product.getDonVi(),
                     product.getSoLuong(),
                     String.format("%,d", product.getDonGia()) + " VNĐ"
                 };
@@ -371,9 +374,26 @@ public class NhapHangMoiSwingView extends JPanel {
     }
     
     private void onSupplierChanged() {
+        // Kiểm tra nếu đã có sản phẩm trong phiếu nhập
+        if (!selectedProducts.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Không thể thay đổi nhà cung cấp khi đã có sản phẩm trong phiếu nhập!\n" +
+                "Vui lòng xóa hết sản phẩm trước khi chọn nhà cung cấp khác.", 
+                "Thông báo", JOptionPane.WARNING_MESSAGE);
+            
+            // Khôi phục lại nhà cung cấp cũ
+            for (int i = 0; i < suppliers.size(); i++) {
+                if (suppliers.get(i).getMaNCC() == currentSupplierId) {
+                    supplierCombo.setSelectedIndex(i);
+                    break;
+                }
+            }
+            return;
+        }
+        
         int selectedIndex = supplierCombo.getSelectedIndex();
         if (selectedIndex >= 0 && selectedIndex < suppliers.size()) {
-            currentSupplierId = Integer.parseInt(suppliers.get(selectedIndex).getMaNCC());
+            currentSupplierId = suppliers.get(selectedIndex).getMaNCC();
             loadSupplierProducts();
         }
     }
@@ -437,6 +457,7 @@ public class NhapHangMoiSwingView extends JPanel {
             selectedProducts.size() + 1,
             selectedProduct.getMaNL(),
             selectedProduct.getTenNL(),
+            selectedProduct.getDonVi(),
             quantity,
             selectedProduct.getDonGia()
         );
@@ -445,6 +466,11 @@ public class NhapHangMoiSwingView extends JPanel {
         updateSelectedProductsTable();
         updateTotalAmount();
         quantityField.setText("1");
+        
+        // Vô hiệu hóa combo box nhà cung cấp khi có sản phẩm
+        if (selectedProducts.size() == 1) {
+            supplierCombo.setEnabled(false);
+        }
     }
     
     private void updateSelectedProductsTable() {
@@ -458,6 +484,7 @@ public class NhapHangMoiSwingView extends JPanel {
                 product.getStt(),
                 product.getMaNL(),
                 product.getTenNL(),
+                product.getDonVi(),
                 product.getSoLuong(),
                 String.format("%,d", product.getDonGia()) + " VNĐ"
             };
@@ -534,6 +561,11 @@ public class NhapHangMoiSwingView extends JPanel {
             selectedProducts.remove(selectedRow);
             updateSelectedProductsTable();
             updateTotalAmount();
+            
+            // Nếu xóa hết sản phẩm, cho phép thay đổi nhà cung cấp
+            if (selectedProducts.isEmpty()) {
+                supplierCombo.setEnabled(true);
+            }
         }
     }
     
@@ -614,16 +646,7 @@ public class NhapHangMoiSwingView extends JPanel {
                                 psDetail.setInt(2, product.getMaNL());
                                 psDetail.setInt(3, product.getSoLuong());
                                 psDetail.setLong(4, product.getDonGia());
-                                
-                                // Get unit from supplier products
-                                String donVi = "";
-                                for (NhaCungCapSanPhamDTO supplierProduct : supplierProducts) {
-                                    if (supplierProduct.getMaNL() == product.getMaNL()) {
-                                        donVi = supplierProduct.getDonVi();
-                                        break;
-                                    }
-                                }
-                                psDetail.setString(5, donVi);
+                                psDetail.setString(5, product.getDonVi());
                                 
                                 psDetail.executeUpdate();
                                 
@@ -661,5 +684,8 @@ public class NhapHangMoiSwingView extends JPanel {
         generateNewReceiptCode();
         loadSupplierProducts();
         quantityField.setText("1");
+        
+        // Kích hoạt lại combo box nhà cung cấp
+        supplierCombo.setEnabled(true);
     }
 }

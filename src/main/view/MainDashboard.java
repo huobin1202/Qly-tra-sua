@@ -340,11 +340,11 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     private void createChildViews() {
         // Tạo các view con và thêm vào mainPanel
         mainPanel.add(createDefaultView(), "DEFAULT");
-        mainPanel.add(new NhaCungCapSwingView(this), "NHA_CUNG_CAP");
-        mainPanel.add(new KhachHangSwingView(this), "KHACH_HANG");
-        mainPanel.add(new NhanVienSwingView(this), "NHAN_VIEN");
-        mainPanel.add(new DonHangSwingView(this), "DON_HANG");
-        mainPanel.add(new KhoHangSwingView(this), "KHO_HANG");
+        mainPanel.add(new NhaCungCapView(this), "NHA_CUNG_CAP");
+        mainPanel.add(new KhachHangView(this), "KHACH_HANG");
+        mainPanel.add(new NhanVienSwing(this), "NHAN_VIEN");
+        mainPanel.add(new DonHangView(this), "DON_HANG");
+        mainPanel.add(new KhoHangView(this), "KHO_HANG");
         mainPanel.add(new NhapHangMoiSwingView(), "NHAP_HANG_MOI");
         mainPanel.add(new NhapHangSwingView(this), "NHAP_HANG");
         // Tạo các view riêng biệt cho từng loại hàng hóa
@@ -384,21 +384,21 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     }
     
     private JPanel createMonView() {
-        HangHoaSwingView hangHoaView = new HangHoaSwingView(this);
+        HangHoaView hangHoaView = new HangHoaView(this);
         // Set current view to MON
         hangHoaView.setCurrentView("MON");
         return hangHoaView;
     }
     
     private JPanel createLoaiMonView() {
-        HangHoaSwingView hangHoaView = new HangHoaSwingView(this);
+        HangHoaView hangHoaView = new HangHoaView(this);
         // Set current view to LOAIMON
         hangHoaView.setCurrentView("LOAIMON");
         return hangHoaView;
     }
     
     private JPanel createNguyenLieuView() {
-        HangHoaSwingView hangHoaView = new HangHoaSwingView(this);
+        HangHoaView hangHoaView = new HangHoaView(this);
         // Set current view to NGUYENLIEU
         hangHoaView.setCurrentView("NGUYENLIEU");
         return hangHoaView;

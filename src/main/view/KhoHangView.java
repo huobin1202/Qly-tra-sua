@@ -9,14 +9,14 @@ import java.sql.*;
 import database.DBUtil;
 import dto.KhoHangDTO;
 
-public class KhoHangSwingView extends JPanel {
+public class KhoHangView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
     
-    public KhoHangSwingView(MainFrameInterface parent) {
+    public KhoHangView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();

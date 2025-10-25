@@ -9,6 +9,10 @@ public class DonHangDTO {
     private Timestamp ngayDat;
     private long tongTien;
     private int giamGia;
+    private String tenNV;
+
+    // Constructor mặc định
+    public DonHangDTO() {}
 
     public DonHangDTO(int maDon, int maNV, String loai, String trangThai, 
                          Timestamp ngayDat, long tongTien, int giamGia) {
@@ -35,4 +39,6 @@ public class DonHangDTO {
     public void setTongTien(long tongTien) { this.tongTien = tongTien; }
     public int getGiamGia() { return giamGia; }
     public void setGiamGia(int giamGia) { this.giamGia = giamGia; }
+    public String getTenNV() { return tenNV; }
+    public void setTenNV(String tenNV) { this.tenNV = tenNV; }
 }

@@ -8,6 +8,11 @@ public class ChiTietDonHangDTO {
     private long giaMon;
     private long giaTopping;
     private String ghiChu;
+    private String tenMon; // Để hiển thị tên món
+    private String tenTopping; // Để hiển thị tên topping
+
+    // Constructor mặc định
+    public ChiTietDonHangDTO() {}
 
     public ChiTietDonHangDTO(int maDon, int maMon, int maTopping, int soLuong, long giaMon, long giaTopping, String ghiChu) {
         this.maDon = maDon;
@@ -33,4 +38,10 @@ public class ChiTietDonHangDTO {
     public void setGiaTopping(long giaTopping) { this.giaTopping = giaTopping; }
     public String getGhiChu() { return ghiChu; }
     public void setGhiChu(String ghiChu) { this.ghiChu = ghiChu; }
+    
+    public String getTenMon() { return tenMon; }
+    public void setTenMon(String tenMon) { this.tenMon = tenMon; }
+    
+    public String getTenTopping() { return tenTopping; }
+    public void setTenTopping(String tenTopping) { this.tenTopping = tenTopping; }
 }

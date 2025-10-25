@@ -7,14 +7,14 @@ import java.sql.*;
 import database.DBUtil;
 import dto.NhaCungCapDTO;
 
-public class NhaCungCapSwingView extends JPanel {
+public class NhaCungCapView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
     
-    public NhaCungCapSwingView(MainFrameInterface parent) {
+    public NhaCungCapView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
@@ -223,7 +223,7 @@ public class NhaCungCapSwingView extends JPanel {
         
         System.out.println("Mở dialog sửa nhà cung cấp - ID: " + id + ", Tên: " + ten);
         
-        NhaCungCapDTO ncc = new NhaCungCapDTO(String.valueOf(id), ten, sdt, diaChi);
+        NhaCungCapDTO ncc = new NhaCungCapDTO(id, ten, sdt, diaChi);
         NhaCungCapDialog dialog = new NhaCungCapDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhà cung cấp", ncc);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
@@ -323,11 +323,11 @@ public class NhaCungCapSwingView extends JPanel {
             
             if (ncc != null) {
                 tenField.setText(ncc.getTenNCC() != null ? ncc.getTenNCC() : "");
-                sdtField.setText(ncc.getSdt() != null ? ncc.getSdt() : "");
+                sdtField.setText(ncc.getSoDienThoai() != null ? ncc.getSoDienThoai() : "");
                 diaChiField.setText(ncc.getDiaChi() != null ? ncc.getDiaChi() : "");
                 System.out.println("Khởi tạo dialog sửa với dữ liệu:");
                 System.out.println("Tên: " + ncc.getTenNCC());
-                System.out.println("SĐT: " + ncc.getSdt());
+                System.out.println("SĐT: " + ncc.getSoDienThoai());
                 System.out.println("Địa chỉ: " + ncc.getDiaChi());
             } else {
                 System.out.println("Khởi tạo dialog thêm mới");
@@ -471,7 +471,7 @@ public class NhaCungCapSwingView extends JPanel {
                         ps.setString(1, ten);
                         ps.setString(2, sdt);
                         ps.setString(3, diaChi);
-                        ps.setInt(4, Integer.parseInt(ncc.getMaNCC()));
+                        ps.setInt(4, ncc.getMaNCC());
                         int result = ps.executeUpdate();
                         System.out.println("UPDATE thành công! Rows affected: " + result);
                         JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);

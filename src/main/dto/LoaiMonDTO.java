@@ -4,6 +4,9 @@ public class LoaiMonDTO {
     String tenLoai;
     String slug;
 
+    // Constructor mặc định
+    public LoaiMonDTO() {}
+
     public LoaiMonDTO(int maLoai, String tenLoai, String slug) {
         this.maLoai = maLoai;
         this.tenLoai = tenLoai;

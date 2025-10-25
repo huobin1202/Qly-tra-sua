@@ -1,128 +1,215 @@
 package dao;
+
 import java.sql.*;
-
-import view.ConsoleUI;
-import java.util.Scanner;
-
+import java.util.ArrayList;
+import java.util.List;
 import database.DBUtil;
+import dto.KhoHangDTO;
+
 public class KhoHangDAO {
-    public void xemDanhSachNCC(Scanner sc) {
-        try (java.sql.Connection conn = database.DBUtil.getConnection();
-             java.sql.PreparedStatement ps = conn.prepareStatement("SELECT MaNCC, TenNCC FROM nhacungcap")) {
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
-                ConsoleUI.printHeader("DANH SÁCH NHÀ CUNG CẤP");
-                System.out.println("┌────┬────────────────────────────┐");
-                System.out.println("│ ID │ Tên nhà cung cấp            │");
-                System.out.println("├────┼────────────────────────────┤");
-                while (rs.next()) {
-                    System.out.printf("│ %-2d │ %-26s │\n", rs.getInt(1), rs.getString(2));
-                }
-                System.out.println("└────┴────────────────────────────┘");
-                ConsoleUI.printFooter();
-            }
-        } catch (java.sql.SQLException e) { e.printStackTrace(); }
-    }
-    public void xemSanPhamNCC(Scanner sc) {
-        System.out.print(ConsoleUI.promptLabel("Nhập mã nhà cung cấp"));
-        String idStr = sc.nextLine();
-        int maNCC;
-        try { maNCC = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("Mã không hợp lệ."); return; }
-        try (java.sql.Connection conn = database.DBUtil.getConnection();
-             java.sql.PreparedStatement ps = conn.prepareStatement(
-                "SELECT ncc.TenNCC, sp.MaMon, m.TenMon, sp.SoLuong, sp.DonGia FROM ncc_sanpham sp " +
-                "JOIN nhacungcap ncc ON ncc.MaNCC=sp.MaNCC JOIN mon m ON m.MaMon=sp.MaMon WHERE sp.MaNCC=? ORDER BY sp.MaMon")) {
-            ps.setInt(1, maNCC);
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
-                ConsoleUI.printHeader("SẢN PHẨM THEO NHÀ CUNG CẤP");
-                System.out.println("┌────┬────────────────────────────┬──────────┬──────────┐");
-                System.out.println("│ ID │ Tên món                    │ SL NCC   │ Đơn giá  │");
-                System.out.println("├────┼────────────────────────────┼──────────┼──────────┤");
-                boolean any=false; String tenNCC=null;
-                while (rs.next()) {
-                    any=true; tenNCC = rs.getString(1);
-                    System.out.printf("│ %-2d │ %-26s │ %-8d │ %-8d │\n", rs.getInt(2), rs.getString(3), rs.getInt(4), rs.getLong(5));
-                }
-                if (!any) System.out.println("│ Không có dữ liệu                                       │");
-                System.out.println("└────┴────────────────────────────┴──────────┴──────────┘");
-                if (tenNCC!=null) System.out.println("Nhà cung cấp: "+tenNCC);
-                ConsoleUI.printFooter();
-            }
-        } catch (java.sql.SQLException e) { e.printStackTrace(); }
-    }
-
-    public void xemNguyenLieuNCC(Scanner sc) {
-        System.out.print(ConsoleUI.promptLabel("Nhập mã nhà cung cấp"));
-        String idStr = sc.nextLine();
-        int maNCC;
-        try { maNCC = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("Mã không hợp lệ."); return; }
-        String sql = "SELECT ncc.TenNCC, nl.MaNL, nl.TenNL, nccnl.SoLuong, nccnl.DonGia, nl.DonVi " +
-                     "FROM ncc_nguyenlieu nccnl " +
-                     "JOIN nhacungcap ncc ON ncc.MaNCC=nccnl.MaNCC " +
-                     "JOIN nguyenlieu nl ON nl.MaNL=nccnl.MaNL " +
-                     "WHERE nccnl.MaNCC=? ORDER BY nl.MaNL";
-        try (java.sql.Connection conn = database.DBUtil.getConnection();
-             java.sql.PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, maNCC);
-            try (java.sql.ResultSet rs = ps.executeQuery()) {
-                ConsoleUI.printHeader("NGUYÊN LIỆU THEO NHÀ CUNG CẤP");
-                System.out.println("┌────┬────────────────────────────┬──────────┬──────────┬──────────┐");
-                System.out.println("│ ID │ Tên nguyên liệu            │ Đơn vị   │ SL NCC   │ Đơn giá  │");
-                System.out.println("├────┼────────────────────────────┼──────────┼──────────┼──────────┤");
-                boolean any=false; String tenNCC=null;
-                while (rs.next()) {
-                    any=true; tenNCC = rs.getString(1);
-                    System.out.printf("│ %-2d │ %-26s │ %-8s │ %-8d │ %-8d │\n", rs.getInt(2), rs.getString(3), rs.getString(6), rs.getInt(4), rs.getLong(5));
-                }
-                if (!any) System.out.println("│ Không có dữ liệu                                                    │");
-                System.out.println("└────┴────────────────────────────┴──────────┴──────────┴──────────┘");
-                if (tenNCC!=null) System.out.println("Nhà cung cấp: "+tenNCC);
-                ConsoleUI.printFooter();
-            }
-        } catch (java.sql.SQLException e) { e.printStackTrace(); }
-    }
-
-    public void xemTonNguyenLieu() {
-        ConsoleUI.printHeader("TỒN KHO NGUYÊN LIỆU");
-        System.out.println("┌────┬────────────────────────────┬──────────┬──────────┐");
-        System.out.println("│ ID │ Tên nguyên liệu            │ Đơn vị   │ Tồn      │");
-        System.out.println("├────┼────────────────────────────┼──────────┼──────────┤");
-        boolean any = false;
-        String sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, IFNULL(k.SoLuong,0) SoLuong " +
-                     "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
+    
+    // Lấy tất cả tồn kho nguyên liệu
+    public List<KhoHangDTO> layTatCaTonKho() {
+        List<KhoHangDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT kh.MaNL, nl.TenNL, nl.DonVi, kh.SoLuong " +
+                    "FROM khohang kh " +
+                    "JOIN nguyenlieu nl ON kh.MaNL = nl.MaNL " +
+                    "ORDER BY nl.TenNL";
+        
         try (Connection conn = DBUtil.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
             while (rs.next()) {
-                any = true;
-                System.out.printf("│ %-2d │ %-26s │ %-8s │ %-8d │\n",
-                    rs.getInt("MaNL"), rs.getString("TenNL"), rs.getString("DonVi"),
-                    rs.getInt("SoLuong"));
+                KhoHangDTO khoHang = new KhoHangDTO();
+                khoHang.setMaMon(rs.getInt("MaNL"));
+                khoHang.setTenMon(rs.getString("TenNL"));
+                khoHang.setTenDonVi(rs.getString("DonVi"));
+                khoHang.setSoLuong(rs.getInt("SoLuong"));
+                danhSach.add(khoHang);
             }
-        } catch (SQLException e) { e.printStackTrace(); }
-        if (!any) System.out.println("│ Không có dữ liệu                                                     │");
-        System.out.println("└────┴────────────────────────────┴──────────┴──────────┘");
-        ConsoleUI.printFooter();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return danhSach;
     }
-    public void xemTon() {
-        ConsoleUI.printHeader("TỒN KHO");
-        System.out.println("┌────┬────────────────────────────┬──────────┬──────────┐");
-        System.out.println("│ ID │ Tên món                    │ Đơn vị   │ Tồn      │");
-        System.out.println("├────┼────────────────────────────┼──────────┼──────────┤");
-        boolean any = false;
-        String sql = "SELECT m.MaMon, m.TenMon, m.TenDonVi, IFNULL(k.SoLuong,0) SoLuong " +
-                     "FROM mon m LEFT JOIN khohang k ON m.MaMon = k.MaMon ORDER BY m.MaMon";
-        try (Connection conn = DBUtil.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
-            while (rs.next()) {
-                any = true;
-                System.out.printf("│ %-2d │ %-26s │ %-8s │ %-8d │\n",
-                    rs.getInt("MaMon"), rs.getString("TenMon"), rs.getString("TenDonVi"),
-                    rs.getInt("SoLuong"));
+    
+    // Tìm kiếm tồn kho
+    public List<KhoHangDTO> timKiemTonKho(String searchType, String searchText) {
+        List<KhoHangDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT kh.MaNL, nl.TenNL, nl.DonVi, kh.SoLuong " +
+                    "FROM khohang kh " +
+                    "JOIN nguyenlieu nl ON kh.MaNL = nl.MaNL " +
+                    "WHERE ";
+        PreparedStatement ps;
+        
+        try (Connection conn = DBUtil.getConnection()) {
+            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+                sql = "SELECT kh.MaNL, nl.TenNL, nl.DonVi, kh.SoLuong " +
+                      "FROM khohang kh " +
+                      "JOIN nguyenlieu nl ON kh.MaNL = nl.MaNL " +
+                      "ORDER BY nl.TenNL";
+                ps = conn.prepareStatement(sql);
+            } else if (searchType.equals("Mã NL")) {
+                sql += "kh.MaNL = ? ORDER BY nl.TenNL";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, Integer.parseInt(searchText));
+            } else {
+                sql += "nl.TenNL LIKE ? ORDER BY nl.TenNL";
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, "%" + searchText + "%");
             }
-        } catch (SQLException e) { e.printStackTrace(); }
-        if (!any) System.out.println("│ Không có dữ liệu                                                     │");
-        System.out.println("└────┴────────────────────────────┴──────────┴──────────┘");
-        ConsoleUI.printFooter();
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    KhoHangDTO khoHang = new KhoHangDTO();
+                    khoHang.setMaMon(rs.getInt("MaNL"));
+                    khoHang.setTenMon(rs.getString("TenNL"));
+                    khoHang.setTenDonVi(rs.getString("DonVi"));
+                    khoHang.setSoLuong(rs.getInt("SoLuong"));
+                    danhSach.add(khoHang);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return danhSach;
+    }
+    
+    // Lấy tồn kho theo mã nguyên liệu
+    public KhoHangDTO layTonKhoTheoMaNL(int maNL) {
+        String sql = "SELECT kh.MaNL, nl.TenNL, nl.DonVi, kh.SoLuong " +
+                    "FROM khohang kh " +
+                    "JOIN nguyenlieu nl ON kh.MaNL = nl.MaNL " +
+                    "WHERE kh.MaNL = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNL);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    KhoHangDTO khoHang = new KhoHangDTO();
+                    khoHang.setMaMon(rs.getInt("MaNL"));
+                    khoHang.setTenMon(rs.getString("TenNL"));
+                    khoHang.setTenDonVi(rs.getString("DonVi"));
+                    khoHang.setSoLuong(rs.getInt("SoLuong"));
+                    return khoHang;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    // Cập nhật số lượng tồn kho
+    public boolean capNhatSoLuongTonKho(int maNL, int soLuong) {
+        String sql = "INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?) " +
+                    "ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNL);
+            ps.setInt(2, soLuong);
+            ps.setInt(3, soLuong);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Giảm số lượng tồn kho
+    public boolean giamSoLuongTonKho(int maNL, int soLuong) {
+        String sql = "UPDATE khohang SET SoLuong = SoLuong - ? WHERE MaNL = ? AND SoLuong >= ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, soLuong);
+            ps.setInt(2, maNL);
+            ps.setInt(3, soLuong);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Kiểm tra số lượng tồn kho có đủ không
+    public boolean kiemTraSoLuongTonKho(int maNL, int soLuongCan) {
+        String sql = "SELECT SoLuong FROM khohang WHERE MaNL = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maNL);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    int soLuongTon = rs.getInt("SoLuong");
+                    return soLuongTon >= soLuongCan;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Lấy danh sách nguyên liệu sắp hết (dưới ngưỡng)
+    public List<KhoHangDTO> layNguyenLieuSapHet(int nguong) {
+        List<KhoHangDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT kh.MaNL, nl.TenNL, nl.DonVi, kh.SoLuong " +
+                    "FROM khohang kh " +
+                    "JOIN nguyenlieu nl ON kh.MaNL = nl.MaNL " +
+                    "WHERE kh.SoLuong <= ? " +
+                    "ORDER BY kh.SoLuong ASC";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, nguong);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    KhoHangDTO khoHang = new KhoHangDTO();
+                    khoHang.setMaMon(rs.getInt("MaNL"));
+                    khoHang.setTenMon(rs.getString("TenNL"));
+                    khoHang.setTenDonVi(rs.getString("DonVi"));
+                    khoHang.setSoLuong(rs.getInt("SoLuong"));
+                    danhSach.add(khoHang);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return danhSach;
+    }
+    
+    // Lấy tổng giá trị tồn kho
+    public long layTongGiaTriTonKho() {
+        String sql = "SELECT SUM(kh.SoLuong * nccnl.DonGia) as TongGiaTri " +
+                    "FROM khohang kh " +
+                    "JOIN ncc_nguyenlieu nccnl ON kh.MaNL = nccnl.MaNL";
+        
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            if (rs.next()) {
+                return rs.getLong("TongGiaTri");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

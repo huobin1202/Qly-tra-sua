@@ -8,14 +8,14 @@ import java.text.SimpleDateFormat;
 import database.DBUtil;
 import dto.NhanVienDTO;
 
-public class NhanVienSwingView extends JPanel {
+public class NhanVienSwing extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
     
-    public NhanVienSwingView(MainFrameInterface parent) {
+    public NhanVienSwing(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
@@ -349,7 +349,7 @@ public class NhanVienSwingView extends JPanel {
                 taiKhoanField.setText(nv.getTaiKhoan());
                 matKhauField.setText(nv.getMatKhau());
                 hoTenField.setText(nv.getHoTen());
-                sdtField.setText(nv.getSdt());
+                sdtField.setText(nv.getSoDienThoai());
                 if (nv.getNgayVaoLam() != null) {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                     ngayVaoLamField.setText(dateFormat.format(nv.getNgayVaoLam()));

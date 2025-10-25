@@ -8,6 +8,8 @@ public class MonDTO {
     int maLoai;
     String anh;
 
+    // Constructor mặc định
+    public MonDTO() {}
 
     public MonDTO(int maMon, String tenMon, String moTa, long gia, String tinhTrang, int maLoai) {
         this.maMon = maMon;

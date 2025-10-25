@@ -1,588 +1,321 @@
 package dao;
-import java.sql.*;
-import java.util.Scanner;
 
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import database.DBUtil;
-import view.ConsoleUI;
+import dto.DonHangDTO;
+import dto.ChiTietDonHangDTO;
 
 public class DonHangDAO {
-    public void them() {
-        Scanner sc = new Scanner(System.in);
-        int maNV = database.Session.currentMaNV;
-        System.out.println("=== TẠO ĐƠN HÀNG MỚI ===");
-        
-        // Tạo đơn hàng trống với trạng thái mặc định là "chưa thanh toán"
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO dondathang (MaNV, TrangThai, TongTien) VALUES (?, '2', 0)")) {
-            ps.setInt(1, maNV);
-            ps.executeUpdate();
-            
-            // Lấy mã đơn vừa tạo
-            try (PreparedStatement ps2 = conn.prepareStatement("SELECT LAST_INSERT_ID()")) {
-                ResultSet rs = ps2.executeQuery();
-                if (rs.next()) {
-                    int maDon = rs.getInt(1);
-                    System.out.println("Đã tạo đơn hàng #" + maDon + " (trạng thái: chưa thanh toán)");
-                    themChiTietDonHang(maDon, conn, sc);
-                }
-            }
-            System.out.println("Thêm đơn đặt hàng thành công!");
-        } catch (SQLException e) {
-            System.out.println("Lỗi: " + e.getMessage());
-        } finally {
-            sc.close();
-        }
-    }
     
-    private void themChiTietDonHang(int maDon, Connection conn, Scanner sc) throws SQLException {
-        long tongTien = 0;
+    // Lấy tất cả đơn hàng
+    public List<DonHangDTO> layTatCaDonHang() {
+        List<DonHangDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT * FROM dondathang ORDER BY MaDon";
         
-        while (true) {
-            System.out.println("\n=== THÊM MÓN VÀO ĐƠN HÀNG ===");
-            System.out.println("1. Thêm món");
-            System.out.println("2. Hoàn thành đơn hàng");
-            System.out.print("Chọn: ");
-            String choice = sc.nextLine();
-            
-            if (choice.equals("2")) break;
-            
-            System.out.print("Nhập mã món: ");
-            int maMon = sc.nextInt();
-            sc.nextLine();
-
-            // Không cho phép chọn món thuộc loại topping (MaLoai = 4) làm món chính
-            try (PreparedStatement psCheckLoai = conn.prepareStatement(
-                "SELECT MaLoai FROM mon WHERE MaMon = ?")) {
-                psCheckLoai.setInt(1, maMon);
-                try (ResultSet rs = psCheckLoai.executeQuery()) {
-                    if (rs.next()) {
-                        int maLoai = rs.getInt("MaLoai");
-                        if (maLoai == 4) {
-                            System.out.println("Món thuộc loại topping (MaLoai=4) không thể thêm như món chính.");
-                            continue;
-                        }
-                    } else {
-                        System.out.println("Không tìm thấy món với mã: " + maMon);
-                        continue;
-                    }
-                }
-            }
-            
-            System.out.print("Nhập mã topping (0 nếu không có): ");
-            int maTopping = sc.nextInt();
-            sc.nextLine();
-            
-            System.out.print("Nhập số lượng: ");
-            int soLuong = sc.nextInt();
-            sc.nextLine();
-            
-            System.out.print("Nhập ghi chú (có thể để trống): ");
-            String ghiChu = sc.nextLine();
-            
-            // Lấy giá món và topping từ database
-            long giaMon = 0;
-            long giaTopping = 0;
-            
-            // Lấy giá món
-            try (PreparedStatement psGiaMon = conn.prepareStatement(
-                "SELECT Gia FROM mon WHERE MaMon = ?")) {
-                psGiaMon.setInt(1, maMon);
-                try (ResultSet rs = psGiaMon.executeQuery()) {
-                    if (rs.next()) {
-                        giaMon = rs.getLong("Gia");
-                        System.out.println("Giá món: " + giaMon);
-                    } else {
-                        System.out.println("Không tìm thấy món với mã: " + maMon);
-                        continue;
-                    }
-                }
-            }
-            
-            // Xử lý topping: nếu maTopping = 0 thì dùng "No Topping" (MaMon = 1)
-            if (maTopping == 0) {
-                maTopping = 1; // "No Topping" có MaMon = 1
-            }
-
-            // Lấy giá topping và kiểm tra chỉ cho phép MaLoai = 4 (ngoại lệ cho MaMon = 1: không topping)
-            if (maTopping == 1) {
-                // Không topping
-                try (PreparedStatement psGiaTopping = conn.prepareStatement(
-                    "SELECT Gia FROM mon WHERE MaMon = 1")) {
-                    try (ResultSet rs = psGiaTopping.executeQuery()) {
-                        if (rs.next()) {
-                            giaTopping = rs.getLong("Gia");
-                            System.out.println("Không có topping (giá: " + giaTopping + ")");
-                        } else {
-                            // Nếu không tồn tại bản ghi MaMon=1 thì mặc định 0
-                            giaTopping = 0;
-                            System.out.println("Không có topping (giá: 0)");
-                        }
-                    }
-                }
-            } else {
-                try (PreparedStatement psGiaTopping = conn.prepareStatement(
-                    "SELECT Gia, MaLoai FROM mon WHERE MaMon = ?")) {
-                    psGiaTopping.setInt(1, maTopping);
-                    try (ResultSet rs = psGiaTopping.executeQuery()) {
-                        if (rs.next()) {
-                            int maLoai = rs.getInt("MaLoai");
-                            if (maLoai != 4) {
-                                System.out.println("Chỉ được chọn topping thuộc loại có mã = 4.");
-                                continue;
-                            }
-                            giaTopping = rs.getLong("Gia");
-                            System.out.println("Giá topping: " + giaTopping);
-                        } else {
-                            System.out.println("Không tìm thấy topping với mã: " + maTopping);
-                            continue;
-                        }
-                    }
-                }
-            }
-            
-            // Thêm chi tiết đơn hàng
-            try (PreparedStatement ps = conn.prepareStatement(
-                "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-                ps.setInt(1, maDon);
-                ps.setInt(2, maMon);
-                ps.setInt(3, maTopping);
-                ps.setInt(4, soLuong);
-                ps.setLong(5, giaMon);
-                ps.setLong(6, giaTopping);
-                ps.setString(7, ghiChu);
-                ps.executeUpdate();
-                
-                long thanhTien = (giaMon + giaTopping) * soLuong;
-                tongTien += thanhTien;
-                System.out.println("Đã thêm món vào đơn hàng! Thành tiền: " + thanhTien);
-            }
-        }
-        
-        // Cập nhật tổng tiền (cộng dồn với tổng tiền hiện tại)
-        try (PreparedStatement ps = conn.prepareStatement(
-            "UPDATE dondathang SET TongTien = TongTien + ? WHERE MaDon = ?")) {
-            ps.setLong(1, tongTien);
-            ps.setInt(2, maDon);
-            ps.executeUpdate();
-            System.out.println("Đã thêm " + tongTien + " vào tổng tiền đơn hàng!");
-        }
-    }
-
-    public void sua() {
-        Scanner sc = new Scanner(System.in);
-        try {
-            System.out.print("Nhập ID đơn hàng cần sửa: ");
-            int id = sc.nextInt(); sc.nextLine();
-            
-            // Kiểm tra trạng thái thanh toán
-            if (kiemTraTrangThai(id)) {
-                System.out.println("Không thể sửa đơn hàng #" + id + " vì đã được thanh toán!");
-                return;
-            }
-            
-            System.out.println("=== SỬA ĐƠN HÀNG ===");
-            System.out.println("1. Thêm sản phẩm vào đơn hàng");
-            System.out.println("2. Cập nhật trạng thái đơn hàng");
-            System.out.print("Chọn chức năng (1/2): ");
-            String choice = sc.nextLine();
-            
-            if (choice.equals("1")) {
-                // Thêm sản phẩm vào đơn hàng
-                try (Connection conn = DBUtil.getConnection()) {
-                    themChiTietDonHang(id, conn, sc);
-                } catch (SQLException e) {
-                    System.out.println("Lỗi: " + e.getMessage());
-                }
-            } else if (choice.equals("2")) {
-                // Cập nhật trạng thái
-                System.out.println("=== CẬP NHẬT TRẠNG THÁI ĐƠN HÀNG ===");
-                System.out.println("1. Đã thanh toán");
-                System.out.println("2. Chưa thanh toán");
-                System.out.print("Chọn trạng thái mới (1/2): ");
-                String trangThai = sc.nextLine();
-                
-                try (Connection conn = DBUtil.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE dondathang SET TrangThai=? WHERE MaDon=?")) {
-                    ps.setString(1, trangThai);
-                    ps.setInt(2, id);
-                    int rows = ps.executeUpdate();
-                    if (rows > 0) System.out.println("Cập nhật trạng thái thành công!");
-                    else System.out.println("Không tìm thấy đơn hàng.");
-                } catch (SQLException e) {
-                    System.out.println("Lỗi: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Lựa chọn không hợp lệ!");
-            }
-        } finally {
-            sc.close();
-        }
-    }
-
-    public void xoa() {
-        Scanner sc = new Scanner(System.in);
-        try {
-            while (true) {
-                System.out.print("Nhập ID đơn hàng cần xóa (0: hủy): ");
-                String idStr = sc.nextLine();
-                if (idStr == null) continue; idStr = idStr.trim();
-                if (idStr.equals("0")) { System.out.println("Đã hủy."); break; }
-                int id;
-                try { id = Integer.parseInt(idStr); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); continue; }
-
-                if (kiemTraTrangThai(id)) {
-                    System.out.println("Không thể xóa đơn hàng #" + id + " vì đã được thanh toán!");
-                    continue;
-                }
-
-                try (Connection conn = DBUtil.getConnection();
-                     PreparedStatement ps = conn.prepareStatement("DELETE FROM dondathang WHERE MaDon=?")) {
-                    ps.setInt(1, id);
-                    int rows = ps.executeUpdate();
-                    if (rows > 0) System.out.println("Xóa đơn hàng thành công!");
-                    else System.out.println("Không tìm thấy đơn hàng.");
-                } catch (SQLException e) {
-                    System.out.println("Lỗi: " + e.getMessage());
-                }
-            }
-        } finally {
-            sc.close();
-        }
-    }
-
-    public void xuat() {
-        ConsoleUI.printHeader("DANH SÁCH ĐƠN ĐẶT HÀNG");
-        System.out.println("┌────┬────────────┬────────────┬────────────┬────────────┐");
-        System.out.println("│ ID │ Người lập  │ Trạng thái │ Ngày lập   │ Tổng tiền  │");
-        System.out.println("├────┼────────────┼────────────┼────────────┼────────────┤");
-        boolean any = false;
         try (Connection conn = DBUtil.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(
-                "SELECT d.MaDon, nv.HoTen as nguoilap, d.TrangThai, d.NgayDat, d.TongTien " +
-                "FROM dondathang d JOIN nhanvien nv ON d.MaNV = nv.MaNV ORDER BY d.MaDon")) {
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
             while (rs.next()) {
-                any = true;
-                String trangThai = rs.getString("TrangThai").equals("1") ? "Đã thanh toán" : "Chưa thanh toán";
-                System.out.printf("│ %-2d │ %-10s │ %-10s │ %-19s │ %-10d │\n",
-                    rs.getInt("MaDon"),
-                    rs.getString("nguoilap"),
-                    trangThai,
-                    rs.getString("NgayDat"),
-                    rs.getLong("TongTien")
-                );
+                DonHangDTO donHang = new DonHangDTO();
+                donHang.setMaDon(rs.getInt("MaDon"));
+                donHang.setMaNV(rs.getInt("MaNV"));
+                donHang.setLoai(rs.getString("Loai"));
+                donHang.setTrangThai(rs.getString("TrangThai"));
+                donHang.setNgayDat(rs.getTimestamp("NgayDat"));
+                donHang.setTongTien(rs.getLong("TongTien"));
+                donHang.setGiamGia(rs.getInt("GiamGia"));
+                danhSach.add(donHang);
             }
         } catch (SQLException e) {
-            System.out.println("Lỗi: " + e.getMessage());
+            e.printStackTrace();
         }
-        if (!any) System.out.println("│ Không có dữ liệu                                                   │");
-        System.out.println("└────┴────────────┴────────────┴────────────┴────────────┘");
-        ConsoleUI.printFooter();
+        return danhSach;
     }
     
-    public void xemChiTiet() {
-        Scanner sc = new Scanner(System.in);
-        try {
-            System.out.print("Nhập ID đơn hàng cần xem chi tiết: ");
-            int maDon = sc.nextInt();
-            sc.nextLine();
-            
-            ConsoleUI.printHeader("CHI TIẾT ĐƠN HÀNG #" + maDon);
-            
-            // Hiển thị thông tin đơn hàng
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                    "SELECT d.MaDon, nv.HoTen as nguoilap, d.TrangThai, d.NgayDat, d.TongTien " +
-                    "FROM dondathang d JOIN nhanvien nv ON d.MaNV = nv.MaNV WHERE d.MaDon = ?")) {
-                ps.setInt(1, maDon);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) {
-                        String trangThai = rs.getString("TrangThai").equals("1") ? "Đã thanh toán" : "Chưa thanh toán";
-                        System.out.println("Người lập: " + rs.getString("nguoilap"));
-                        System.out.println("Trạng thái: " + trangThai);
-                        System.out.println("Ngày lập: " + rs.getString("NgayDat"));
-                        System.out.println("Tổng tiền: " + rs.getLong("TongTien"));
-                    } else {
-                        System.out.println("Không tìm thấy đơn hàng với ID: " + maDon);
-                        return;
-                    }
-                }
-            } catch (SQLException e) {
-                System.out.println("Lỗi: " + e.getMessage());
-                return;
+    // Tìm kiếm đơn hàng
+    public List<DonHangDTO> timKiemDonHang(String searchType, String searchText) {
+        List<DonHangDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT * FROM dondathang WHERE ";
+        PreparedStatement ps;
+        
+        try (Connection conn = DBUtil.getConnection()) {
+            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+                sql = "SELECT * FROM dondathang ORDER BY MaDon";
+                ps = conn.prepareStatement(sql);
+            } else if (searchType.equals("ID")) {
+                sql += "MaDon = ? ORDER BY MaDon";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, Integer.parseInt(searchText));
+            } else if (searchType.equals("Mã NV")) {
+                sql += "MaNV = ? ORDER BY MaDon";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, Integer.parseInt(searchText));
+            } else if (searchType.equals("Loại")) {
+                sql += "Loai LIKE ? ORDER BY MaDon";
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, "%" + searchText + "%");
+            } else {
+                sql += "TrangThai LIKE ? ORDER BY MaDon";
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, "%" + searchText + "%");
             }
             
-            // Hiển thị chi tiết sản phẩm
-            System.out.println("\n=== CHI TIẾT SẢN PHẨM ===");
-            System.out.println("┌────────────┬────────────┬────────────┬────────────┬────────────┬────────────┐");
-            System.out.println("│ Tên món    │ Topping    │ Số lượng   │ Giá món    │ Giá topping│ Thành tiền │");
-            System.out.println("├────────────┼────────────┼────────────┼────────────┼────────────┼────────────┤");
-            
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                    "SELECT m1.TenMon as tenMon, m2.TenMon as tenTopping, ct.SoLuong, ct.GiaMon, ct.GiaTopping, ct.GhiChu " +
-                    "FROM chitietdonhang ct " +
-                    "JOIN mon m1 ON ct.MaMon = m1.MaMon " +
-                    "JOIN mon m2 ON ct.MaTopping = m2.MaMon " +
-                    "WHERE ct.MaDon = ?")) {
-                ps.setInt(1, maDon);
-                try (ResultSet rs = ps.executeQuery()) {
-                    boolean any = false;
-                    while (rs.next()) {
-                        any = true;
-                        long thanhTien = (rs.getLong("GiaMon") + rs.getLong("GiaTopping")) * rs.getInt("SoLuong");
-                        System.out.printf("│ %-10s │ %-10s │ %-10d │ %-10d │ %-10d │ %-10d │\n",
-                            rs.getString("tenMon"),
-                            rs.getString("tenTopping"),
-                            rs.getInt("SoLuong"),
-                            rs.getLong("GiaMon"),
-                            rs.getLong("GiaTopping"),
-                            thanhTien
-                        );
-                        if (rs.getString("GhiChu") != null && !rs.getString("GhiChu").trim().isEmpty()) {
-                            String ghiChu = rs.getString("GhiChu");
-                            String spaces = "                                                          ";
-                            System.out.println("│ Ghi chú: " + ghiChu + spaces.substring(0, Math.max(0, 50 - ghiChu.length())) + "│");
-                        }
-                    }
-                    if (!any) {
-                        System.out.println("│ Không có sản phẩm nào trong đơn hàng này                    │");
-                    }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    DonHangDTO donHang = new DonHangDTO();
+                    donHang.setMaDon(rs.getInt("MaDon"));
+                    donHang.setMaNV(rs.getInt("MaNV"));
+                    donHang.setLoai(rs.getString("Loai"));
+                    donHang.setTrangThai(rs.getString("TrangThai"));
+                    donHang.setNgayDat(rs.getTimestamp("NgayDat"));
+                    donHang.setTongTien(rs.getLong("TongTien"));
+                    donHang.setGiamGia(rs.getInt("GiamGia"));
+                    danhSach.add(donHang);
                 }
-            } catch (SQLException e) {
-                System.out.println("Lỗi: " + e.getMessage());
             }
-            System.out.println("└────────────┴────────────┴────────────┴────────────┴────────────┴────────────┘");
-            ConsoleUI.printFooter();
-        } finally {
-            sc.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-    }
-
-    public void timkiem() {
-        Scanner sc = new Scanner(System.in);
-        try {
-            System.out.println("Tìm theo: 1.ID  2.Người lập/Trạng thái");
-            System.out.print("Chọn: ");
-            String chStr = sc.nextLine();
-            int ch; try { ch = Integer.parseInt(chStr.trim()); } catch (NumberFormatException e) { System.out.println("Vui lòng nhập số hợp lệ."); return; }
-            String sql;
-            System.out.println("\n╔════╦════════════╦════════════╦════════════╦════════════╗");
-            System.out.println("║ ID ║ Người lập  ║ Trạng thái ║ Ngày lập   ║ Tổng tiền ║");
-            System.out.println("╠════╬════════════╬════════════╬════════════╬════════════╣");
-            try (Connection conn = DBUtil.getConnection()) {
-                if (ch == 1) {
-                    System.out.print("Nhập ID: ");
-                    String idStr = sc.nextLine();
-                    int id; try { id = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("ID không hợp lệ."); return; }
-                    sql = "SELECT d.MaDon, nv.HoTen as nguoilap, d.TrangThai, d.NgayDat, d.TongTien FROM dondathang d JOIN nhanvien nv ON d.MaNV = nv.MaNV WHERE d.MaDon = ?";
-                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                        ps.setInt(1, id);
-                        try (ResultSet rs = ps.executeQuery()) { printDDH(rs); }
-                    }
-                } else {
-                    System.out.print("Nhập từ khóa: ");
-                    String key = sc.nextLine();
-                    sql = "SELECT d.MaDon, nv.HoTen as nguoilap, d.TrangThai, d.NgayDat,  d.TongTien FROM dondathang d JOIN nhanvien nv ON d.MaNV = nv.MaNV WHERE nv.HoTen LIKE ? OR d.TrangThai LIKE ?";
-                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                        ps.setString(1, "%" + key + "%");
-                        ps.setString(2, "%" + key + "%");
-                        try (ResultSet rs = ps.executeQuery()) { printDDH(rs); }
-                    }
-                }
-            } catch (SQLException e) {
-                System.out.println("Lỗi: " + e.getMessage());
-            }
-        } finally {
-            sc.close();
-        }
-        System.out.println("╚════╩════════════╩════════════╩════════════╩════════════╩════════════╩════════════╝");
-    }
-
-    private void printDDH(ResultSet rs) throws SQLException {
-        boolean any = false;
-        while (rs.next()) {
-            any = true;
-            String trangThai = rs.getString("TrangThai").equals("1") ? "Đã thanh toán" : "Chưa thanh toán";
-            System.out.printf("║ %-2d ║ %-10s ║ %-10s ║ %-19s ║ %-10d ║\n",
-                rs.getInt("MaDon"),
-                rs.getString("nguoilap"),
-                trangThai,
-                rs.getString("NgayDat"),
-                rs.getLong("TongTien")
-            );
-        }
-        if (!any) System.out.println("║ Không có kết quả                                                             ║");
+        return danhSach;
     }
     
-    // Kiểm tra trạng thái thanh toán của đơn hàng
-    private boolean kiemTraTrangThai(int maDon) {
+    // Lấy đơn hàng theo mã
+    public DonHangDTO layDonHangTheoMa(int maDon) {
+        String sql = "SELECT * FROM dondathang WHERE MaDon = ?";
+        
         try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                "SELECT TrangThai FROM dondathang WHERE MaDon = ?")) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
             ps.setInt(1, maDon);
+            
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getString("TrangThai").equals("1"); // 1 = đã thanh toán
+                    DonHangDTO donHang = new DonHangDTO();
+                    donHang.setMaDon(rs.getInt("MaDon"));
+                    donHang.setMaNV(rs.getInt("MaNV"));
+                    donHang.setLoai(rs.getString("Loai"));
+                    donHang.setTrangThai(rs.getString("TrangThai"));
+                    donHang.setNgayDat(rs.getTimestamp("NgayDat"));
+                    donHang.setTongTien(rs.getLong("TongTien"));
+                    donHang.setGiamGia(rs.getInt("GiamGia"));
+                    return donHang;
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Lỗi kiểm tra trạng thái: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+    // Thêm đơn hàng mới
+    public boolean themDonHang(DonHangDTO donHang) {
+        String sql = "INSERT INTO dondathang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            ps.setInt(1, donHang.getMaNV());
+            ps.setString(2, donHang.getLoai());
+            ps.setString(3, donHang.getTrangThai());
+            ps.setTimestamp(4, donHang.getNgayDat());
+            ps.setLong(5, donHang.getTongTien());
+            ps.setInt(6, donHang.getGiamGia());
+            
+            int result = ps.executeUpdate();
+            
+            if (result > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        donHang.setMaDon(rs.getInt(1));
+                        return true;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
     }
     
-    // Xác nhận đã thanh toán
-    public void xacNhanThanhToan() {
-        Scanner sc = new Scanner(System.in);
-        try {
-            System.out.print("Nhập ID đơn hàng cần xác nhận thanh toán: ");
-            int id = sc.nextInt(); sc.nextLine();
+    // Cập nhật đơn hàng
+    public boolean capNhatDonHang(DonHangDTO donHang) {
+        String sql = "UPDATE dondathang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            // Kiểm tra đơn hàng có tồn tại không
-            if (!kiemTraTrangThai(id)) {
-                try (Connection conn = DBUtil.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE dondathang SET TrangThai = '1' WHERE MaDon = ?")) {
-                    ps.setInt(1, id);
-                    int rows = ps.executeUpdate();
-                    if (rows > 0) {
-                        System.out.println("Đã xác nhận thanh toán cho đơn hàng #" + id);
-                    } else {
-                        System.out.println("Không tìm thấy đơn hàng với ID: " + id);
-                    }
-                } catch (SQLException e) {
-                    System.out.println("Lỗi: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Đơn hàng #" + id + " đã được thanh toán rồi!");
-            }
-        } finally {
-            sc.close();
+            ps.setInt(1, donHang.getMaNV());
+            ps.setString(2, donHang.getLoai());
+            ps.setString(3, donHang.getTrangThai());
+            ps.setTimestamp(4, donHang.getNgayDat());
+            ps.setLong(5, donHang.getTongTien());
+            ps.setInt(6, donHang.getGiamGia());
+            ps.setInt(7, donHang.getMaDon());
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
-
-    public static class KhoHangDAO {
-        public void xemDanhSachNCC(Scanner sc) {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("SELECT MaNCC, TenNCC FROM nhacungcap")) {
-                try (ResultSet rs = ps.executeQuery()) {
-                    ConsoleUI.printHeader("DANH SÁCH NHÀ CUNG CẤP");
-                    System.out.println("┌────┬────────────────────────────┐");
-                    System.out.println("│ ID │ Tên nhà cung cấp            │");
-                    System.out.println("├────┼────────────────────────────┤");
-                    while (rs.next()) {
-                        System.out.printf("│ %-2d │ %-26s │\n", rs.getInt(1), rs.getString(2));
-                    }
-                    System.out.println("└────┴────────────────────────────┘");
-                    ConsoleUI.printFooter();
+    
+    // Xóa đơn hàng
+    public boolean xoaDonHang(int maDon) {
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            // Xóa chi tiết đơn hàng trước
+            String sqlChiTiet = "DELETE FROM chitietdonhang WHERE MaDon = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlChiTiet)) {
+                ps.setInt(1, maDon);
+                ps.executeUpdate();
+            }
+            
+            // Xóa đơn hàng
+            String sqlDonHang = "DELETE FROM dondathang WHERE MaDon = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sqlDonHang)) {
+                ps.setInt(1, maDon);
+                int result = ps.executeUpdate();
+                
+                if (result > 0) {
+                    conn.commit();
+                    return true;
+                } else {
+                    conn.rollback();
                 }
-            } catch (SQLException e) { e.printStackTrace(); }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        public void xemSanPhamNCC(Scanner sc) {
-            System.out.print(ConsoleUI.promptLabel("Nhập mã nhà cung cấp"));
-            String idStr = sc.nextLine();
-            int maNCC;
-            try { maNCC = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("Mã không hợp lệ."); return; }
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(
-                    "SELECT ncc.TenNCC, sp.MaMon, m.TenMon, sp.SoLuong, sp.DonGia FROM ncc_sanpham sp " +
-                    "JOIN nhacungcap ncc ON ncc.MaNCC=sp.MaNCC JOIN mon m ON m.MaMon=sp.MaMon WHERE sp.MaNCC=? ORDER BY sp.MaMon")) {
-                ps.setInt(1, maNCC);
-                try (ResultSet rs = ps.executeQuery()) {
-                    ConsoleUI.printHeader("SẢN PHẨM THEO NHÀ CUNG CẤP");
-                    System.out.println("┌────┬────────────────────────────┬──────────┬──────────┐");
-                    System.out.println("│ ID │ Tên món                    │ SL NCC   │ Đơn giá  │");
-                    System.out.println("├────┼────────────────────────────┼──────────┼──────────┤");
-                    boolean any=false; String tenNCC=null;
-                    while (rs.next()) {
-                        any=true; tenNCC = rs.getString(1);
-                        System.out.printf("│ %-2d │ %-26s │ %-8d │ %-8d │\n", rs.getInt(2), rs.getString(3), rs.getInt(4), rs.getLong(5));
-                    }
-                    if (!any) System.out.println("│ Không có dữ liệu                                       │");
-                    System.out.println("└────┴────────────────────────────┴──────────┴──────────┘");
-                    if (tenNCC!=null) System.out.println("Nhà cung cấp: "+tenNCC);
-                    ConsoleUI.printFooter();
-                }
-            } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+    
+    // Cập nhật trạng thái đơn hàng
+    public boolean capNhatTrangThaiDonHang(int maDon, String trangThai) {
+        String sql = "UPDATE dondathang SET TrangThai = ? WHERE MaDon = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, trangThai);
+            ps.setInt(2, maDon);
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        public void xemNguyenLieuNCC(Scanner sc) {
-            System.out.print(ConsoleUI.promptLabel("Nhập mã nhà cung cấp"));
-            String idStr = sc.nextLine();
-            int maNCC;
-            try { maNCC = Integer.parseInt(idStr.trim()); } catch (NumberFormatException e) { System.out.println("Mã không hợp lệ."); return; }
-            String sql = "SELECT ncc.TenNCC, nl.MaNL, nl.TenNL, nccnl.SoLuong, nccnl.DonGia, nl.DonVi " +
-                         "FROM ncc_nguyenlieu nccnl " +
-                         "JOIN nhacungcap ncc ON ncc.MaNCC=nccnl.MaNCC " +
-                         "JOIN nguyenlieu nl ON nl.MaNL=nccnl.MaNL " +
-                         "WHERE nccnl.MaNCC=? ORDER BY nl.MaNL";
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement(sql)) {
-                ps.setInt(1, maNCC);
-                try (ResultSet rs = ps.executeQuery()) {
-                    ConsoleUI.printHeader("NGUYÊN LIỆU THEO NHÀ CUNG CẤP");
-                    System.out.println("┌────┬────────────────────────────┬──────────┬──────────┬──────────┐");
-                    System.out.println("│ ID │ Tên nguyên liệu            │ Đơn vị   │ SL NCC   │ Đơn giá  │");
-                    System.out.println("├────┼────────────────────────────┼──────────┼──────────┼──────────┤");
-                    boolean any=false; String tenNCC=null;
-                    while (rs.next()) {
-                        any=true; tenNCC = rs.getString(1);
-                        System.out.printf("│ %-2d │ %-26s │ %-8s │ %-8d │ %-8d │\n", rs.getInt(2), rs.getString(3), rs.getString(6), rs.getInt(4), rs.getLong(5));
-                    }
-                    if (!any) System.out.println("│ Không có dữ liệu                                                    │");
-                    System.out.println("└────┴────────────────────────────┴──────────┴──────────┴──────────┘");
-                    if (tenNCC!=null) System.out.println("Nhà cung cấp: "+tenNCC);
-                    ConsoleUI.printFooter();
-                }
-            } catch (SQLException e) { e.printStackTrace(); }
-        }
-
-        public void xemTonNguyenLieu() {
-            ConsoleUI.printHeader("TỒN KHO NGUYÊN LIỆU");
-            System.out.println("┌────┬────────────────────────────┬──────────┬──────────┐");
-            System.out.println("│ ID │ Tên nguyên liệu            │ Đơn vị   │ Tồn      │");
-            System.out.println("├────┼────────────────────────────┼──────────┼──────────┤");
-            boolean any = false;
-            String sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, IFNULL(k.SoLuong,0) SoLuong " +
-                         "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
-            try (Connection conn = DBUtil.getConnection();
-                 Statement st = conn.createStatement();
-                 ResultSet rs = st.executeQuery(sql)) {
+        return false;
+    }
+    
+    // ========== CHI TIẾT ĐƠN HÀNG ==========
+    
+    // Lấy chi tiết đơn hàng
+    public List<ChiTietDonHangDTO> layChiTietDonHang(int maDon) {
+        List<ChiTietDonHangDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT ctdh.*, m1.TenMon AS TenMon, m2.TenMon AS TenTopping " +
+                    "FROM chitietdonhang ctdh " +
+                    "LEFT JOIN mon m1 ON ctdh.MaMon = m1.MaMon " +
+                    "LEFT JOIN mon m2 ON ctdh.MaTopping = m2.MaMon " +
+                    "WHERE ctdh.MaDon = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maDon);
+            
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    any = true;
-                    System.out.printf("│ %-2d │ %-26s │ %-8s │ %-8d │\n",
-                        rs.getInt("MaNL"), rs.getString("TenNL"), rs.getString("DonVi"),
-                        rs.getInt("SoLuong"));
+                    ChiTietDonHangDTO chiTiet = new ChiTietDonHangDTO();
+                    chiTiet.setMaDon(rs.getInt("MaDon"));
+                    chiTiet.setMaMon(rs.getInt("MaMon"));
+                    chiTiet.setMaTopping(rs.getInt("MaTopping"));
+                    chiTiet.setSoLuong(rs.getInt("SoLuong"));
+                    chiTiet.setGiaMon(rs.getLong("GiaMon"));
+                    chiTiet.setGiaTopping(rs.getLong("GiaTopping"));
+                    chiTiet.setGhiChu(rs.getString("GhiChu"));
+                    chiTiet.setTenMon(rs.getString("TenMon"));
+                    chiTiet.setTenTopping(rs.getString("TenTopping"));
+                    danhSach.add(chiTiet);
                 }
-            } catch (SQLException e) { e.printStackTrace(); }
-            if (!any) System.out.println("│ Không có dữ liệu                                                     │");
-            System.out.println("└────┴────────────────────────────┴──────────┴──────────┘");
-            ConsoleUI.printFooter();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        public void xemTon() {
-            ConsoleUI.printHeader("TỒN KHO");
-            System.out.println("┌────┬────────────────────────────┬──────────┬──────────┐");
-            System.out.println("│ ID │ Tên món                    │ Đơn vị   │ Tồn      │");
-            System.out.println("├────┼────────────────────────────┼──────────┼──────────┤");
-            boolean any = false;
-            String sql = "SELECT m.MaMon, m.TenMon, m.TenDonVi, IFNULL(k.SoLuong,0) SoLuong " +
-                         "FROM mon m LEFT JOIN khohang k ON m.MaMon = k.MaMon ORDER BY m.MaMon";
-            try (Connection conn = DBUtil.getConnection();
-                 Statement st = conn.createStatement();
-                 ResultSet rs = st.executeQuery(sql)) {
-                while (rs.next()) {
-                    any = true;
-                    System.out.printf("│ %-2d │ %-26s │ %-8s │ %-8d │\n",
-                        rs.getInt("MaMon"), rs.getString("TenMon"), rs.getString("TenDonVi"),
-                        rs.getInt("SoLuong"));
+        return danhSach;
+    }
+    
+    // Thêm chi tiết đơn hàng
+    public boolean themChiTietDonHang(ChiTietDonHangDTO chiTiet) {
+        String sql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, chiTiet.getMaDon());
+            ps.setInt(2, chiTiet.getMaMon());
+            ps.setInt(3, chiTiet.getMaTopping());
+            ps.setInt(4, chiTiet.getSoLuong());
+            ps.setLong(5, chiTiet.getGiaMon());
+            ps.setLong(6, chiTiet.getGiaTopping());
+            ps.setString(7, chiTiet.getGhiChu());
+            
+            int result = ps.executeUpdate();
+            return result > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Xóa tất cả chi tiết đơn hàng
+    public boolean xoaTatCaChiTietDonHang(int maDon) {
+        String sql = "DELETE FROM chitietdonhang WHERE MaDon = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maDon);
+            int result = ps.executeUpdate();
+            return result >= 0; // >= 0 vì có thể không có chi tiết nào
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    // Lấy thông tin đơn hàng với tên nhân viên
+    public DonHangDTO layDonHangVoiTenNV(int maDon) {
+        String sql = "SELECT dh.*, nv.HoTen FROM dondathang dh " +
+                    "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
+                    "WHERE dh.MaDon = ?";
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setInt(1, maDon);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    DonHangDTO donHang = new DonHangDTO();
+                    donHang.setMaDon(rs.getInt("MaDon"));
+                    donHang.setMaNV(rs.getInt("MaNV"));
+                    donHang.setLoai(rs.getString("Loai"));
+                    donHang.setTrangThai(rs.getString("TrangThai"));
+                    donHang.setNgayDat(rs.getTimestamp("NgayDat"));
+                    donHang.setTongTien(rs.getLong("TongTien"));
+                    donHang.setGiamGia(rs.getInt("GiamGia"));
+                    donHang.setTenNV(rs.getString("HoTen"));
+                    return donHang;
                 }
-            } catch (SQLException e) { e.printStackTrace(); }
-            if (!any) System.out.println("│ Không có dữ liệu                                                     │");
-            System.out.println("└────┴────────────────────────────┴──────────┴──────────┘");
-            ConsoleUI.printFooter();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 }

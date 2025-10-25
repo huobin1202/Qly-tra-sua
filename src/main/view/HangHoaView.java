@@ -10,7 +10,7 @@ import dto.MonDTO;
 import dto.NguyenLieuDTO;
 import dto.LoaiMonDTO;
 
-public class HangHoaSwingView extends JPanel {
+public class HangHoaView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
@@ -29,7 +29,7 @@ public class HangHoaSwingView extends JPanel {
         return currentView;
     }
     
-    public HangHoaSwingView(MainFrameInterface parent) {
+    public HangHoaView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
@@ -75,16 +75,6 @@ public class HangHoaSwingView extends JPanel {
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         controlPanel.setBackground(new Color(240, 248, 255));
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        // Không hiển thị dropdown và nút chuyển đổi nữa
-        // controlPanel.add(new JLabel("Loại:"));
-        // controlPanel.add(categoryCombo);
-        // JButton switchButton = new JButton("🔄 Chuyển đổi");
-        // switchButton.setBackground(new Color(70, 130, 180));
-        // switchButton.setForeground(Color.BLACK);
-        // switchButton.setFocusPainted(false);
-        // controlPanel.add(switchButton);
-        
         // Top panel - chứa search và buttons trong cùng một hàng
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(240, 248, 255));
@@ -595,7 +585,7 @@ public class HangHoaSwingView extends JPanel {
     
     // Inner class for Mon Add/Edit dialog
     private class MonDialog extends JDialog {
-        private JTextField tenField, moTaField, donViField, giaField, anhField;
+        private JTextField tenField, moTaField, giaField, anhField;
         private JComboBox<String> tinhTrangCombo, loaiCombo;
         private JButton chooseImageButton;
         private JLabel imagePreviewLabel;
@@ -616,7 +606,6 @@ public class HangHoaSwingView extends JPanel {
             
             tenField = new JTextField(25);
             moTaField = new JTextField(25);
-            donViField = new JTextField(25);
             giaField = new JTextField(25);
             anhField = new JTextField(25);
             anhField.setEditable(false);
@@ -639,7 +628,6 @@ public class HangHoaSwingView extends JPanel {
             if (mon != null) {
                 tenField.setText(mon.getTenMon());
                 moTaField.setText(mon.getMoTa());
-                // donViField.setText(mon.getTenDonVi()); // Method not available
                 giaField.setText(String.valueOf(mon.getGia()));
                 tinhTrangCombo.setSelectedItem(mon.getTinhTrang());
                 anhField.setText(mon.getAnh() != null ? mon.getAnh() : "");
@@ -801,12 +789,11 @@ public class HangHoaSwingView extends JPanel {
         private void saveData() {
             String ten = tenField.getText().trim();
             String moTa = moTaField.getText().trim();
-            String donVi = donViField.getText().trim();
             String giaStr = giaField.getText().trim();
             String tinhTrang = (String) tinhTrangCombo.getSelectedItem();
             String loai = (String) loaiCombo.getSelectedItem();
             
-            if (ten.isEmpty() || donVi.isEmpty() || giaStr.isEmpty()) {
+            if (ten.isEmpty() || giaStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }

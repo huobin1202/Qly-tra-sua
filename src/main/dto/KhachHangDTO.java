@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 
 public class KhachHangDTO implements Inhapxuat {
     private int maKH;
-    private String sdt;
+    private String soDienThoai;
     private String hoTen;
     private String diaChi;
     private Timestamp ngaySinh;
@@ -15,9 +15,9 @@ public class KhachHangDTO implements Inhapxuat {
     public KhachHangDTO() {
     }
 
-    public KhachHangDTO(int maKH, String sdt, String hoTen, String diaChi, Timestamp ngaySinh) {
+    public KhachHangDTO(int maKH, String soDienThoai, String hoTen, String diaChi, Timestamp ngaySinh) {
         this.maKH = maKH;
-        this.sdt = sdt;
+        this.soDienThoai = soDienThoai;
         this.hoTen = hoTen;
         this.diaChi = diaChi;
         this.ngaySinh = ngaySinh;
@@ -31,12 +31,12 @@ public class KhachHangDTO implements Inhapxuat {
         this.maKH = maKH;
     }
 
-    public String getSdt() {
-        return sdt;
+    public String getSoDienThoai() {
+        return soDienThoai;
     }
 
-    public void setSdt(String sdt) {
-        this.sdt = sdt;
+    public void setSoDienThoai(String soDienThoai) {
+        this.soDienThoai = soDienThoai;
     }
 
     public String getHoTen() {
@@ -68,7 +68,7 @@ public class KhachHangDTO implements Inhapxuat {
         Scanner sc = new Scanner(System.in);
         try {
             System.out.print("Nhập số điện thoại: ");
-            sdt = sc.nextLine();
+            soDienThoai = sc.nextLine();
             System.out.print("Nhập họ tên: ");
             hoTen = sc.nextLine();
             System.out.print("Nhập địa chỉ: ");
@@ -85,6 +85,6 @@ public class KhachHangDTO implements Inhapxuat {
 
     @Override
     public void xuat() {
-        System.out.printf("%-10d %-15s %-20s %-30s %-20s\n", maKH, sdt, hoTen, diaChi, ngaySinh);
+        System.out.printf("%-10d %-15s %-20s %-30s %-20s\n", maKH, soDienThoai, hoTen, diaChi, ngaySinh);
     }
 }

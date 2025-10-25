@@ -257,7 +257,7 @@ CREATE TABLE `mon` (
   `TenMon` varchar(50) NOT NULL,
   `MoTa` varchar(500) DEFAULT NULL,
   `Gia` bigint(20) NOT NULL,
-  `TinhTrang` varchar(20) NOT NULL DEFAULT 'ban',
+  `TinhTrang` varchar(20) NOT NULL DEFAULT 'Đang bán',
   `MaLoai` int(11) NOT NULL,
   `Anh` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -267,23 +267,23 @@ CREATE TABLE `mon` (
 --
 
 INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `Gia`, `TinhTrang`, `MaLoai`, `Anh`) VALUES
-(1, 'No Topping', '', 0, 'ban', 4, 'images/no_topping.jpg'),
-(2, 'Trân Châu Tuyết Sợi', '', 10000, 'ban', 4, 'images/tran_chau_tuyet_soi.jpg'),
-(3, 'Trân Châu Đen', '', 10000, 'ban', 4, 'images/tran_chau_den.jpg'),
-(4, 'Trân Châu Trắng', '', 10000, 'ban', 4, 'images/tran_chau_trang.jpg'),
-(5, 'Trà Sữa Trân Châu', '', 50000, 'ban', 2, 'images/tra_sua_tran_chau.jpg'),
-(6, 'Trà Sữa Sương Sáo', '', 45000, 'ban', 2, 'images/tra_sua_suong_sao.jpg'),
-(7, 'Trà Sữa Matcha(L)', '', 50000, 'ban', 2, 'images/tra_sua_matcha_l.jpg'),
-(8, 'Sữa Tươi Trân Châu Đường Đen', '', 45000, 'ban', 2, 'images/sua_tuoi_tran_chau_duong_den.jpg'),
-(9, 'Bánh Flan', '', 10000, 'ban', 2, 'images/banh_flan.jpg'),
-(10, 'Hướng dương', '', 10000, 'ban', 1, 'images/huong_duong.jpg'),
-(11, 'Cafe truyền thống', '', 35000, 'ban', 3, 'images/cafe_truyen_thong.jpg'),
-(12, 'Espresso', '', 45000, 'ban', 3, 'images/espresso.jpg'),
-(13, 'Trà Sữa Matcha(XL)', '', 25000, 'ban', 2, 'images/tra_sua_matcha_xl.jpg'),
-(14, 'Trà Sữa Ô Long', '', 20000, 'ban', 2, 'images/tra_sua_o_long.jpg'),
-(15, 'Trà Đào', '', 40000, 'ban', 2, 'images/tra_dao.jpg'),
-(16, 'Trà Đào(L)', '', 50000, 'ban', 2, 'images/tra_dao_l.jpg'),
-(18, 'Trà Nhãn - Sen', '', 45000, 'ban', 2, 'images/tra_nhan_sen.jpg');
+(1, 'No Topping', '', 0, 'Đang bán', 4, 'images/no_topping.jpg'),
+(2, 'Trân Châu Tuyết Sợi', '', 10000, 'Đang bán', 4, 'images/tran_chau_tuyet_soi.jpg'),
+(3, 'Trân Châu Đen', '', 10000, 'Đang bán', 4, 'images/tran_chau_den.jpg'),
+(4, 'Trân Châu Trắng', '', 10000, 'Đang bán', 4, 'images/tran_chau_trang.jpg'),
+(5, 'Trà Sữa Trân Châu', '', 50000, 'Đang bán', 2, 'images/tra_sua_tran_chau.jpg'),
+(6, 'Trà Sữa Sương Sáo', '', 45000, 'Đang bán', 2, 'images/tra_sua_suong_sao.jpg'),
+(7, 'Trà Sữa Matcha(L)', '', 50000, 'Đang bán', 2, 'images/tra_sua_matcha_l.jpg'),
+(8, 'Sữa Tươi Trân Châu Đường Đen', '', 45000, 'Đang bán', 2, 'images/sua_tuoi_tran_chau_duong_den.jpg'),
+(9, 'Bánh Flan', '', 10000, 'Đang bán', 2, 'images/Đang bánh_flan.jpg'),
+(10, 'Hướng dương', '', 10000, 'Đang bán', 1, 'images/huong_duong.jpg'),
+(11, 'Cafe truyền thống', '', 35000, 'Đang bán', 3, 'images/cafe_truyen_thong.jpg'),
+(12, 'Espresso', '', 45000, 'Đang bán', 3, 'images/espresso.jpg'),
+(13, 'Trà Sữa Matcha(XL)', '', 25000, 'Đang bán', 2, 'images/tra_sua_matcha_xl.jpg'),
+(14, 'Trà Sữa Ô Long', '', 20000, 'Đang bán', 2, 'images/tra_sua_o_long.jpg'),
+(15, 'Trà Đào', '', 40000, 'Đang bán', 2, 'images/tra_dao.jpg'),
+(16, 'Trà Đào(L)', '', 50000, 'Đang bán', 2, 'images/tra_dao_l.jpg'),
+(18, 'Trà Nhãn - Sen', '', 45000, 'Đang bán', 2, 'images/tra_nhan_sen.jpg');
 
 -- --------------------------------------------------------
 
