@@ -214,6 +214,12 @@ public class LoginDialog extends JDialog {
                 // Lưu thông tin session
                 database.Session.currentMaNV = rs.getInt("MaNV");
                 database.Session.currentTaiKhoan = rs.getString("TaiKhoan");
+                database.Session.currentChucVu = rs.getString("ChucVu");
+                
+                // Debug: In ra thông tin để kiểm tra
+                System.out.println("Debug Login - MaNV: " + database.Session.currentMaNV);
+                System.out.println("Debug Login - TaiKhoan: " + database.Session.currentTaiKhoan);
+                System.out.println("Debug Login - ChucVu: " + database.Session.currentChucVu);
                 
                 loginSuccessful = true;
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);

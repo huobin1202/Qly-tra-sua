@@ -40,7 +40,7 @@ public class Runner {
                     nhanVienDAO.chuanHoaChucVuNhanVien();
                     
                     // Hiển thị ứng dụng chính
-                    MainDashboard mainApp = new MainDashboard();
+                    MainDashboard mainApp = new MainDashboard() ;
                     mainApp.setVisible(true);
                 } else {
                     // Thoát chương trình nếu đăng nhập thất bại

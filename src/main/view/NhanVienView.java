@@ -8,14 +8,14 @@ import java.text.SimpleDateFormat;
 import database.DBUtil;
 import dto.NhanVienDTO;
 
-public class NhanVienSwing extends JPanel {
+public class NhanVienView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
     
-    public NhanVienSwing(MainFrameInterface parent) {
+    public NhanVienView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();

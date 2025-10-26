@@ -16,7 +16,7 @@ import dto.SanPhamChonNhapDTO;
 import dto.NhaCungCapDTO;
 import database.Session;
 
-public class NhapHangMoiView extends JPanel {
+public class ThemNhapHangView extends JPanel {
     // Left panel components
     private JTable supplierProductsTable;
     private DefaultTableModel supplierProductsTableModel;
@@ -44,7 +44,7 @@ public class NhapHangMoiView extends JPanel {
     private int currentSupplierId;
     private int editModeMaPN = -1; // -1 = thêm mới, >0 = sửa phiếu nhập
     
-    public NhapHangMoiView() {
+    public ThemNhapHangView() {
         this.editModeMaPN = -1; // Chế độ thêm mới
         initializeComponents();
         setupLayout();
@@ -52,7 +52,7 @@ public class NhapHangMoiView extends JPanel {
         loadInitialData();
     }
     
-    public NhapHangMoiView(int maPN) {
+    public ThemNhapHangView(int maPN) {
         this.editModeMaPN = maPN; // Chế độ sửa
         initializeComponents();
         setupLayout();

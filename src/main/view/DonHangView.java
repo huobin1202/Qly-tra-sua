@@ -201,11 +201,10 @@ public class DonHangView extends JPanel {
     }
     
     private void showAddDialog() {
-        DonHangDialog dialog = new DonHangDialog(SwingUtilities.getWindowAncestor(this), "Thêm đơn hàng mới", null);
+        ThemDonHangView dialog = new ThemDonHangView(SwingUtilities.getWindowAncestor(this));
         dialog.setVisible(true);
-        if (dialog.isDataChanged()) {
-            loadData();
-        }
+        // Làm mới dữ liệu sau khi đóng dialog
+        loadData();
     }
     
     private void showEditDialog() {
@@ -227,7 +226,7 @@ public class DonHangView extends JPanel {
         }
         
         // Mở giao diện sửa hóa đơn mới
-        SuaHoaDonView editDialog = new SuaHoaDonView(SwingUtilities.getWindowAncestor(this), id);
+        SuaDonHangView editDialog = new SuaDonHangView(SwingUtilities.getWindowAncestor(this), id);
         editDialog.setVisible(true);
         
         // Làm mới dữ liệu sau khi đóng dialog
@@ -255,30 +254,61 @@ public class DonHangView extends JPanel {
             List<ChiTietDonHangDTO> chiTietList = donHangDAO.layChiTietDonHang(maDon);
             
             StringBuilder detail = new StringBuilder();
-            detail.append("CHI TIẾT ĐƠN HÀNG #").append(maDon).append("\n\n");
-            detail.append("Mã đơn: ").append(donHang.getMaDon()).append("\n");
-            detail.append("Mã NV: ").append(donHang.getMaNV()).append("\n");
-            detail.append("Loại: ").append(donHang.getLoai()).append("\n");
-            detail.append("Trạng thái: ").append(convertTrangThaiToUI(donHang.getTrangThai())).append("\n");
-            detail.append("Ngày đặt: ").append(donHang.getNgayDat()).append("\n");
-            detail.append("Tổng tiền: ").append(String.format("%,d", donHang.getTongTien())).append(" VNĐ\n");
-            detail.append("Giảm giá: ").append(donHang.getGiamGia()).append("%\n\n");
+            
+            // Header
+            detail.append("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
+            detail.append("║                                        HÓA ĐƠN                                          ║\n");
+            detail.append("║                                        #").append(String.format("%-6d", maDon)).append("                                        ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            
+            // Thông tin đơn hàng
+            detail.append("║ Mã đơn hàng: ").append(String.format("%-20s", donHang.getMaDon())).append(" Ngày đặt: ").append(String.format("%-20s", donHang.getNgayDat())).append(" ║\n");
+            detail.append("║ Mã nhân viên: ").append(String.format("%-20s", donHang.getMaNV())).append(" Loại: ").append(String.format("%-20s", donHang.getLoai())).append(" ║\n");
+            detail.append("║ Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(donHang.getTrangThai()))).append(" Giảm giá: ").append(String.format("%-20s", donHang.getGiamGia() + "%")).append(" ║\n");
+            
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            detail.append("║                                    CHI TIẾT MÓN ĂN                                    ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            detail.append("║ STT │ Tên món ăn              │ Topping           │ Số lượng │ Đơn giá      │ Thành tiền    ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
             
             // Chi tiết món
-            detail.append("CHI TIẾT MÓN:\n");
             if (chiTietList.isEmpty()) {
-                detail.append("Không có chi tiết món.\n");
+                detail.append("║ ").append("                                ").append("Không có chi tiết món").append("                                ").append(" ║\n");
             } else {
+                int stt = 1;
+                long tongTien = 0;
                 for (ChiTietDonHangDTO chiTiet : chiTietList) {
                     long thanhTien = (chiTiet.getGiaMon() + chiTiet.getGiaTopping()) * chiTiet.getSoLuong();
+                    tongTien += thanhTien;
+                    
+                    String tenMon = chiTiet.getTenMon();
+                    if (tenMon.length() > 20) {
+                        tenMon = tenMon.substring(0, 17) + "...";
+                    }
+                    
                     String toppingName = chiTiet.getTenTopping();
-                    detail.append("- ")
-                          .append(chiTiet.getTenMon())
-                          .append(toppingName != null && !toppingName.isEmpty() ? " + " + toppingName : "")
-                          .append(" x").append(chiTiet.getSoLuong())
-                          .append(" = ").append(String.format("%,d", thanhTien)).append(" VNĐ\n");
+                    if (toppingName == null || toppingName.isEmpty()) {
+                        toppingName = "Không";
+                    } else if (toppingName.length() > 15) {
+                        toppingName = toppingName.substring(0, 12) + "...";
+                    }
+                    
+                    detail.append(String.format("║ %-3d │ %-22s │ %-17s │ %-8d │ %-12s │ %-13s ║\n",
+                        stt++,
+                        tenMon,
+                        toppingName,
+                        chiTiet.getSoLuong(),
+                        String.format("%,d VNĐ", chiTiet.getGiaMon() + chiTiet.getGiaTopping()),
+                        String.format("%,d VNĐ", thanhTien)
+                    ));
                 }
+                
+                detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                detail.append("║ ").append("                                ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                                ").append(" ║\n");
             }
+            
+            detail.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
             
             JTextArea textArea = new JTextArea(detail.toString());
             textArea.setEditable(false);
@@ -287,7 +317,31 @@ public class DonHangView extends JPanel {
             JScrollPane scrollPane = new JScrollPane(textArea);
             scrollPane.setPreferredSize(new Dimension(500, 400));
             
-            JOptionPane.showMessageDialog(this, scrollPane, "Chi tiết đơn hàng", JOptionPane.INFORMATION_MESSAGE);
+            // Tạo panel chứa text area và buttons
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.add(scrollPane, BorderLayout.CENTER);
+            
+            // Panel chứa các nút
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+            
+            JButton printButton = new JButton("🖨️ In hóa đơn");
+            printButton.setBackground(new Color(70, 130, 180));
+            printButton.setForeground(Color.WHITE);
+            printButton.setFocusPainted(false);
+            printButton.addActionListener(e -> printInvoice(detail.toString(), maDon));
+            
+            JButton exportButton = new JButton("💾 Xuất file");
+            exportButton.setBackground(new Color(34, 139, 34));
+            exportButton.setForeground(Color.WHITE);
+            exportButton.setFocusPainted(false);
+            exportButton.addActionListener(e -> exportInvoice(detail.toString(), maDon));
+            
+            buttonPanel.add(printButton);
+            buttonPanel.add(exportButton);
+            
+            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+            
+            JOptionPane.showMessageDialog(this, mainPanel, "Chi tiết đơn hàng", JOptionPane.INFORMATION_MESSAGE);
             
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải chi tiết: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -549,5 +603,35 @@ public class DonHangView extends JPanel {
             return "bihuy";
         }
         return "chuathanhtoan"; // Mặc định
+    }
+    
+    private void printInvoice(String content, int maDon) {
+        try {
+            // Tạo một JTextArea để in
+            JTextArea printArea = new JTextArea(content);
+            printArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            printArea.print();
+            
+            JOptionPane.showMessageDialog(this, "In hóa đơn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi in hóa đơn: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void exportInvoice(String content, int maDon) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Xuất hóa đơn");
+        fileChooser.setSelectedFile(new java.io.File("HoaDon_" + maDon + "_" + 
+            new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".txt"));
+        
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            try (java.io.FileWriter writer = new java.io.FileWriter(fileChooser.getSelectedFile())) {
+                writer.write(content);
+                JOptionPane.showMessageDialog(this, "Xuất hóa đơn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } catch (java.io.IOException e) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
     }
 }

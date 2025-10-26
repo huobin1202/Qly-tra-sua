@@ -69,14 +69,14 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         
         roleLabel = new JLabel("Admin");
         roleLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        roleLabel.setForeground(Color.WHITE);
+        roleLabel.setForeground(Color.BLACK);
         roleLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         roleLabel.setBackground(new Color(56, 142, 60));
         roleLabel.setOpaque(true);
         
         JButton exitButton = new JButton("Đăng xuất");
         exitButton.setFont(new Font("Arial", Font.BOLD, 12));
-        exitButton.setForeground(Color.WHITE);
+        exitButton.setForeground(Color.BLACK);
         exitButton.setBackground(new Color(76, 175, 80));
         exitButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         exitButton.setFocusPainted(false);
@@ -90,7 +90,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         // Thông tin người dùng
         userInfoLabel = new JLabel("Đang tải...");
         userInfoLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        userInfoLabel.setForeground(Color.WHITE);
+        userInfoLabel.setForeground(Color.BLACK);
         userInfoLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         userPanel.add(userInfoLabel, BorderLayout.CENTER);
         
@@ -148,14 +148,14 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
             String currentUser = Session.currentTaiKhoan;
             if (currentUser != null && !currentUser.isEmpty()) {
                 Connection conn = DBUtil.getConnection();
-                String sql = "SELECT HoTen, ChucVu FROM nhanvien WHERE TaiKhoan = ?";
+                String sql = "SELECT HoTen FROM nhanvien WHERE TaiKhoan = ?";
                 PreparedStatement stmt = conn.prepareStatement(sql);
                 stmt.setString(1, currentUser);
                 ResultSet rs = stmt.executeQuery();
                 
                 if (rs.next()) {
                     String hoTen = rs.getString("HoTen");
-                    String chucVu = rs.getString("ChucVu");
+                    String chucVu = Session.currentChucVu; // Sử dụng chức vụ từ Session
                     
                     userInfoLabel.setText("<html><div style='text-align: center;'>" +
                                         "<div style='font-weight: bold;'>" + hoTen + "</div>" +
@@ -186,11 +186,12 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         button.setFont(new Font("Arial", Font.PLAIN, 14));
         button.setPreferredSize(new Dimension(230, 50));
         button.setMaximumSize(new Dimension(230, 50));
-        button.setBackground(Color.WHITE);
+        button.setBackground(Color.BLACK);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
+        button.setHorizontalAlignment(SwingConstants.LEFT);
         
         // Hover effect
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -198,7 +199,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 button.setBackground(new Color(200, 230, 255));
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.WHITE);
+                button.setBackground(Color.BLACK);
             }
         });
         
@@ -222,11 +223,12 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         mainButton.setFont(new Font("Arial", Font.PLAIN, 14));
         mainButton.setPreferredSize(new Dimension(230, 50));
         mainButton.setMaximumSize(new Dimension(230, 50));
-        mainButton.setBackground(Color.WHITE);
+        mainButton.setBackground(Color.BLACK);
         mainButton.setForeground(Color.BLACK);
         mainButton.setFocusPainted(false);
         mainButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         mainButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        mainButton.setHorizontalAlignment(SwingConstants.LEFT);
         
         // Panel chứa các submenu (ẩn ban đầu)
         JPanel subMenuPanel = new JPanel();
@@ -270,7 +272,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 mainButton.setBackground(new Color(200, 230, 255));
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                mainButton.setBackground(Color.WHITE);
+                mainButton.setBackground(Color.BLACK);
             }
         });
         
@@ -293,6 +295,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         button.setAlignmentX(Component.LEFT_ALIGNMENT);
+        button.setHorizontalAlignment(SwingConstants.LEFT);
         
         // Hover effect
         button.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -367,7 +370,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         button.setFont(new Font("Arial", Font.PLAIN, 12));
         button.setPreferredSize(new Dimension(100, 80));
         button.setMaximumSize(new Dimension(100, 80));
-        button.setBackground(Color.WHITE);
+        button.setBackground(Color.BLACK);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
         button.setBorder(BorderFactory.createRaisedBevelBorder());
@@ -378,7 +381,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 button.setBackground(new Color(200, 230, 255));
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.WHITE);
+                button.setBackground(Color.BLACK);
             }
         });
         
@@ -390,11 +393,12 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         mainPanel.add(createDefaultView(), "DEFAULT");
         mainPanel.add(new NhaCungCapView(this), "NHA_CUNG_CAP");
         mainPanel.add(new KhachHangView(this), "KHACH_HANG");
-        mainPanel.add(new NhanVienSwing(this), "NHAN_VIEN");
+        mainPanel.add(new NhanVienView(this), "NHAN_VIEN");
         mainPanel.add(new DonHangView(this), "DON_HANG");
         mainPanel.add(new GiaoHangView(), "GIAO_HANG");
         mainPanel.add(new KhoHangView(this), "KHO_HANG");
         mainPanel.add(new NhapHangView(this), "NHAP_HANG");
+        mainPanel.add(new ThongKeView(), "THONG_KE");
         // Tạo các view riêng biệt cho từng loại hàng hóa
         mainPanel.add(createMonView(), "MON");
         mainPanel.add(createLoaiMonView(), "LOAIMON");
@@ -403,7 +407,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     
     private JPanel createDefaultView() {
         JPanel defaultPanel = new JPanel(new BorderLayout());
-        defaultPanel.setBackground(Color.WHITE);
+        defaultPanel.setBackground(Color.BLACK);
         
         // Tạo bảng mẫu như trong ảnh
         String[] columnNames = {"ID", "Tên Món", "Mô tả", "Link ảnh", "Tên đv", "Giá đv", "Mã loại"};
@@ -475,6 +479,11 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         );
         
         if (result == JOptionPane.YES_OPTION) {
+            // Reset Session
+            Session.currentMaNV = 0;
+            Session.currentTaiKhoan = null;
+            Session.currentChucVu = null;
+            
             // Đóng cửa sổ hiện tại
             dispose();
             
@@ -518,22 +527,35 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         try {
             String currentUser = Session.currentTaiKhoan;
             if (currentUser != null && !currentUser.isEmpty()) {
-                // Lấy thông tin chi tiết từ database
-                Connection conn = DBUtil.getConnection();
-                String sql = "SELECT HoTen, ChucVu FROM nhanvien WHERE TaiKhoan = ?";
-                PreparedStatement stmt = conn.prepareStatement(sql);
-                stmt.setString(1, currentUser);
-                ResultSet rs = stmt.executeQuery();
+                // Sử dụng chức vụ đã lưu trong Session
+                currentUserRole = Session.currentChucVu;
                 
-                if (rs.next()) {
-                    String chucVu = rs.getString("ChucVu");
-                    // Lưu chức vụ hiện tại
-                    currentUserRole = chucVu;
+                // Debug: In ra thông tin để kiểm tra
+                System.out.println("Debug - Current User: " + currentUser);
+                System.out.println("Debug - Current Role from Session: " + currentUserRole);
+                
+                // Nếu chưa có chức vụ trong Session, query từ database
+                if (currentUserRole == null || currentUserRole.isEmpty()) {
+                    System.out.println("Debug - Querying database for role...");
+                    Connection conn = DBUtil.getConnection();
+                    String sql = "SELECT HoTen, ChucVu FROM nhanvien WHERE TaiKhoan = ?";
+                    PreparedStatement stmt = conn.prepareStatement(sql);
+                    stmt.setString(1, currentUser);
+                    ResultSet rs = stmt.executeQuery();
+                    
+                    if (rs.next()) {
+                        String chucVu = rs.getString("ChucVu");
+                        currentUserRole = chucVu;
+                        Session.currentChucVu = chucVu; // Cập nhật lại Session
+                        System.out.println("Debug - Role from DB: " + chucVu);
+                    }
+                    
+                    rs.close();
+                    stmt.close();
+                    conn.close();
                 }
                 
-                rs.close();
-                stmt.close();
-                conn.close();
+                System.out.println("Debug - Final Role: " + currentUserRole);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -583,7 +605,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 cardLayout.show(mainPanel, "KHO_HANG");
                 break;
             case "Thống kê":
-                JOptionPane.showMessageDialog(this, "Chức năng đang được phát triển", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                cardLayout.show(mainPanel, "THONG_KE");
                 break;
             case "Thiết lập":
                 JOptionPane.showMessageDialog(this, "Chức năng đang được phát triển", "Thông báo", JOptionPane.INFORMATION_MESSAGE);

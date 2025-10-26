@@ -11,7 +11,7 @@ import dto.ChiTietDonHangDTO;
 import dto.MonDTO;
 import dto.LoaiMonDTO;
 
-public class SuaHoaDonView extends JDialog {
+public class SuaDonHangView extends JDialog {
     // Thông tin hóa đơn
     private JTextField maHDField;
     private JTextField nhanVienField;
@@ -45,7 +45,7 @@ public class SuaHoaDonView extends JDialog {
     private final DonHangDTO currentOrder;
     private int currentCategoryId = 1; // Sẽ được cập nhật từ database
     
-    public SuaHoaDonView(Window parent, int maDon) {
+    public SuaDonHangView(Window parent, int maDon) {
         super(parent, "Cập nhật hóa đơn", ModalityType.APPLICATION_MODAL);
         this.currentOrder = new DonHangDTO();
         this.currentOrder.setMaDon(maDon);
@@ -661,10 +661,10 @@ public class SuaHoaDonView extends JDialog {
     
     private void addProductToOrder(MonDTO product) {
         // Mở dialog thêm món chi tiết
-        ThemMonDialog dialog = new ThemMonDialog(this, product);
+        ThemMonView dialog = new ThemMonView(this, product);
         dialog.setVisible(true);
         
-        ThemMonDialog.AddItemResult result = dialog.getResult();
+        ThemMonView.AddItemResult result = dialog.getResult();
         if (result != null) {
             // Kiểm tra xem sản phẩm với topping tương tự đã có chưa
             boolean found = false;

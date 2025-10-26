@@ -8,7 +8,7 @@ import java.util.List;
 import database.DBUtil;
 import dto.MonDTO;
 
-public class ThemMonDialog extends JDialog {
+public class ThemMonView extends JDialog {
     private final MonDTO selectedProduct;
     private JTextField tenMonField;
     private JSpinner soLuongSpinner;
@@ -23,7 +23,7 @@ public class ThemMonDialog extends JDialog {
     private long giaTopping = 0;
     private List<MonDTO> toppings;
     
-    public ThemMonDialog(Window parent, MonDTO product) {
+    public ThemMonView(Window parent, MonDTO product) {
         super(parent, "Hóa đơn - Thêm món", ModalityType.APPLICATION_MODAL);
         this.selectedProduct = product;
         
