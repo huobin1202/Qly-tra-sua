@@ -1,11 +1,7 @@
 package dto;
-import java.util.Scanner;
-
-import controller.Inhapxuat;
-
 import java.sql.Timestamp;
 
-public class KhachHangDTO implements Inhapxuat {
+public class KhachHangDTO {
     private int maKH;
     private String soDienThoai;
     private String hoTen;
@@ -61,30 +57,5 @@ public class KhachHangDTO implements Inhapxuat {
 
     public void setNgaySinh(Timestamp ngaySinh) {
         this.ngaySinh = ngaySinh;
-    }
-
-    @Override
-    public void nhap() {
-        Scanner sc = new Scanner(System.in);
-        try {
-            System.out.print("Nhập số điện thoại: ");
-            soDienThoai = sc.nextLine();
-            System.out.print("Nhập họ tên: ");
-            hoTen = sc.nextLine();
-            System.out.print("Nhập địa chỉ: ");
-            diaChi = sc.nextLine();
-            System.out.print("Nhập ngày sinh (yyyy-mm-dd): ");
-            String ngaySinhStr = sc.nextLine();
-            if (!ngaySinhStr.isEmpty()) {
-                ngaySinh = Timestamp.valueOf(ngaySinhStr + " 10:00:00");
-            }
-        } finally {
-            sc.close();
-        }
-    }
-
-    @Override
-    public void xuat() {
-        System.out.printf("%-10d %-15s %-20s %-30s %-20s\n", maKH, soDienThoai, hoTen, diaChi, ngaySinh);
     }
 }

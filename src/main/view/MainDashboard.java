@@ -17,17 +17,18 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     private JPanel rightSidebar;
     private JLabel userInfoLabel;
     private JLabel roleLabel;
+    private String currentUserRole; // Lưu chức vụ hiện tại
     
     public MainDashboard() {
+        loadUserInfo(); // Load user info trước để có currentUserRole
         initializeComponents();
         setupLayout();
         setupEventHandlers();
-        loadUserInfo();
     }
     
     private void initializeComponents() {
         setTitle("Trang quản lý");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setSize(1400, 900);
         setLocationRelativeTo(null);
         
@@ -73,18 +74,13 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         roleLabel.setBackground(new Color(56, 142, 60));
         roleLabel.setOpaque(true);
         
-        JButton exitButton = new JButton("Thoát");
+        JButton exitButton = new JButton("Đăng xuất");
         exitButton.setFont(new Font("Arial", Font.BOLD, 12));
         exitButton.setForeground(Color.WHITE);
         exitButton.setBackground(new Color(76, 175, 80));
         exitButton.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         exitButton.setFocusPainted(false);
-        exitButton.addActionListener(e -> {
-            int result = JOptionPane.showConfirmDialog(this, "Bạn có chắc chắn muốn thoát?", "Xác nhận", JOptionPane.YES_NO_OPTION);
-            if (result == JOptionPane.YES_OPTION) {
-                System.exit(0);
-            }
-        });
+        exitButton.addActionListener(e -> performLogout());
         
         buttonPanel.add(roleLabel);
         buttonPanel.add(exitButton);
@@ -107,18 +103,30 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         menuPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         createHangHoaDropdown(menuPanel);
 
-        // Tạo các menu items với icon
-        String[][] menuItems = {
-            {"Quản lý nhân viên", "👥"},
-            {"Quản lý nhà cung cấp", "🛒"},
-            {"Quản lý khách hàng", "🛒"},
-            {"Nhập hàng", "📦"},
-            {"Quản lý phiếu nhập", "📋"},
-            {"Quản lý đơn hàng", "🛒"},
-            {"Kho hàng", "🏬"},
-            {"Thống kê", "📊"},
-            {"Thiết lập", "⚙️"}
-        };
+        // Tạo các menu items với icon dựa trên chức vụ
+        String[][] menuItems;
+        
+        // Kiểm tra chức vụ để hiển thị menu phù hợp
+        if ("quanly".equals(currentUserRole)) {
+            // Quản lý có thể truy cập tất cả
+            menuItems = new String[][]{
+                {"Quản lý nhân viên", "👥"},
+                {"Quản lý nhà cung cấp", "🛒"},
+                {"Quản lý khách hàng", "👤"},
+                {"Quản lý phiếu nhập", "📋"},
+                {"Quản lý đơn hàng", "🛒"},
+                {"Kho hàng", "🏬"},
+                {"Thống kê", "📊"},
+                {"Thiết lập", "⚙️"}
+            };
+        } else {
+            // Nhân viên chỉ được truy cập một số chức năng
+            menuItems = new String[][]{
+                {"Quản lý khách hàng", "👤"},
+                {"Quản lý đơn hàng", "🛒"},
+                {"Giao hàng", "🚚"}
+            };
+        }
         
         for (String[] item : menuItems) {
             JButton menuButton = createMenuButton(item[0], item[1]);
@@ -129,6 +137,46 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         // Tạo dropdown menu cho Quản lý hàng hóa
         
         leftSidebar.add(menuPanel, BorderLayout.CENTER);
+        
+        // Cập nhật thông tin user sau khi tạo các label
+        updateUserInfo();
+    }
+    
+    // Method cập nhật thông tin user
+    private void updateUserInfo() {
+        try {
+            String currentUser = Session.currentTaiKhoan;
+            if (currentUser != null && !currentUser.isEmpty()) {
+                Connection conn = DBUtil.getConnection();
+                String sql = "SELECT HoTen, ChucVu FROM nhanvien WHERE TaiKhoan = ?";
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                stmt.setString(1, currentUser);
+                ResultSet rs = stmt.executeQuery();
+                
+                if (rs.next()) {
+                    String hoTen = rs.getString("HoTen");
+                    String chucVu = rs.getString("ChucVu");
+                    
+                    userInfoLabel.setText("<html><div style='text-align: center;'>" +
+                                        "<div style='font-weight: bold;'>" + hoTen + "</div>" +
+                                        "<div style='font-size: 10px;'>" + chucVu + "</div></div></html>");
+                    
+                    // Cập nhật role label
+                    if ("quanly".equals(chucVu)) {
+                        roleLabel.setText("Quản lý");
+                    } else {
+                        roleLabel.setText("Nhân viên");
+                    }
+                }
+                
+                rs.close();
+                stmt.close();
+                conn.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            userInfoLabel.setText("Không thể tải thông tin");
+        }
     }
     
     private JButton createMenuButton(String text, String icon) {
@@ -344,8 +392,8 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         mainPanel.add(new KhachHangView(this), "KHACH_HANG");
         mainPanel.add(new NhanVienSwing(this), "NHAN_VIEN");
         mainPanel.add(new DonHangView(this), "DON_HANG");
+        mainPanel.add(new GiaoHangView(), "GIAO_HANG");
         mainPanel.add(new KhoHangView(this), "KHO_HANG");
-        mainPanel.add(new NhapHangMoiView(), "NHAP_HANG_MOI");
         mainPanel.add(new NhapHangView(this), "NHAP_HANG");
         // Tạo các view riêng biệt cho từng loại hàng hóa
         mainPanel.add(createMonView(), "MON");
@@ -406,6 +454,64 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     
     private void setupEventHandlers() {
         // Event handlers đã được setup trong createLeftSidebar()
+        
+        // Xử lý sự kiện đóng cửa sổ
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                performLogout();
+            }
+        });
+    }
+    
+    // Method tiện ích để thực hiện đăng xuất
+    private void performLogout() {
+        int result = JOptionPane.showConfirmDialog(
+            this,
+            "Bạn có chắc chắn muốn đăng xuất?",
+            "Xác nhận đăng xuất",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
+        
+        if (result == JOptionPane.YES_OPTION) {
+            // Đóng cửa sổ hiện tại
+            dispose();
+            
+            // Quay về màn hình đăng nhập
+            SwingUtilities.invokeLater(() -> {
+                LoginDialog loginDialog = new LoginDialog(null);
+                loginDialog.setVisible(true);
+                
+                // Nếu đăng nhập thành công, mở lại MainDashboard
+                if (loginDialog.isLoginSuccessful()) {
+                    loginDialog.dispose();
+                    MainDashboard newDashboard = new MainDashboard();
+                    newDashboard.setVisible(true);
+                } else {
+                    // Thoát chương trình nếu đăng nhập thất bại
+                    System.exit(0);
+                }
+            });
+        }
+    }
+    
+    // Method kiểm tra quyền truy cập
+    private boolean hasPermission(String menuText) {
+        // Quản lý có quyền truy cập tất cả
+        if ("quanly".equals(currentUserRole)) {
+            return true;
+        }
+        
+        // Nhân viên chỉ được truy cập một số chức năng
+        switch (menuText) {
+            case "Quản lý khách hàng":
+            case "Quản lý đơn hàng":
+            case "Giao hàng":
+                return true;
+            default:
+                return false;
+        }
     }
     
     private void loadUserInfo() {
@@ -420,19 +526,9 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 ResultSet rs = stmt.executeQuery();
                 
                 if (rs.next()) {
-                    String hoTen = rs.getString("HoTen");
                     String chucVu = rs.getString("ChucVu");
-                    
-                    userInfoLabel.setText("<html><div style='text-align: center;'>" +
-                                        "<div style='font-weight: bold;'>" + hoTen + "</div>" +
-                                        "<div style='font-size: 10px;'>" + chucVu + "</div></div></html>");
-                    
-                    // Cập nhật role label
-                    if ("quanly".equals(chucVu)) {
-                        roleLabel.setText("Quản lý");
-                    } else {
-                        roleLabel.setText("Nhân viên");
-                    }
+                    // Lưu chức vụ hiện tại
+                    currentUserRole = chucVu;
                 }
                 
                 rs.close();
@@ -441,11 +537,20 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            userInfoLabel.setText("Không thể tải thông tin");
+            currentUserRole = "nhanvien"; // Mặc định là nhân viên nếu có lỗi
         }
     }
     
     private void handleMenuSelection(String menuText) {
+        // Kiểm tra phân quyền trước khi xử lý
+        if (!hasPermission(menuText)) {
+            JOptionPane.showMessageDialog(this, 
+                "Bạn không có quyền truy cập chức năng này!", 
+                "Không có quyền", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         switch (menuText) {
             case "Quản lý nhân viên":
                 cardLayout.show(mainPanel, "NHAN_VIEN");
@@ -456,14 +561,14 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
             case "Quản lý khách hàng":
                 cardLayout.show(mainPanel, "KHACH_HANG");
                 break;
-            case "Nhập hàng":
-                cardLayout.show(mainPanel, "NHAP_HANG_MOI");
-                break;
             case "Quản lý phiếu nhập":
                 cardLayout.show(mainPanel, "NHAP_HANG");
                 break;
             case "Quản lý đơn hàng":
                 cardLayout.show(mainPanel, "DON_HANG");
+                break;
+            case "Giao hàng":
+                cardLayout.show(mainPanel, "GIAO_HANG");
                 break;
             case "Quản lý món":
                 cardLayout.show(mainPanel, "MON");

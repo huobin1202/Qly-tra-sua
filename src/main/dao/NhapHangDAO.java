@@ -19,26 +19,23 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
             
             // 1. Kiểm tra nhân viên tồn tại
             if (!kiemTraNhanVienTonTai(phieuNhap.getMaNV())) {
-                System.out.println("❌ Nhân viên không tồn tại!");
                 return false;
             }
             
             // 2. Kiểm tra nhà cung cấp tồn tại
             if (!kiemTraNhaCungCapTonTai(phieuNhap.getMaNCC())) {
-                System.out.println("❌ Nhà cung cấp không tồn tại!");
                 return false;
             }
             
             // 3. Tạo phiếu nhập mới
-            String sql = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, GhiChu, ThanhTien, TrangThai) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, ?, ?, ?)";
             
             try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, phieuNhap.getMaNV());
                 ps.setInt(2, phieuNhap.getMaNCC());
                 ps.setString(3, phieuNhap.getNgay());
-                ps.setString(4, phieuNhap.getGhiChu());
-                ps.setLong(5, phieuNhap.getThanhTien());
-                ps.setString(6, phieuNhap.getTrangThaiString());
+                ps.setLong(4, phieuNhap.getThanhTien());
+                ps.setString(5, phieuNhap.getTrangThai());
                 
                 int result = ps.executeUpdate();
                 
@@ -47,14 +44,12 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         if (rs.next()) {
                             phieuNhap.setMaPN(rs.getInt(1));
                             conn.commit();
-                            System.out.println("✅ Tạo phiếu nhập thành công! Mã phiếu: " + phieuNhap.getMaPN());
                             return true;
                         }
                     }
                 }
             }
         } catch (SQLException e) {
-            System.out.println("❌ Lỗi khi tạo phiếu nhập: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -111,7 +106,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         rs.getInt("MaNV"),
                         rs.getInt("MaNCC"),
                         rs.getString("Ngay"),
-                        rs.getString("GhiChu"),
+                        "", // GhiChu không tồn tại trong bảng phieunhap
                         rs.getLong("ThanhTien"),
                         rs.getString("TrangThai")
                     );
@@ -139,7 +134,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                     rs.getInt("MaNV"),
                     rs.getInt("MaNCC"),
                     rs.getString("Ngay"),
-                    rs.getString("GhiChu"),
+                    "", // GhiChu không tồn tại trong bảng phieunhap
                     rs.getLong("ThanhTien"),
                     rs.getString("TrangThai")
                 ));
@@ -168,7 +163,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         rs.getInt("MaNV"),
                         rs.getInt("MaNCC"),
                         rs.getString("Ngay"),
-                        rs.getString("GhiChu"),
+                        "", // GhiChu không tồn tại trong bảng phieunhap
                         rs.getLong("ThanhTien"),
                         rs.getString("TrangThai")
                     ));
@@ -198,7 +193,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         rs.getInt("MaNV"),
                         rs.getInt("MaNCC"),
                         rs.getString("Ngay"),
-                        rs.getString("GhiChu"),
+                        "", // GhiChu không tồn tại trong bảng phieunhap
                         rs.getLong("ThanhTien"),
                         rs.getString("TrangThai")
                     ));
@@ -216,19 +211,17 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         // Kiểm tra trạng thái trước khi cập nhật
         NhapHangDTO phieuHienTai = layPhieuNhapTheoMa(phieuNhap.getMaPN());
         if (phieuHienTai != null && phieuHienTai.isDaXacNhan()) {
-            System.out.println("Không thể sửa phiếu nhập đã được xác nhận!");
             return false;
         }
         
-        String sql = "UPDATE phieunhap SET MaNCC = ?, GhiChu = ?, ThanhTien = ? WHERE MaPN = ? AND TrangThai = 'chuaxacnhan'";
+        String sql = "UPDATE phieunhap SET MaNCC = ?, ThanhTien = ? WHERE MaPN = ? AND TrangThai = 'chuaxacnhan'";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setInt(1, phieuNhap.getMaNCC());
-            ps.setString(2, phieuNhap.getGhiChu());
-            ps.setLong(3, phieuNhap.getThanhTien());
-            ps.setInt(4, phieuNhap.getMaPN());
+            ps.setLong(2, phieuNhap.getThanhTien());
+            ps.setInt(3, phieuNhap.getMaPN());
             
             int result = ps.executeUpdate();
             return result > 0;
@@ -247,17 +240,21 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
             // 1. Kiểm tra phiếu nhập tồn tại
             NhapHangDTO phieuHienTai = layPhieuNhapTheoMa(maPN);
             if (phieuHienTai == null) {
-                System.out.println("❌ Phiếu nhập không tồn tại!");
                 return false;
             }
             
             // 2. Kiểm tra trạng thái hiện tại
             if (phieuHienTai.isDaXacNhan()) {
-                System.out.println("❌ Phiếu nhập đã được xác nhận rồi!");
                 return false;
             }
             
-            // 3. Xác nhận phiếu nhập
+            // 3. Cập nhật kho hàng với tất cả chi tiết phiếu nhập
+            if (!capNhatKhoHangKhiXacNhan(conn, maPN)) {
+                conn.rollback();
+                return false;
+            }
+            
+            // 4. Xác nhận phiếu nhập
             String sql = "UPDATE phieunhap SET TrangThai = 'daxacnhan' WHERE MaPN = ? AND TrangThai = 'chuaxacnhan'";
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -267,15 +264,12 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                 
                 if (result > 0) {
                     conn.commit();
-                    System.out.println("✅ Xác nhận phiếu nhập thành công!");
                     return true;
                 } else {
-                    System.out.println("❌ Không thể xác nhận phiếu nhập!");
                     conn.rollback();
                 }
             }
         } catch (SQLException e) {
-            System.out.println("❌ Lỗi khi xác nhận phiếu nhập: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -290,19 +284,16 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
             // 1. Kiểm tra phiếu nhập tồn tại
             NhapHangDTO phieuHienTai = layPhieuNhapTheoMa(maPN);
             if (phieuHienTai == null) {
-                System.out.println("❌ Phiếu nhập không tồn tại!");
                 return false;
             }
             
             // 2. Kiểm tra trạng thái - chỉ cho phép xóa khi chưa xác nhận
             if (phieuHienTai.isDaXacNhan()) {
-                System.out.println("❌ Không thể xóa phiếu nhập đã được xác nhận!");
                 return false;
             }
             
             // 3. Hoàn trả nguyên liệu về nhà cung cấp
             if (!hoanTraNguyenLieu(maPN, phieuHienTai.getMaNCC())) {
-                System.out.println("❌ Lỗi khi hoàn trả nguyên liệu!");
                 conn.rollback();
                 return false;
             }
@@ -322,15 +313,12 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                 
                 if (result > 0) {
                     conn.commit();
-                    System.out.println("✅ Xóa phiếu nhập thành công!");
                     return true;
                 } else {
-                    System.out.println("❌ Không thể xóa phiếu nhập!");
                     conn.rollback();
                 }
             }
         } catch (SQLException e) {
-            System.out.println("❌ Lỗi khi xóa phiếu nhập: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -358,13 +346,8 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         psNCC.executeUpdate();
                     }
                     
-                    // Trừ số lượng trong kho
-                    String sqlKho = "UPDATE khohang SET SoLuong = SoLuong - ? WHERE MaNL = ?";
-                    try (PreparedStatement psKho = conn.prepareStatement(sqlKho)) {
-                        psKho.setInt(1, soLuong);
-                        psKho.setInt(2, maNL);
-                        psKho.executeUpdate();
-                    }
+                    // Lưu ý: Không cần trừ số lượng trong kho vì kho hàng chỉ được cập nhật khi xác nhận phiếu nhập
+                    // Nếu phiếu nhập chưa được xác nhận thì kho hàng chưa được cập nhật
                 }
             }
             return true;
@@ -381,46 +364,18 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         return phieu != null && phieu.isChuaXacNhan();
     }
     
-    // Hiển thị thông tin phiếu nhập
+    // Hiển thị thông tin phiếu nhập (không dùng trong GUI)
     @Override
     public void hienThiPhieuNhap(NhapHangDTO phieu) {
-        if (phieu != null) {
-            System.out.println("=== THÔNG TIN PHIẾU NHẬP ===");
-            System.out.println("Mã phiếu nhập: " + phieu.getMaPN());
-            System.out.println("Mã nhân viên: " + phieu.getMaNV());
-            System.out.println("Mã nhà cung cấp: " + phieu.getMaNCC());
-            System.out.println("Ngày: " + phieu.getNgay());
-            System.out.println("Ghi chú: " + phieu.getGhiChu());
-            System.out.println("Thành tiền: " + phieu.getThanhTien());
-            System.out.println("Trạng thái: " + (phieu.getTrangThai() != null ? phieu.getTrangThai().getTenTrangThai() : "Chưa xác định"));
-            System.out.println("==========================");
-        }
+        // Method không dùng trong GUI
     }
     
-    // Hiển thị danh sách phiếu nhập
+    // Hiển thị danh sách phiếu nhập (không dùng trong GUI)
     @Override
     public void hienThiDanhSachPhieuNhap(List<NhapHangDTO> danhSach) {
-        if (danhSach.isEmpty()) {
-            System.out.println("Không có phiếu nhập nào!");
-            return;
-        }
-        
-        System.out.println("=== DANH SÁCH PHIẾU NHẬP ===");
-        System.out.printf("%-8s %-8s %-8s %-20s %-15s %-12s%n", 
-                         "MaPN", "MaNV", "MaNCC", "Ngày", "Thành tiền", "Trạng thái");
-        System.out.println("------------------------------------------------------------");
-        
-        for (NhapHangDTO phieu : danhSach) {
-            System.out.printf("%-8d %-8d %-8d %-20s %-15d %-12s%n",
-                             phieu.getMaPN(),
-                             phieu.getMaNV(),
-                             phieu.getMaNCC(),
-                             phieu.getNgay(),
-                             phieu.getThanhTien(),
-                             phieu.getTrangThai() != null ? phieu.getTrangThai().getTenTrangThai() : "Chưa xác định");
-        }
-        System.out.println("=============================");
+        // Method không dùng trong GUI
     }
+    
     
     // Thêm chi tiết phiếu nhập với kiểm tra ràng buộc trong Java
     @Override
@@ -462,11 +417,11 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                     // 4. Cập nhật số lượng nhà cung cấp
                     capNhatSoLuongNCC(phieuHienTai.getMaNCC(), maNL, -soLuong);
                     
-                    // 5. Cập nhật kho nguyên liệu
-                    capNhatKhoNguyenLieu(maNL, soLuong);
-                    
-                    // 6. Cập nhật tổng tiền phiếu nhập
+                    // 5. Cập nhật tổng tiền phiếu nhập
                     capNhatTongTienPhieuNhap(maPN, soLuong * donGia);
+                    
+                    // Lưu ý: Kho hàng chỉ được cập nhật khi phiếu nhập được xác nhận
+                    // (xem method xacNhanPhieuNhap)
                     
                     conn.commit();
                     System.out.println("✅ Thêm chi tiết phiếu nhập thành công!");
@@ -545,6 +500,43 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+    
+    // Cập nhật kho hàng khi xác nhận phiếu nhập
+    private boolean capNhatKhoHangKhiXacNhan(Connection conn, int maPN) {
+        String sql = "SELECT MaNL, SoLuong FROM chitietnhap_nl WHERE MaPN = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, maPN);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean hasDetails = false;
+                while (rs.next()) {
+                    hasDetails = true;
+                    int maNL = rs.getInt("MaNL");
+                    int soLuong = rs.getInt("SoLuong");
+                    
+                    // Cập nhật kho hàng trực tiếp trong cùng connection
+                    String updateKho = "INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?) ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
+                    try (PreparedStatement psKho = conn.prepareStatement(updateKho)) {
+                        psKho.setInt(1, maNL);
+                        psKho.setInt(2, soLuong);
+                        psKho.setInt(3, soLuong);
+                        psKho.executeUpdate();
+                    }
+                }
+                
+                if (!hasDetails) {
+                    System.out.println("⚠️ Phiếu nhập không có chi tiết nào!");
+                    return true; // Vẫn cho phép xác nhận phiếu nhập trống
+                }
+            }
+            return true;
+        } catch (SQLException e) {
+            System.out.println("❌ Lỗi khi cập nhật kho hàng: " + e.getMessage());
+            e.printStackTrace();
+            return false;
         }
     }
     
@@ -636,11 +628,11 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                     // 6. Cập nhật số lượng nhà cung cấp
                     capNhatSoLuongNCC(phieuHienTai.getMaNCC(), chiTiet.getMaNL(), -chenhLechSoLuong);
                     
-                    // 7. Cập nhật kho nguyên liệu
-                    capNhatKhoNguyenLieu(chiTiet.getMaNL(), chenhLechSoLuong);
-                    
-                    // 8. Cập nhật tổng tiền phiếu nhập
+                    // 7. Cập nhật tổng tiền phiếu nhập
                     capNhatTongTienPhieuNhap(chiTiet.getMaPN(), chenhLechTien);
+                    
+                    // Lưu ý: Kho hàng chỉ được cập nhật khi phiếu nhập được xác nhận
+                    // (xem method xacNhanPhieuNhap)
                     
                     conn.commit();
                     System.out.println("✅ Cập nhật chi tiết phiếu nhập thành công!");
@@ -695,11 +687,11 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                     // 4. Hoàn trả số lượng về nhà cung cấp
                     capNhatSoLuongNCC(phieuHienTai.getMaNCC(), maNL, chiTiet.getSoLuong());
                     
-                    // 5. Trừ số lượng trong kho
-                    capNhatKhoNguyenLieu(maNL, -chiTiet.getSoLuong());
-                    
-                    // 6. Cập nhật tổng tiền phiếu nhập
+                    // 5. Cập nhật tổng tiền phiếu nhập
                     capNhatTongTienPhieuNhap(maPN, -chiTiet.getThanhTien());
+                    
+                    // Lưu ý: Kho hàng chỉ được cập nhật khi phiếu nhập được xác nhận
+                    // (xem method xacNhanPhieuNhap)
                     
                     conn.commit();
                     System.out.println("✅ Xóa chi tiết phiếu nhập thành công!");

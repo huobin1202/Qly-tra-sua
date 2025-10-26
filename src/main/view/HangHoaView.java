@@ -629,7 +629,7 @@ public class HangHoaView extends JPanel {
                 tenField.setText(mon.getTenMon());
                 moTaField.setText(mon.getMoTa());
                 giaField.setText(String.valueOf(mon.getGia()));
-                tinhTrangCombo.setSelectedItem(mon.getTinhTrang());
+                tinhTrangCombo.setSelectedItem(convertTinhTrangToUI(mon.getTinhTrang()));
                 anhField.setText(mon.getAnh() != null ? mon.getAnh() : "");
                 
                 // Load existing image if available
@@ -829,7 +829,7 @@ public class HangHoaView extends JPanel {
                     ps.setString(1, ten);
                     ps.setString(2, moTa);
                     ps.setLong(3, gia);
-                    ps.setString(4, tinhTrang);
+                    ps.setString(4, convertTinhTrangToDatabase(tinhTrang));
                     ps.setInt(5, maLoai);
                     ps.setString(6, anh);
                     ps.executeUpdate();
@@ -841,7 +841,7 @@ public class HangHoaView extends JPanel {
                     ps.setString(1, ten);
                     ps.setString(2, moTa);
                     ps.setLong(3, gia);
-                    ps.setString(4, tinhTrang);
+                    ps.setString(4, convertTinhTrangToDatabase(tinhTrang));
                     ps.setInt(5, maLoai);
                     ps.setString(6, anh);
                     ps.setInt(7, mon.getMaMon());
@@ -1258,5 +1258,25 @@ public class HangHoaView extends JPanel {
             
             return label;
         }
+    }
+    
+    // Method chuyển đổi trạng thái từ giao diện sang database
+    private String convertTinhTrangToDatabase(String tinhTrangUI) {
+        if ("Đang bán".equals(tinhTrangUI)) {
+            return "dangban";
+        } else if ("Tạm ngừng".equals(tinhTrangUI)) {
+            return "ngungban";
+        }
+        return "dangban"; // Mặc định
+    }
+    
+    // Method chuyển đổi trạng thái từ database sang giao diện
+    private String convertTinhTrangToUI(String tinhTrangDB) {
+        if ("dangban".equals(tinhTrangDB)) {
+            return "Đang bán";
+        } else if ("ngungban".equals(tinhTrangDB)) {
+            return "Tạm ngừng";
+        }
+        return "Đang bán"; // Mặc định
     }
 }

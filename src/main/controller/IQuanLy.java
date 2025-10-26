@@ -1,5 +1,5 @@
 package controller;
-public interface IQuanLy extends Inhapxuat {
+public interface IQuanLy {
 
     void them(); // Thêm đối tượng vào danh sách
 

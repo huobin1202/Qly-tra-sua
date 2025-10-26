@@ -2,16 +2,11 @@ package dto;
 public class LoaiMonDTO {
     int maLoai;
     String tenLoai;
-    String slug;
 
     // Constructor mặc định
     public LoaiMonDTO() {}
 
-    public LoaiMonDTO(int maLoai, String tenLoai, String slug) {
-        this.maLoai = maLoai;
-        this.tenLoai = tenLoai;
-        this.slug = slug;
-    }
+
     
     public LoaiMonDTO(int maLoai, String tenLoai) {
         this.maLoai = maLoai;
@@ -29,11 +24,6 @@ public class LoaiMonDTO {
     public void setTenLoai(String tenLoai) {
         this.tenLoai = tenLoai;
     }
-    public String getSlug() {
-        return slug;
-    }
-    public void setSlug(String slug) {
-        this.slug = slug;
-    }
+
 
 }

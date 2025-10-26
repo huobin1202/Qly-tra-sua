@@ -185,7 +185,7 @@ public class ThemMonDialog extends JDialog {
     
     private void loadToppings() {
         try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT * FROM mon WHERE MaLoai = 4 AND TinhTrang = 'Đang bán' ORDER BY TenMon";
+            String sql = "SELECT * FROM mon WHERE MaLoai = 4 AND TinhTrang = 'dangban' ORDER BY TenMon";
             
             try (PreparedStatement ps = conn.prepareStatement(sql);
                  ResultSet rs = ps.executeQuery()) {

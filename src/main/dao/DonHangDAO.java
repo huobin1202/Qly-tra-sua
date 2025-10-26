@@ -212,6 +212,8 @@ public class DonHangDAO {
         return false;
     }
     
+    // Cập nhật trạng thái đơn hàng với enum
+    
     // ========== CHI TIẾT ĐƠN HÀNG ==========
     
     // Lấy chi tiết đơn hàng
@@ -317,5 +319,34 @@ public class DonHangDAO {
             e.printStackTrace();
         }
         return null;
+    }
+    
+    // Method để chuẩn hóa trạng thái đơn hàng trong database
+    public boolean chuanHoaTrangThaiDonHang() {
+        String sql1 = "UPDATE dondathang SET TrangThai = 'chuathanhtoan' WHERE TrangThai = '0'";
+        String sql2 = "UPDATE dondathang SET TrangThai = 'dathanhtoan' WHERE TrangThai = '1'";
+        String sql3 = "UPDATE dondathang SET TrangThai = 'bihuy' WHERE TrangThai = '2'";
+        
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql1)) {
+                int result1 = ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql2)) {
+                int result2 = ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql3)) {
+                int result3 = ps.executeUpdate();
+            }
+            
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

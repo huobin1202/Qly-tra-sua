@@ -70,7 +70,7 @@ public class HangHoaDAO {
     // Lấy món đang bán theo loại
     public List<MonDTO> layMonDangBanTheoLoai(int maLoai) {
         List<MonDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM mon WHERE MaLoai = ? AND TinhTrang = 'ban' ORDER BY TenMon";
+        String sql = "SELECT * FROM mon WHERE MaLoai = ? AND TinhTrang = 'dangban' ORDER BY TenMon";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -99,7 +99,7 @@ public class HangHoaDAO {
     // Lấy topping (loại 4)
     public List<MonDTO> layTopping() {
         List<MonDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM mon WHERE MaLoai = 4 AND TinhTrang = 'ban' ORDER BY TenMon";
+        String sql = "SELECT * FROM mon WHERE MaLoai = 4 AND TinhTrang = 'dangban' ORDER BY TenMon";
         
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
@@ -171,7 +171,7 @@ public class HangHoaDAO {
     
     // Thêm món mới
     public boolean themMon(MonDTO mon) {
-        String sql = "INSERT INTO mon (TenMon, MoTa, Gia, TinhTrang, MaLoai, HinhAnh) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO mon (TenMon, MoTa, Gia, TinhTrang, MaLoai, Anh) VALUES (?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -201,7 +201,7 @@ public class HangHoaDAO {
     
     // Cập nhật món
     public boolean capNhatMon(MonDTO mon) {
-        String sql = "UPDATE mon SET TenMon=?, MoTa=?, Gia=?, TinhTrang=?, MaLoai=?, HinhAnh=? WHERE MaMon=?";
+        String sql = "UPDATE mon SET TenMon=?, MoTa=?, Gia=?, TinhTrang=?, MaLoai=?, Anh=? WHERE MaMon=?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

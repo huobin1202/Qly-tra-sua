@@ -118,7 +118,7 @@ CREATE TABLE `dondathang` (
   `MaDon` int(11) NOT NULL,
   `MaNV` int(11) NOT NULL,
   `Loai` varchar(45) NOT NULL DEFAULT 'taiquan' COMMENT 'taiquan - tại quán\nonline - đặt online',
-  `TrangThai` varchar(45) NOT NULL DEFAULT '2' COMMENT '1 - đã thanh toán\n2 - chưa thanh toán',
+  `TrangThai` varchar(45) NOT NULL DEFAULT 'chuathanhtoan' COMMENT 'chuathanhtoan - chưa thanh toán\ndathanhtoan - đã thanh toán\nbihuy - bị hủy',
   `NgayDat` timestamp NOT NULL DEFAULT current_timestamp(),
   `TongTien` bigint(20) NOT NULL DEFAULT 0,
   `GiamGia` int(11) NOT NULL DEFAULT 0
@@ -129,21 +129,21 @@ CREATE TABLE `dondathang` (
 --
 
 INSERT INTO `dondathang` (`MaDon`, `MaNV`, `Loai`, `TrangThai`, `NgayDat`, `TongTien`, `GiamGia`) VALUES
-(1, 1, 'taiquan', '1', '2020-11-24 07:28:41', 450000, 0),
-(2, 1, 'online', '1', '2020-11-24 08:05:08', 406000, 0),
-(3, 1, 'taiquan', '1', '2020-12-16 08:55:36', 550000, 5),
-(4, 2, 'taiquan', '1', '2025-10-19 09:15:00', 120000, 0),
-(5, 1, 'online', '1', '2025-10-19 14:30:00', 180000, 10),
-(6, 5, 'taiquan', '2', '2025-10-20 11:45:00', 95000, 0),
-(7, 2, 'online', '1', '2025-10-20 16:20:00', 220000, 5),
-(8, 1, 'taiquan', '1', '2025-10-21 08:30:00', 150000, 0),
-(9, 6, 'online', '1', '2025-10-21 19:15:00', 300000, 15),
-(10, 2, 'taiquan', '2', '2025-10-22 12:00:00', 75000, 0),
-(11, 1, 'online', '1', '2025-10-22 20:45:00', 250000, 0),
-(12, 5, 'taiquan', '1', '2025-10-23 10:30:00', 135000, 0),
-(13, 2, 'online', '1', '2025-10-23 18:00:00', 190000, 8),
-(14, 1, 'taiquan', '1', '2025-10-24 13:15:00', 165000, 0),
-(15, 6, 'online', '2', '2025-10-24 21:30:00', 280000, 12);
+(1, 1, 'taiquan', 'dathanhtoan', '2020-11-24 07:28:41', 450000, 0),
+(2, 1, 'online', 'dathanhtoan', '2020-11-24 08:05:08', 406000, 0),
+(3, 1, 'taiquan', 'dathanhtoan', '2020-12-16 08:55:36', 550000, 5),
+(4, 2, 'taiquan', 'dathanhtoan', '2025-10-19 09:15:00', 120000, 0),
+(5, 1, 'online', 'dathanhtoan', '2025-10-19 14:30:00', 180000, 10),
+(6, 5, 'taiquan', 'bihuy', '2025-10-20 11:45:00', 95000, 0),
+(7, 2, 'online', 'dathanhtoan', '2025-10-20 16:20:00', 220000, 5),
+(8, 1, 'taiquan', 'dathanhtoan', '2025-10-21 08:30:00', 150000, 0),
+(9, 6, 'online', 'dathanhtoan', '2025-10-21 19:15:00', 300000, 15),
+(10, 2, 'taiquan', 'bihuy', '2025-10-22 12:00:00', 75000, 0),
+(11, 1, 'online', 'dathanhtoan', '2025-10-22 20:45:00', 250000, 0),
+(12, 5, 'taiquan', 'dathanhtoan', '2025-10-23 10:30:00', 135000, 0),
+(13, 2, 'online', 'dathanhtoan', '2025-10-23 18:00:00', 190000, 8),
+(14, 1, 'taiquan', 'dathanhtoan', '2025-10-24 13:15:00', 165000, 0),
+(15, 6, 'online', 'bihuy', '2025-10-24 21:30:00', 280000, 12);
 
 -- --------------------------------------------------------
 
@@ -257,7 +257,7 @@ CREATE TABLE `mon` (
   `TenMon` varchar(50) NOT NULL,
   `MoTa` varchar(500) DEFAULT NULL,
   `Gia` bigint(20) NOT NULL,
-  `TinhTrang` varchar(20) NOT NULL DEFAULT 'Đang bán',
+  `TinhTrang` varchar(20) NOT NULL DEFAULT 'dangban',
   `MaLoai` int(11) NOT NULL,
   `Anh` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -267,23 +267,23 @@ CREATE TABLE `mon` (
 --
 
 INSERT INTO `mon` (`MaMon`, `TenMon`, `MoTa`, `Gia`, `TinhTrang`, `MaLoai`, `Anh`) VALUES
-(1, 'No Topping', '', 0, 'Đang bán', 4, 'images/no_topping.jpg'),
-(2, 'Trân Châu Tuyết Sợi', '', 10000, 'Đang bán', 4, 'images/tran_chau_tuyet_soi.jpg'),
-(3, 'Trân Châu Đen', '', 10000, 'Đang bán', 4, 'images/tran_chau_den.jpg'),
-(4, 'Trân Châu Trắng', '', 10000, 'Đang bán', 4, 'images/tran_chau_trang.jpg'),
-(5, 'Trà Sữa Trân Châu', '', 50000, 'Đang bán', 2, 'images/tra_sua_tran_chau.jpg'),
-(6, 'Trà Sữa Sương Sáo', '', 45000, 'Đang bán', 2, 'images/tra_sua_suong_sao.jpg'),
-(7, 'Trà Sữa Matcha(L)', '', 50000, 'Đang bán', 2, 'images/tra_sua_matcha_l.jpg'),
-(8, 'Sữa Tươi Trân Châu Đường Đen', '', 45000, 'Đang bán', 2, 'images/sua_tuoi_tran_chau_duong_den.jpg'),
-(9, 'Bánh Flan', '', 10000, 'Đang bán', 2, 'images/Đang bánh_flan.jpg'),
-(10, 'Hướng dương', '', 10000, 'Đang bán', 1, 'images/huong_duong.jpg'),
-(11, 'Cafe truyền thống', '', 35000, 'Đang bán', 3, 'images/cafe_truyen_thong.jpg'),
-(12, 'Espresso', '', 45000, 'Đang bán', 3, 'images/espresso.jpg'),
-(13, 'Trà Sữa Matcha(XL)', '', 25000, 'Đang bán', 2, 'images/tra_sua_matcha_xl.jpg'),
-(14, 'Trà Sữa Ô Long', '', 20000, 'Đang bán', 2, 'images/tra_sua_o_long.jpg'),
-(15, 'Trà Đào', '', 40000, 'Đang bán', 2, 'images/tra_dao.jpg'),
-(16, 'Trà Đào(L)', '', 50000, 'Đang bán', 2, 'images/tra_dao_l.jpg'),
-(18, 'Trà Nhãn - Sen', '', 45000, 'Đang bán', 2, 'images/tra_nhan_sen.jpg');
+(1, 'No Topping', '', 0, 'dangban', 4, 'images/no_topping.jpg'),
+(2, 'Trân Châu Tuyết Sợi', '', 10000, 'dangban', 4, 'images/tran_chau_tuyet_soi.jpg'),
+(3, 'Trân Châu Đen', '', 10000, 'dangban', 4, 'images/tran_chau_den.jpg'),
+(4, 'Trân Châu Trắng', '', 10000, 'dangban', 4, 'images/tran_chau_trang.jpg'),
+(5, 'Trà Sữa Trân Châu', '', 50000, 'dangban', 2, 'images/tra_sua_tran_chau.jpg'),
+(6, 'Trà Sữa Sương Sáo', '', 45000, 'dangban', 2, 'images/tra_sua_suong_sao.jpg'),
+(7, 'Trà Sữa Matcha(L)', '', 50000, 'dangban', 2, 'images/tra_sua_matcha_l.jpg'),
+(8, 'Sữa Tươi Trân Châu Đường Đen', '', 45000, 'dangban', 2, 'images/sua_tuoi_tran_chau_duong_den.jpg'),
+(9, 'Bánh Flan', '', 10000, 'dangban', 2, 'images/Đang bánh_flan.jpg'),
+(10, 'Hướng dương', '', 10000, 'dangban', 1, 'images/huong_duong.jpg'),
+(11, 'Cafe truyền thống', '', 35000, 'dangban', 3, 'images/cafe_truyen_thong.jpg'),
+(12, 'Espresso', '', 45000, 'dangban', 3, 'images/espresso.jpg'),
+(13, 'Trà Sữa Matcha(XL)', '', 25000, 'dangban', 2, 'images/tra_sua_matcha_xl.jpg'),
+(14, 'Trà Sữa Ô Long', '', 20000, 'dangban', 2, 'images/tra_sua_o_long.jpg'),
+(15, 'Trà Đào', '', 40000, 'dangban', 2, 'images/tra_dao.jpg'),
+(16, 'Trà Đào(L)', '', 50000, 'dangban', 2, 'images/tra_dao_l.jpg'),
+(18, 'Trà Nhãn - Sen', '', 45000, 'dangban', 2, 'images/tra_nhan_sen.jpg');
 
 -- --------------------------------------------------------
 
@@ -412,13 +412,13 @@ CREATE TABLE `phieunhap` (
 --
 
 INSERT INTO `phieunhap` (`MaPN`, `MaNV`, `MaNCC`, `Ngay`, `ThanhTien`, `TrangThai`) VALUES
-(2, 1, 1, '2025-10-18 05:42:10',  197980, 'Chưa xác nhận'),
-(3, 1, 3, '2025-10-19 08:30:00',  450000, 'Chưa xác nhận'),
-(4, 5, 4, '2025-10-20 14:15:00',  320000, 'Chưa xác nhận'),
-(5, 1, 5, '2025-10-21 09:45:00',  180000, 'Chưa xác nhận'),
-(6, 6, 6, '2025-10-22 16:20:00',  250000, 'Đã xác nhận'),
-(7, 1, 7, '2025-10-23 11:10:00',  120000, 'Đã xác nhận'),
-(8, 5, 2, '2025-10-24 13:30:00',  380000, 'Chưa xác nhận');
+(2, 1, 1, '2025-10-18 05:42:10',  197980, 'chuaxacnhan'),
+(3, 1, 3, '2025-10-19 08:30:00',  450000, 'chuaxacnhan'),
+(4, 5, 4, '2025-10-20 14:15:00',  320000, 'chuaxacnhan'),
+(5, 1, 5, '2025-10-21 09:45:00',  180000, 'chuaxacnhan'),
+(6, 6, 6, '2025-10-22 16:20:00',  250000, 'daxacnhan'),
+(7, 1, 7, '2025-10-23 11:10:00',  120000, 'daxacnhan'),
+(8, 5, 2, '2025-10-24 13:30:00',  380000, 'chuaxacnhan');
 
 --
 -- Indexes for dumped tables

@@ -3,8 +3,6 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -12,15 +10,14 @@ import database.DBUtil;
 import dto.NhapHangDTO;
 import dto.ChiTietNhapHangDTO;
 import dao.NhapHangDAO;
-import controller.TrangThaiPhieuNhap;
 
 public class NhapHangView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
-    private MainFrameInterface parent;
-    private NhapHangDAO nhapHangDAO;
+    private final MainFrameInterface parent;
+    private final NhapHangDAO nhapHangDAO;
     
     public NhapHangView(MainFrameInterface parent) {
         this.parent = parent;
@@ -72,6 +69,10 @@ public class NhapHangView extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.setBackground(new Color(240, 248, 255));
         
+        JButton addButton = new JButton("➕ Thêm mới");
+        addButton.setBackground(new Color(34, 139, 34));
+        addButton.setForeground(Color.BLACK);
+        addButton.setFocusPainted(false);
         
         JButton editButton = new JButton("✏️ Sửa");
         editButton.setBackground(new Color(255, 140, 0));
@@ -93,6 +94,7 @@ public class NhapHangView extends JPanel {
         viewDetailsButton.setForeground(Color.BLACK);
         viewDetailsButton.setFocusPainted(false);
         
+        buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(confirmButton);
@@ -137,6 +139,7 @@ public class NhapHangView extends JPanel {
         // Event handlers
         searchButton.addActionListener(e -> performSearch());
         refreshButton.addActionListener(e -> loadData());
+        addButton.addActionListener(e -> showAddDialog());
         editButton.addActionListener(e -> showEditDialog());
         deleteButton.addActionListener(e -> performDelete());
         confirmButton.addActionListener(e -> performConfirm());
@@ -146,6 +149,7 @@ public class NhapHangView extends JPanel {
     private void setupEventHandlers() {
         // Double click to edit
         table.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
                     showEditDialog();
@@ -176,7 +180,7 @@ public class NhapHangView extends JPanel {
                     rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
                     rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
-                    rs.getString("TrangThai")
+                    convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
                 tableModel.addRow(row);
             }
@@ -232,7 +236,7 @@ public class NhapHangView extends JPanel {
                     rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
                     rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
-                    rs.getString("TrangThai")
+                    convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
                 tableModel.addRow(row);
             }
@@ -244,17 +248,37 @@ public class NhapHangView extends JPanel {
     }
     
     private void showAddDialog() {
-        NhapHangDialog dialog = new NhapHangDialog(SwingUtilities.getWindowAncestor(this), "Thêm phiếu nhập mới", null);
+        // Mở giao diện nhập hàng mới (NhapHangMoiView)
+        NhapHangMoiView nhapHangMoiView = new NhapHangMoiView();
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Thêm phiếu nhập mới", Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setSize(1200, 800);
+        dialog.setLocationRelativeTo(this);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        
+        // Thêm nút đóng
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton closeButton = new JButton("Đóng");
+        closeButton.addActionListener(e -> {
+            dialog.dispose();
+            loadData(); // Làm mới danh sách sau khi đóng
+        });
+        buttonPanel.add(closeButton);
+        
+        // Tạo panel chính với layout
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(nhapHangMoiView, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Thêm panel chính vào dialog
+        dialog.setContentPane(mainPanel);
+        
         dialog.setVisible(true);
-        if (dialog.isDataChanged()) {
-            loadData();
-        }
     }
     
     private void showEditDialog() {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn phiếu nhập cần xem chi tiết!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn phiếu nhập cần sửa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -262,14 +286,39 @@ public class NhapHangView extends JPanel {
         String trangThai = (String) tableModel.getValueAt(selectedRow, 5);
         
         // Kiểm tra trạng thái phiếu nhập
-        if ("Đã xác nhận".equalsIgnoreCase(trangThai) || "Đã xác nhận".equalsIgnoreCase(trangThai)) {
+        if ("Đã xác nhận".equalsIgnoreCase(trangThai)) {
             JOptionPane.showMessageDialog(this, 
                 "Phiếu nhập đã được xác nhận, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
                 "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            showDetailsDialog(id);
+            return;
         }
         
-        // Hiển thị dialog chi tiết phiếu nhập (chỉ xem, không sửa)
-        showDetailsDialog(id);
+        // Mở giao diện sửa phiếu nhập
+        NhapHangMoiView nhapHangMoiView = new NhapHangMoiView(id);
+        JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Sửa phiếu nhập #" + id, Dialog.ModalityType.APPLICATION_MODAL);
+        dialog.setSize(1200, 800);
+        dialog.setLocationRelativeTo(this);
+        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+        
+        // Thêm nút đóng
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton closeButton = new JButton("Đóng");
+        closeButton.addActionListener(e -> {
+            dialog.dispose();
+            loadData(); // Làm mới danh sách sau khi đóng
+        });
+        buttonPanel.add(closeButton);
+        
+        // Tạo panel chính với layout
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.add(nhapHangMoiView, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Thêm panel chính vào dialog
+        dialog.setContentPane(mainPanel);
+        
+        dialog.setVisible(true);
     }
     
     private void performConfirm() {
@@ -282,7 +331,7 @@ public class NhapHangView extends JPanel {
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String trangThai = (String) tableModel.getValueAt(selectedRow, 5);
         
-        if ("Đã xác nhận".equalsIgnoreCase(trangThai) || "Đã xác nhận".equalsIgnoreCase(trangThai)) {
+        if ("Đã xác nhận".equalsIgnoreCase(trangThai)) {
             JOptionPane.showMessageDialog(this, "Phiếu nhập này đã được xác nhận!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -292,15 +341,11 @@ public class NhapHangView extends JPanel {
             "Xác nhận phiếu nhập", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("UPDATE phieunhap SET TrangThai = ? WHERE MaPN = ?")) {
-                ps.setString(1, "Đã xác nhận");
-                ps.setInt(2, id);
-                ps.executeUpdate();
+            if (nhapHangDAO.xacNhanPhieuNhap(id)) {
                 JOptionPane.showMessageDialog(this, "Xác nhận thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 loadData();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi xác nhận: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Lỗi xác nhận phiếu nhập!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -319,14 +364,11 @@ public class NhapHangView extends JPanel {
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM phieunhap WHERE MaPN = ?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
+            if (nhapHangDAO.xoaPhieuNhap(id)) {
                 JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 loadData();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Lỗi xóa phiếu nhập!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -349,6 +391,7 @@ public class NhapHangView extends JPanel {
             loadData();
         }
     }
+    
     
     // Inner class for Add/Edit dialog
     private class NhapHangDialog extends JDialog {
@@ -380,7 +423,7 @@ public class NhapHangView extends JPanel {
                 maNCCField.setText(String.valueOf(nh.getMaNCC()));
                 ngayField.setText(nh.getNgay());
                 thanhTienField.setText(String.valueOf(nh.getThanhTien()));
-                trangThaiCombo.setSelectedItem(nh.getTrangThaiString());
+                trangThaiCombo.setSelectedItem(convertTrangThaiToUI(nh.getTrangThai()));
             } else {
                 // Mặc định cho phiếu nhập mới
                 maNVField.setText(String.valueOf(database.Session.currentMaNV));
@@ -521,7 +564,7 @@ public class NhapHangView extends JPanel {
                     ps.setInt(2, maNCC);
                     ps.setString(3, ngay);
                     ps.setLong(4, thanhTien);
-                    ps.setString(5, trangThai);
+                    ps.setString(5, convertTrangThaiToDatabase(trangThai));
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
@@ -532,7 +575,7 @@ public class NhapHangView extends JPanel {
                     ps.setInt(2, maNCC);
                     ps.setString(3, ngay);
                     ps.setLong(4, thanhTien);
-                    ps.setString(5, trangThai);
+                    ps.setString(5, convertTrangThaiToDatabase(trangThai));
                     ps.setInt(6, nh.getMaPN());
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -649,14 +692,15 @@ public class NhapHangView extends JPanel {
         }
         
         private void setupEventHandlers() {
-            // Double click to edit
-            chiTietTable.addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    if (evt.getClickCount() == 2) {
-                        showEditChiTietDialog();
-                    }
+        // Double click to edit
+        chiTietTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    showEditChiTietDialog();
                 }
-            });
+            }
+        });
         }
         
         private void loadChiTietData() {
@@ -842,16 +886,16 @@ public class NhapHangView extends JPanel {
                 donGiaField.addActionListener(e -> calculateTotal());
             }
             
-            private void calculateTotal() {
-                try {
-                    int soLuong = Integer.parseInt(soLuongField.getText());
-                    long donGia = Long.parseLong(donGiaField.getText());
-                    long thanhTien = soLuong * donGia;
-                    // Could show total in a label if needed
-                } catch (NumberFormatException e) {
-                    // Ignore invalid input
-                }
+        private void calculateTotal() {
+            try {
+                int soLuong = Integer.parseInt(soLuongField.getText());
+                long donGia = Long.parseLong(donGiaField.getText());
+                // Could show total in a label if needed
+                // long thanhTien = soLuong * donGia;
+            } catch (NumberFormatException e) {
+                // Ignore invalid input
             }
+        }
             
             private void saveChiTietData() {
                 String maNLStr = maNLField.getText().trim();
@@ -915,5 +959,25 @@ public class NhapHangView extends JPanel {
                 return dataChanged;
             }
         }
+    }
+    
+    // Method chuyển đổi trạng thái từ database sang giao diện
+    private String convertTrangThaiToUI(String trangThaiDB) {
+        if ("daxacnhan".equals(trangThaiDB)) {
+            return "Đã xác nhận";
+        } else if ("chuaxacnhan".equals(trangThaiDB)) {
+            return "Chưa xác nhận";
+        }
+        return "Chưa xác nhận"; // Mặc định
+    }
+    
+    // Method chuyển đổi trạng thái từ giao diện sang database
+    private String convertTrangThaiToDatabase(String trangThaiUI) {
+        if ("Đã xác nhận".equals(trangThaiUI)) {
+            return "daxacnhan";
+        } else if ("Chưa xác nhận".equals(trangThaiUI)) {
+            return "chuaxacnhan";
+        }
+        return "chuaxacnhan"; // Mặc định
     }
 }

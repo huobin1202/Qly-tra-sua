@@ -10,6 +10,7 @@ public class ChiTietDonHangDTO {
     private String ghiChu;
     private String tenMon; // Để hiển thị tên món
     private String tenTopping; // Để hiển thị tên topping
+    private String anh; // Để hiển thị ảnh món
 
     // Constructor mặc định
     public ChiTietDonHangDTO() {}
@@ -44,4 +45,7 @@ public class ChiTietDonHangDTO {
     
     public String getTenTopping() { return tenTopping; }
     public void setTenTopping(String tenTopping) { this.tenTopping = tenTopping; }
+    
+    public String getAnh() { return anh; }
+    public void setAnh(String anh) { this.anh = anh; }
 }

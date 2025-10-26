@@ -6,6 +6,10 @@ import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import java.util.HashSet;
 import database.DBUtil;
 import dto.NhaCungCapSanPhamDTO;
 import dto.SanPhamChonNhapDTO;
@@ -38,8 +42,18 @@ public class NhapHangMoiView extends JPanel {
     private List<NhaCungCapDTO> suppliers;
     private int currentReceiptCode;
     private int currentSupplierId;
+    private int editModeMaPN = -1; // -1 = thêm mới, >0 = sửa phiếu nhập
     
     public NhapHangMoiView() {
+        this.editModeMaPN = -1; // Chế độ thêm mới
+        initializeComponents();
+        setupLayout();
+        setupEventHandlers();
+        loadInitialData();
+    }
+    
+    public NhapHangMoiView(int maPN) {
+        this.editModeMaPN = maPN; // Chế độ sửa
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -90,6 +104,12 @@ public class NhapHangMoiView extends JPanel {
         receiptCodeField = new JTextField(10);
         receiptCodeField.setEditable(false);
         supplierCombo = new JComboBox<>();
+        
+        // Vô hiệu hóa nhà cung cấp khi ở chế độ sửa
+        if (editModeMaPN > 0) {
+            supplierCombo.setEnabled(false);
+        }
+        
         creatorField = new JTextField(15);
         creatorField.setEditable(false);
         creatorField.setText(Session.currentTaiKhoan);
@@ -98,7 +118,12 @@ public class NhapHangMoiView extends JPanel {
         totalAmountLabel.setFont(new Font("Arial", Font.BOLD, 14));
         totalAmountLabel.setForeground(new Color(220, 20, 60));
         
-        importButton = new JButton("Nhập hàng");
+        // Thay đổi text nút dựa trên chế độ
+        if (editModeMaPN > 0) {
+            importButton = new JButton("Cập nhật");
+        } else {
+            importButton = new JButton("Nhập hàng");
+        }
         importButton.setBackground(new Color(34, 139, 34));
         importButton.setForeground(Color.BLACK);
         importButton.setFocusPainted(false);
@@ -275,8 +300,88 @@ public class NhapHangMoiView extends JPanel {
     
     private void loadInitialData() {
         loadSuppliers();
-        generateNewReceiptCode();
+        if (editModeMaPN > 0) {
+            // Chế độ sửa: load dữ liệu phiếu nhập hiện tại
+            loadReceiptData();
+        } else {
+            // Chế độ thêm mới: tạo mã phiếu nhập mới
+            generateNewReceiptCode();
+        }
         loadSupplierProducts();
+    }
+    
+    private void loadReceiptData() {
+        try (Connection conn = DBUtil.getConnection()) {
+            // Load thông tin phiếu nhập
+            String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
+                        "FROM phieunhap p " +
+                        "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
+                        "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
+                        "WHERE p.MaPN = ?";
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, editModeMaPN);
+                ResultSet rs = ps.executeQuery();
+                
+                if (rs.next()) {
+                    receiptCodeField.setText(String.valueOf(editModeMaPN));
+                    supplierCombo.setSelectedItem(rs.getString("TenNCC"));
+                    creatorField.setText(rs.getString("TenNV"));
+                    currentSupplierId = rs.getInt("MaNCC");
+                }
+            }
+            
+            // Load chi tiết phiếu nhập
+            loadSelectedProductsFromDB();
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tải thông tin phiếu nhập: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void loadSelectedProductsFromDB() {
+        selectedProductsTableModel.setRowCount(0);
+        selectedProducts.clear();
+        
+        try (Connection conn = DBUtil.getConnection()) {
+            String sql = "SELECT ctnh.*, nl.TenNL " +
+                        "FROM chitietnhap_nl ctnh " +
+                        "JOIN nguyenlieu nl ON ctnh.MaNL = nl.MaNL " +
+                        "WHERE ctnh.MaPN = ?";
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, editModeMaPN);
+                ResultSet rs = ps.executeQuery();
+                
+                long totalAmount = 0;
+                
+                while (rs.next()) {
+                    SanPhamChonNhapDTO product = new SanPhamChonNhapDTO();
+                    product.setMaNL(rs.getInt("MaNL"));
+                    product.setTenNL(rs.getString("TenNL"));
+                    product.setSoLuong(rs.getInt("SoLuong"));
+                    product.setDonGia(rs.getLong("DonGia"));
+                    product.setDonVi(rs.getString("DonVi"));
+                    product.setThanhTien(product.getSoLuong() * product.getDonGia());
+                    
+                    selectedProducts.add(product);
+                    totalAmount += product.getThanhTien();
+                    
+                    Object[] row = {
+                        product.getMaNL(),
+                        product.getTenNL(),
+                        product.getDonVi(),
+                        product.getSoLuong(),
+                        String.format("%,d", product.getDonGia()) + " VNĐ"
+                    };
+                    selectedProductsTableModel.addRow(row);
+                }
+                
+                totalAmountLabel.setText("Tổng tiền: " + String.format("%,d", totalAmount) + " VNĐ");
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tải chi tiết phiếu nhập: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
     private void loadSuppliers() {
@@ -590,7 +695,7 @@ public class NhapHangMoiView extends JPanel {
     
     private void importGoods() {
         if (selectedProducts.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn ít nhất một sản phẩm để nhập!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn ít nhất một sản phẩm!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
@@ -599,17 +704,139 @@ public class NhapHangMoiView extends JPanel {
             return;
         }
         
-        int result = JOptionPane.showConfirmDialog(this, 
-            "Bạn có chắc chắn muốn tạo phiếu nhập với " + selectedProducts.size() + " sản phẩm?", 
-            "Xác nhận nhập hàng", JOptionPane.YES_NO_OPTION);
+        String message, title;
+        if (editModeMaPN > 0) {
+            message = "Bạn có chắc chắn muốn cập nhật phiếu nhập #" + editModeMaPN + " với " + selectedProducts.size() + " sản phẩm?";
+            title = "Xác nhận cập nhật";
+        } else {
+            message = "Bạn có chắc chắn muốn tạo phiếu nhập với " + selectedProducts.size() + " sản phẩm?";
+            title = "Xác nhận nhập hàng";
+        }
+        
+        int result = JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
             try {
-                createImportReceipt();
-                JOptionPane.showMessageDialog(this, "Tạo phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                resetForm();
+                if (editModeMaPN > 0) {
+                    updateImportReceipt();
+                    JOptionPane.showMessageDialog(this, "Cập nhật phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    // Làm mới danh sách sản phẩm nhà cung cấp để hiển thị số tồn kho mới
+                    loadSupplierProducts();
+                } else {
+                    createImportReceipt();
+                    JOptionPane.showMessageDialog(this, "Tạo phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    // Làm mới danh sách sản phẩm nhà cung cấp để hiển thị số tồn kho mới
+                    loadSupplierProducts();
+                    resetForm();
+                }
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Lỗi tạo phiếu nhập: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                String errorMsg = editModeMaPN > 0 ? "Lỗi cập nhật phiếu nhập: " : "Lỗi tạo phiếu nhập: ";
+                JOptionPane.showMessageDialog(this, errorMsg + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    private void updateImportReceipt() throws SQLException {
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            // 1. Lấy chi tiết cũ để tính toán chênh lệch
+            List<SanPhamChonNhapDTO> oldProducts = getOldReceiptDetails(conn);
+            
+            // 2. Cập nhật số tồn kho nhà cung cấp
+            updateSupplierStock(conn, oldProducts, selectedProducts);
+            
+            // 3. Xóa chi tiết cũ
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM chitietnhap_nl WHERE MaPN = ?")) {
+                ps.setInt(1, editModeMaPN);
+                ps.executeUpdate();
+            }
+            
+            // 4. Thêm chi tiết mới
+            String insertDetail = "INSERT INTO chitietnhap_nl (MaPN, MaNL, SoLuong, DonGia, DonVi) VALUES (?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(insertDetail)) {
+                for (SanPhamChonNhapDTO product : selectedProducts) {
+                    ps.setInt(1, editModeMaPN);
+                    ps.setInt(2, product.getMaNL());
+                    ps.setInt(3, product.getSoLuong());
+                    ps.setLong(4, product.getDonGia());
+                    ps.setString(5, product.getDonVi());
+                    ps.executeUpdate();
+                }
+            }
+            
+            // 5. Cập nhật tổng tiền
+            long totalAmount = selectedProducts.stream().mapToLong(SanPhamChonNhapDTO::getThanhTien).sum();
+            try (PreparedStatement ps = conn.prepareStatement("UPDATE phieunhap SET ThanhTien = ? WHERE MaPN = ?")) {
+                ps.setLong(1, totalAmount);
+                ps.setInt(2, editModeMaPN);
+                ps.executeUpdate();
+            }
+            
+            conn.commit();
+        }
+    }
+    
+    private List<SanPhamChonNhapDTO> getOldReceiptDetails(Connection conn) throws SQLException {
+        List<SanPhamChonNhapDTO> oldProducts = new ArrayList<>();
+        
+        String sql = "SELECT ctnh.*, nl.TenNL " +
+                    "FROM chitietnhap_nl ctnh " +
+                    "JOIN nguyenlieu nl ON ctnh.MaNL = nl.MaNL " +
+                    "WHERE ctnh.MaPN = ?";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, editModeMaPN);
+            ResultSet rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                SanPhamChonNhapDTO product = new SanPhamChonNhapDTO();
+                product.setMaNL(rs.getInt("MaNL"));
+                product.setTenNL(rs.getString("TenNL"));
+                product.setSoLuong(rs.getInt("SoLuong"));
+                product.setDonGia(rs.getLong("DonGia"));
+                product.setDonVi(rs.getString("DonVi"));
+                oldProducts.add(product);
+            }
+        }
+        
+        return oldProducts;
+    }
+    
+    private void updateSupplierStock(Connection conn, List<SanPhamChonNhapDTO> oldProducts, List<SanPhamChonNhapDTO> newProducts) throws SQLException {
+        // Tạo map để dễ tìm kiếm
+        Map<Integer, Integer> oldQuantities = new HashMap<>();
+        Map<Integer, Integer> newQuantities = new HashMap<>();
+        
+        // Lưu số lượng cũ
+        for (SanPhamChonNhapDTO product : oldProducts) {
+            oldQuantities.put(product.getMaNL(), product.getSoLuong());
+        }
+        
+        // Lưu số lượng mới
+        for (SanPhamChonNhapDTO product : newProducts) {
+            newQuantities.put(product.getMaNL(), product.getSoLuong());
+        }
+        
+        // Tính toán và cập nhật chênh lệch
+        Set<Integer> allProductIds = new HashSet<>();
+        allProductIds.addAll(oldQuantities.keySet());
+        allProductIds.addAll(newQuantities.keySet());
+        
+        for (Integer maNL : allProductIds) {
+            int oldQty = oldQuantities.getOrDefault(maNL, 0);
+            int newQty = newQuantities.getOrDefault(maNL, 0);
+            int difference = newQty - oldQty;
+            
+            if (difference != 0) {
+                // Cập nhật số tồn kho nhà cung cấp
+                String updateStock = "UPDATE ncc_nguyenlieu SET SoLuong = SoLuong - ? WHERE MaNCC = ? AND MaNL = ?";
+                try (PreparedStatement ps = conn.prepareStatement(updateStock)) {
+                    ps.setInt(1, difference);
+                    ps.setInt(2, currentSupplierId);
+                    ps.setInt(3, maNL);
+                    ps.executeUpdate();
+                }
             }
         }
     }
@@ -619,7 +846,7 @@ public class NhapHangMoiView extends JPanel {
             conn.setAutoCommit(false);
             
             // 1. Create import receipt
-            String insertReceipt = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, NOW(), ?, 'Chưa xác nhận')";
+            String insertReceipt = "INSERT INTO phieunhap (MaNV, MaNCC, Ngay, ThanhTien, TrangThai) VALUES (?, ?, NOW(), ?, 'chuaxacnhan')";
             
             try (PreparedStatement ps = conn.prepareStatement(insertReceipt, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setInt(1, Session.currentMaNV);
@@ -659,14 +886,8 @@ public class NhapHangMoiView extends JPanel {
                                     psSupplier.executeUpdate();
                                 }
                                 
-                                // 4. Update warehouse inventory
-                                String updateWarehouse = "INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?) ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
-                                try (PreparedStatement psWarehouse = conn.prepareStatement(updateWarehouse)) {
-                                    psWarehouse.setInt(1, product.getMaNL());
-                                    psWarehouse.setInt(2, product.getSoLuong());
-                                    psWarehouse.setInt(3, product.getSoLuong());
-                                    psWarehouse.executeUpdate();
-                                }
+                                // Lưu ý: Kho hàng chỉ được cập nhật khi phiếu nhập được xác nhận
+                                // (xem method xacNhanPhieuNhap trong NhapHangDAO)
                             }
                         }
                     }

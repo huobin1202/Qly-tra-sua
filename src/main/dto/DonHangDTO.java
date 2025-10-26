@@ -24,6 +24,7 @@ public class DonHangDTO {
         this.tongTien = tongTien;
         this.giamGia = giamGia;
     }
+    
 
     public int getMaDon() { return maDon; }
     public void setMaDon(int maDon) { this.maDon = maDon; }

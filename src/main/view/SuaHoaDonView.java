@@ -66,7 +66,7 @@ public class SuaHoaDonView extends JDialog {
     }
     
     private void initializeComponents() {
-        setSize(1200, 800);
+        setSize(1300, 800);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
@@ -76,7 +76,7 @@ public class SuaHoaDonView extends JDialog {
         nhanVienField = new JTextField(15);
         nhanVienField.setEditable(false);
         
-        loaiHoaDonCombo = new JComboBox<>(new String[]{"Đặt hàng", "Tại chỗ", "Mang đi"});
+        loaiHoaDonCombo = new JComboBox<>(new String[]{"Đặt hàng", "Tại chỗ"});
         
         giamGiaSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
         giamGiaSpinner.setPreferredSize(new Dimension(80, 25));
@@ -326,8 +326,8 @@ public class SuaHoaDonView extends JDialog {
         itemsPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         
         JScrollPane scrollPane = new JScrollPane(itemsPanel);
-        scrollPane.setPreferredSize(new Dimension(300, 500));
-        scrollPane.setMinimumSize(new Dimension(250, 300));
+        scrollPane.setPreferredSize(new Dimension(370, 500));
+        scrollPane.setMinimumSize(new Dimension(320, 300));
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         
@@ -469,12 +469,19 @@ public class SuaHoaDonView extends JDialog {
                     giamGiaSpinner.setValue(currentOrder.getGiamGia());
                     
                     // Cập nhật trạng thái
-                    if ("1".equals(currentOrder.getTrangThai())) {
-                        trangThaiLabel.setText("Đã thanh toán");
-                        trangThaiLabel.setForeground(Color.GREEN);
+                    String trangThai = currentOrder.getTrangThai();
+                    if (trangThai != null) {
+                        trangThaiLabel.setText(convertTrangThaiToUI(trangThai));
+                        if ("dathanhtoan".equals(trangThai)) {
+                            trangThaiLabel.setForeground(Color.GREEN);
+                        } else if ("bihuy".equals(trangThai)) {
+                            trangThaiLabel.setForeground(Color.RED);
+                        } else {
+                            trangThaiLabel.setForeground(Color.ORANGE);
+                        }
                     } else {
                         trangThaiLabel.setText("Chưa thanh toán");
-                        trangThaiLabel.setForeground(Color.RED);
+                        trangThaiLabel.setForeground(Color.ORANGE);
                     }
                 }
             }
@@ -499,11 +506,11 @@ public class SuaHoaDonView extends JDialog {
             
             if (categoryId == 0) {
                 // Load tất cả sản phẩm có trạng thái 'ban'
-                sql = "SELECT * FROM mon WHERE TinhTrang = 'Đang bán' ORDER BY MaLoai, TenMon";
+                sql = "SELECT * FROM mon WHERE TinhTrang = 'dangban' ORDER BY MaLoai, TenMon";
                 ps = conn.prepareStatement(sql);
             } else {
                 // Load sản phẩm theo danh mục cụ thể
-                sql = "SELECT * FROM mon WHERE MaLoai = ? AND TinhTrang = 'Đang bán' ORDER BY TenMon";
+                sql = "SELECT * FROM mon WHERE MaLoai = ? AND TinhTrang = 'dangban' ORDER BY TenMon";
                 ps = conn.prepareStatement(sql);
                 ps.setInt(1, categoryId);
             }
@@ -530,7 +537,7 @@ public class SuaHoaDonView extends JDialog {
         for (int i = 0; i < currentProducts.size(); i += 2) {
             JPanel rowPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
             rowPanel.setBackground(new Color(240, 248, 255));
-            rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+            rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
             rowPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
             
             // Sản phẩm đầu tiên trong hàng
@@ -544,9 +551,9 @@ public class SuaHoaDonView extends JDialog {
             } else {
                 // Thêm panel trống nếu chỉ có 1 sản phẩm trong hàng
                 JPanel emptyPanel = new JPanel();
-                emptyPanel.setPreferredSize(new Dimension(180, 70));
-                emptyPanel.setMinimumSize(new Dimension(180, 70));
-                emptyPanel.setMaximumSize(new Dimension(180, 70));
+                emptyPanel.setPreferredSize(new Dimension(200, 90));
+                emptyPanel.setMinimumSize(new Dimension(200, 90));
+                emptyPanel.setMaximumSize(new Dimension(200, 90));
                 emptyPanel.setBackground(new Color(240, 248, 255));
                 rowPanel.add(emptyPanel);
             }
@@ -564,35 +571,73 @@ public class SuaHoaDonView extends JDialog {
         JPanel panel = new JPanel(new BorderLayout()) {
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(180, 70);
+                return new Dimension(200, 90);
             }
             
             @Override
             public Dimension getMinimumSize() {
-                return new Dimension(180, 70);
+                return new Dimension(200, 90);
             }
             
             @Override
             public Dimension getMaximumSize() {
-                return new Dimension(180, 70);
+                return new Dimension(200, 90);
             }
         };
         panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
         panel.setBackground(new Color(255, 182, 193)); // Màu hồng nhạt
         
-        // Hình ảnh sản phẩm (placeholder)
-        JLabel imageLabel = new JLabel("🛍️", JLabel.CENTER);
+        // Hình ảnh sản phẩm
+        JLabel imageLabel = new JLabel("", JLabel.CENTER);
         imageLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         imageLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
+        // Load và hiển thị ảnh sản phẩm
+        if (product.getAnh() != null && !product.getAnh().trim().isEmpty()) {
+            try {
+                String fullPath = "src/" + product.getAnh();
+                java.io.File imageFile = new java.io.File(fullPath);
+                
+                if (imageFile.exists()) {
+                    ImageIcon icon = new ImageIcon(fullPath);
+                    Image image = icon.getImage();
+                    
+                    // Scale image to fit in panel (80x80)
+                    int maxWidth = 80;
+                    int maxHeight = 80;
+                    int width = image.getWidth(null);
+                    int height = image.getHeight(null);
+                    
+                    double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
+                    int newWidth = (int) (width * scale);
+                    int newHeight = (int) (height * scale);
+                    
+                    Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                    ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                    
+                    imageLabel.setIcon(scaledIcon);
+                    imageLabel.setText("");
+                } else {
+                    imageLabel.setIcon(null);
+                    imageLabel.setText("🛍️");
+                }
+            } catch (Exception e) {
+                imageLabel.setIcon(null);
+                imageLabel.setText("🛍️");
+            }
+        } else {
+            imageLabel.setIcon(null);
+            imageLabel.setText("🛍️");
+        }
+        
         // Tên sản phẩm
         JLabel nameLabel = new JLabel(product.getTenMon(), JLabel.CENTER);
-        nameLabel.setFont(new Font("Arial", Font.BOLD, 9));
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 12));
         nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
         // Giá
         JLabel priceLabel = new JLabel(String.format("%,dVND", product.getGia()), JLabel.CENTER);
-        priceLabel.setFont(new Font("Arial", Font.PLAIN, 7));
+        priceLabel.setFont(new Font("Arial", Font.PLAIN, 10));
         priceLabel.setForeground(Color.RED);
         priceLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
@@ -640,6 +685,7 @@ public class SuaHoaDonView extends JDialog {
                 newItem.setMaDon(currentOrder.getMaDon());
                 newItem.setMaMon(result.maMon);
                 newItem.setTenMon(result.tenMon);
+                newItem.setAnh(product.getAnh()); // Lưu ảnh từ sản phẩm
                 newItem.setTenTopping(result.tenTopping);
                 newItem.setSoLuong(result.soLuong);
                 newItem.setGiaMon(result.giaMon);
@@ -683,7 +729,7 @@ public class SuaHoaDonView extends JDialog {
         orderedItems.clear();
         
         try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT ctdh.*, m1.TenMon AS TenMon, m2.TenMon AS TenTopping " +
+            String sql = "SELECT ctdh.*, m1.TenMon AS TenMon, m1.Anh AS Anh, m2.TenMon AS TenTopping " +
                         "FROM chitietdonhang ctdh " +
                         "LEFT JOIN mon m1 ON ctdh.MaMon = m1.MaMon " +
                         "LEFT JOIN mon m2 ON ctdh.MaTopping = m2.MaMon " +
@@ -703,8 +749,9 @@ public class SuaHoaDonView extends JDialog {
                     item.setGiaTopping(rs.getLong("GiaTopping"));
                     item.setGhiChu(rs.getString("GhiChu"));
                     
-                    // Lưu tên sản phẩm và topping để hiển thị
+                    // Lưu tên sản phẩm, ảnh và topping để hiển thị
                     item.setTenMon(rs.getString("TenMon"));
+                    item.setAnh(rs.getString("Anh"));
                     item.setTenTopping(rs.getString("TenTopping"));
                     
                     orderedItems.add(item);
@@ -737,21 +784,68 @@ public class SuaHoaDonView extends JDialog {
         JPanel panel = new JPanel(new BorderLayout()) {
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(280, 50);
+                return new Dimension(350, 70);
             }
             
             @Override
             public Dimension getMinimumSize() {
-                return new Dimension(280, 50);
+                return new Dimension(350, 70);
             }
             
             @Override
             public Dimension getMaximumSize() {
-                return new Dimension(280, 50);
+                return new Dimension(350, 70);
             }
         };
         panel.setBackground(new Color(144, 238, 144)); // Màu xanh lá nhạt
         panel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        
+        // Panel ảnh sản phẩm bên trái
+        JLabel imageLabel = new JLabel("", JLabel.CENTER);
+        imageLabel.setPreferredSize(new Dimension(60, 60));
+        imageLabel.setMinimumSize(new Dimension(60, 60));
+        imageLabel.setMaximumSize(new Dimension(60, 60));
+        imageLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
+        imageLabel.setBackground(Color.WHITE);
+        imageLabel.setOpaque(true);
+        
+        // Load và hiển thị ảnh sản phẩm
+        if (item.getAnh() != null && !item.getAnh().trim().isEmpty()) {
+            try {
+                String fullPath = "src/" + item.getAnh();
+                java.io.File imageFile = new java.io.File(fullPath);
+                
+                if (imageFile.exists()) {
+                    ImageIcon icon = new ImageIcon(fullPath);
+                    Image image = icon.getImage();
+                    
+                    // Scale image to fit in panel (60x60)
+                    int maxWidth = 60;
+                    int maxHeight = 60;
+                    int width = image.getWidth(null);
+                    int height = image.getHeight(null);
+                    
+                    double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
+                    int newWidth = (int) (width * scale);
+                    int newHeight = (int) (height * scale);
+                    
+                    Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                    ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                    
+                    imageLabel.setIcon(scaledIcon);
+                    imageLabel.setText("");
+                } else {
+                    imageLabel.setIcon(null);
+                    imageLabel.setText("🛍️");
+                }
+            } catch (Exception e) {
+                imageLabel.setIcon(null);
+                imageLabel.setText("🛍️");
+            }
+        } else {
+            imageLabel.setIcon(null);
+            imageLabel.setText("🛍️");
+        }
         
         // Panel thông tin sản phẩm
         JPanel infoPanel = new JPanel(new BorderLayout());
@@ -760,12 +854,12 @@ public class SuaHoaDonView extends JDialog {
         
         // Tên món
         JLabel nameLabel = new JLabel(item.getTenMon());
-        nameLabel.setFont(new Font("Arial", Font.BOLD, 9));
+        nameLabel.setFont(new Font("Arial", Font.BOLD, 12));
         nameLabel.setBackground(new Color(144, 238, 144));
         
         // Topping
         JLabel toppingLabel = new JLabel("No Topping");
-        toppingLabel.setFont(new Font("Arial", Font.PLAIN, 7));
+        toppingLabel.setFont(new Font("Arial", Font.PLAIN, 10));
         toppingLabel.setForeground(Color.GRAY);
         if (item.getTenTopping() != null && !item.getTenTopping().equals("No Topping")) {
             toppingLabel.setText(item.getTenTopping());
@@ -774,7 +868,7 @@ public class SuaHoaDonView extends JDialog {
         // Giá
         long donGia = item.getGiaMon() + item.getGiaTopping();
         JLabel priceLabel = new JLabel(String.format("%,d VND", donGia));
-        priceLabel.setFont(new Font("Arial", Font.PLAIN, 8));
+        priceLabel.setFont(new Font("Arial", Font.PLAIN, 11));
         priceLabel.setForeground(Color.RED);
         
         // Panel thông tin bên trái
@@ -790,10 +884,11 @@ public class SuaHoaDonView extends JDialog {
         controlPanel.setBackground(new Color(144, 238, 144));
         
         JButton minusButton = new JButton("-");
-        minusButton.setPreferredSize(new Dimension(18, 18));
+        minusButton.setPreferredSize(new Dimension(25, 25));
         minusButton.setBackground(new Color(70, 130, 180));
         minusButton.setForeground(Color.WHITE);
         minusButton.setFocusPainted(false);
+        minusButton.setFont(new Font("Arial", Font.BOLD, 12));
         minusButton.addActionListener(e -> {
             if (item.getSoLuong() > 1) {
                 item.setSoLuong(item.getSoLuong() - 1);
@@ -808,16 +903,17 @@ public class SuaHoaDonView extends JDialog {
         });
         
         JLabel quantityLabel = new JLabel(String.valueOf(item.getSoLuong()));
-        quantityLabel.setFont(new Font("Arial", Font.BOLD, 9));
-        quantityLabel.setPreferredSize(new Dimension(22, 18));
+        quantityLabel.setFont(new Font("Arial", Font.BOLD, 12));
+        quantityLabel.setPreferredSize(new Dimension(30, 25));
         quantityLabel.setHorizontalAlignment(JLabel.CENTER);
         quantityLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         
         JButton plusButton = new JButton("+");
-        plusButton.setPreferredSize(new Dimension(18, 18));
+        plusButton.setPreferredSize(new Dimension(25, 25));
         plusButton.setBackground(new Color(70, 130, 180));
         plusButton.setForeground(Color.WHITE);
         plusButton.setFocusPainted(false);
+        plusButton.setFont(new Font("Arial", Font.BOLD, 12));
         plusButton.addActionListener(e -> {
             item.setSoLuong(item.getSoLuong() + 1);
             updateOrderedItemsTable();
@@ -831,6 +927,8 @@ public class SuaHoaDonView extends JDialog {
         infoPanel.add(leftInfoPanel, BorderLayout.WEST);
         infoPanel.add(controlPanel, BorderLayout.EAST);
         
+        // Thêm ảnh vào bên trái và thông tin vào giữa
+        panel.add(imageLabel, BorderLayout.WEST);
         panel.add(infoPanel, BorderLayout.CENTER);
         
         return panel;
@@ -955,13 +1053,14 @@ public class SuaHoaDonView extends JDialog {
         
         if (result == JOptionPane.YES_OPTION) {
             try (Connection conn = DBUtil.getConnection()) {
-                String sql = "UPDATE dondathang SET TrangThai = '1' WHERE MaDon = ?";
+                String sql = "UPDATE dondathang SET TrangThai = ? WHERE MaDon = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setInt(1, currentOrder.getMaDon());
+                    ps.setString(1, "dathanhtoan");
+                    ps.setInt(2, currentOrder.getMaDon());
                     ps.executeUpdate();
                 }
                 
-                currentOrder.setTrangThai("1");
+                currentOrder.setTrangThai("dathanhtoan");
                 trangThaiLabel.setText("Đã thanh toán");
                 trangThaiLabel.setForeground(Color.GREEN);
                 
@@ -987,23 +1086,34 @@ public class SuaHoaDonView extends JDialog {
         
         if (result == JOptionPane.YES_OPTION) {
             try (Connection conn = DBUtil.getConnection()) {
-                // Xóa chi tiết đơn hàng
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM chitietdonhang WHERE MaDon = ?")) {
-                    ps.setInt(1, currentOrder.getMaDon());
+                // Cập nhật trạng thái đơn hàng thành "Bị hủy"
+                String sql = "UPDATE dondathang SET TrangThai = ? WHERE MaDon = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, "bihuy");
+                    ps.setInt(2, currentOrder.getMaDon());
                     ps.executeUpdate();
                 }
                 
-                // Xóa đơn hàng
-                try (PreparedStatement ps = conn.prepareStatement("DELETE FROM dondathang WHERE MaDon = ?")) {
-                    ps.setInt(1, currentOrder.getMaDon());
-                    ps.executeUpdate();
-                }
+                currentOrder.setTrangThai("bihuy");
+                trangThaiLabel.setText("Bị hủy");
+                trangThaiLabel.setForeground(Color.RED);
                 
                 JOptionPane.showMessageDialog(this, "Hủy đơn hàng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                dispose();
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Lỗi hủy đơn hàng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
+    }
+    
+    // Method chuyển đổi trạng thái từ database sang giao diện
+    private String convertTrangThaiToUI(String trangThaiDB) {
+        if ("dathanhtoan".equals(trangThaiDB)) {
+            return "Đã thanh toán";
+        } else if ("chuathanhtoan".equals(trangThaiDB)) {
+            return "Chưa thanh toán";
+        } else if ("bihuy".equals(trangThaiDB)) {
+            return "Bị hủy";
+        }
+        return "Chưa thanh toán"; // Mặc định
     }
 }

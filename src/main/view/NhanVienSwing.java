@@ -354,7 +354,7 @@ public class NhanVienSwing extends JPanel {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                     ngayVaoLamField.setText(dateFormat.format(nv.getNgayVaoLam()));
                 }
-                chucVuCombo.setSelectedItem(nv.getChucVu());
+                chucVuCombo.setSelectedItem(convertChucVuToUI(nv.getChucVu()));
                 luongField.setText(String.valueOf(nv.getLuong()));
             } else {
                 // Thêm nhân viên mới - tự động set ngày hiện tại
@@ -514,7 +514,7 @@ public class NhanVienSwing extends JPanel {
                         ps.setNull(5, Types.TIMESTAMP);
                     }
                     
-                    ps.setString(6, chucVu);
+                    ps.setString(6, convertChucVuToDatabase(chucVu));
                     ps.setInt(7, luong);
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -535,7 +535,7 @@ public class NhanVienSwing extends JPanel {
                             ps.setNull(5, Types.TIMESTAMP);
                         }
                         
-                        ps.setString(6, chucVu);
+                        ps.setString(6, convertChucVuToDatabase(chucVu));
                         ps.setInt(7, luong);
                         ps.setInt(8, nv.getMaNV());
                     } else {
@@ -568,6 +568,26 @@ public class NhanVienSwing extends JPanel {
         
         public boolean isDataChanged() {
             return dataChanged;
+        }
+        
+        // Method chuyển đổi chức vụ từ giao diện sang database
+        private String convertChucVuToDatabase(String chucVuUI) {
+            if ("Nhân viên".equals(chucVuUI)) {
+                return "nhanvien";
+            } else if ("Quản lý".equals(chucVuUI)) {
+                return "quanly";
+            }
+            return "nhanvien"; // Mặc định
+        }
+        
+        // Method chuyển đổi chức vụ từ database sang giao diện
+        private String convertChucVuToUI(String chucVuDB) {
+            if ("nhanvien".equals(chucVuDB)) {
+                return "Nhân viên";
+            } else if ("quanly".equals(chucVuDB)) {
+                return "Quản lý";
+            }
+            return "Nhân viên"; // Mặc định
         }
     }
 }

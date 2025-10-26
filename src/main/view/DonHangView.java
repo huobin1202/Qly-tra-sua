@@ -162,7 +162,7 @@ public class DonHangView extends JPanel {
                     donHang.getMaDon(),
                     donHang.getMaNV(),
                     donHang.getLoai(),
-                    donHang.getTrangThai(),
+                    convertTrangThaiToUI(donHang.getTrangThai()),
                     donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
                     String.format("%,d", donHang.getTongTien()) + " VNĐ",
                     donHang.getGiamGia() + "%"
@@ -188,7 +188,7 @@ public class DonHangView extends JPanel {
                     donHang.getMaDon(),
                     donHang.getMaNV(),
                     donHang.getLoai(),
-                    donHang.getTrangThai(),
+                    convertTrangThaiToUI(donHang.getTrangThai()),
                     donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
                     String.format("%,d", donHang.getTongTien()) + " VNĐ",
                     donHang.getGiamGia() + "%"
@@ -219,7 +219,7 @@ public class DonHangView extends JPanel {
         String trangThai = (String) tableModel.getValueAt(selectedRow, 3);
         
         // Kiểm tra trạng thái thanh toán
-        if ("1".equals(trangThai) || "Đã thanh toán".equals(trangThai)) {
+        if ("Đã thanh toán".equals(trangThai) || "Bị hủy".equals(trangThai)) {
             JOptionPane.showMessageDialog(this, 
                 "Đơn hàng đã thanh toán, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
                 "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -259,7 +259,7 @@ public class DonHangView extends JPanel {
             detail.append("Mã đơn: ").append(donHang.getMaDon()).append("\n");
             detail.append("Mã NV: ").append(donHang.getMaNV()).append("\n");
             detail.append("Loại: ").append(donHang.getLoai()).append("\n");
-            detail.append("Trạng thái: ").append(donHang.getTrangThai()).append("\n");
+            detail.append("Trạng thái: ").append(convertTrangThaiToUI(donHang.getTrangThai())).append("\n");
             detail.append("Ngày đặt: ").append(donHang.getNgayDat()).append("\n");
             detail.append("Tổng tiền: ").append(String.format("%,d", donHang.getTongTien())).append(" VNĐ\n");
             detail.append("Giảm giá: ").append(donHang.getGiamGia()).append("%\n\n");
@@ -347,12 +347,12 @@ public class DonHangView extends JPanel {
             tongTienField = new JTextField(20);
             giamGiaField = new JTextField(20);
             ngayDatField = new JTextField(20);
-            trangThaiCombo = new JComboBox<>(new String[]{"Chờ xử lý", "Đang chuẩn bị", "Đang giao", "Đã giao", "Đã hủy"});
+            trangThaiCombo = new JComboBox<>(new String[]{"Chưa thanh toán", "Đã thanh toán", "Bị hủy"});
             
             if (dh != null) {
                 maNVField.setText(String.valueOf(dh.getMaNV()));
                 loaiField.setText(dh.getLoai());
-                trangThaiCombo.setSelectedItem(dh.getTrangThai());
+                trangThaiCombo.setSelectedItem(convertTrangThaiToUI(dh.getTrangThai()));
                 tongTienField.setText(String.valueOf(dh.getTongTien()));
                 giamGiaField.setText(String.valueOf(dh.getGiamGia()));
                 if (dh.getNgayDat() != null) {
@@ -495,7 +495,7 @@ public class DonHangView extends JPanel {
                         "INSERT INTO dondathang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)");
                     ps.setInt(1, maNV);
                     ps.setString(2, loai);
-                    ps.setString(3, trangThai);
+                    ps.setString(3, convertTrangThaiToDatabase(trangThai));
                     ps.setString(4, ngayDatStr);
                     ps.setLong(5, tongTien);
                     ps.setInt(6, giamGia);
@@ -507,7 +507,7 @@ public class DonHangView extends JPanel {
                         "UPDATE dondathang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?");
                     ps.setInt(1, maNV);
                     ps.setString(2, loai);
-                    ps.setString(3, trangThai);
+                    ps.setString(3, convertTrangThaiToDatabase(trangThai));
                     ps.setString(4, ngayDatStr);
                     ps.setLong(5, tongTien);
                     ps.setInt(6, giamGia);
@@ -525,5 +525,29 @@ public class DonHangView extends JPanel {
         public boolean isDataChanged() {
             return dataChanged;
         }
+    }
+    
+    // Method chuyển đổi trạng thái từ database sang giao diện
+    private String convertTrangThaiToUI(String trangThaiDB) {
+        if ("dathanhtoan".equals(trangThaiDB)) {
+            return "Đã thanh toán";
+        } else if ("chuathanhtoan".equals(trangThaiDB)) {
+            return "Chưa thanh toán";
+        } else if ("bihuy".equals(trangThaiDB)) {
+            return "Bị hủy";
+        }
+        return "Chưa thanh toán"; // Mặc định
+    }
+    
+    // Method chuyển đổi trạng thái từ giao diện sang database
+    private String convertTrangThaiToDatabase(String trangThaiUI) {
+        if ("Đã thanh toán".equals(trangThaiUI)) {
+            return "dathanhtoan";
+        } else if ("Chưa thanh toán".equals(trangThaiUI)) {
+            return "chuathanhtoan";
+        } else if ("Bị hủy".equals(trangThaiUI)) {
+            return "bihuy";
+        }
+        return "chuathanhtoan"; // Mặc định
     }
 }

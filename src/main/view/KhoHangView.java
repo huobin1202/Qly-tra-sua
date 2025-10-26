@@ -64,17 +64,12 @@ public class KhoHangView extends JPanel {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.setBackground(new Color(240, 248, 255));
         
-        JButton updateButton = new JButton("📝 Cập nhật số lượng");
-        updateButton.setBackground(new Color(255, 140, 0));
-        updateButton.setForeground(Color.BLACK);
-        updateButton.setFocusPainted(false);
         
         JButton lowStockButton = new JButton("⚠️ Hàng sắp hết");
         lowStockButton.setBackground(new Color(255, 69, 0));
         lowStockButton.setForeground(Color.BLACK);
         lowStockButton.setFocusPainted(false);
         
-        buttonPanel.add(updateButton);
         buttonPanel.add(lowStockButton);
         
         // Search panel (bên phải) - Tìm kiếm
@@ -116,7 +111,6 @@ public class KhoHangView extends JPanel {
         // Event handlers
         searchButton.addActionListener(e -> performSearch());
         refreshButton.addActionListener(e -> loadData());
-        updateButton.addActionListener(e -> showUpdateDialog());
         lowStockButton.addActionListener(e -> showLowStockDialog());
     }
     

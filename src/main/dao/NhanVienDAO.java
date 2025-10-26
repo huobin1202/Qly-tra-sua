@@ -253,4 +253,33 @@ public class NhanVienDAO {
         }
         return danhSach;
     }
+    
+    // Method để chuẩn hóa chức vụ nhân viên trong database
+    public boolean chuanHoaChucVuNhanVien() {
+        String sql1 = "UPDATE nhanvien SET ChucVu = 'nhanvien' WHERE ChucVu = 'Nhân viên'";
+        String sql2 = "UPDATE nhanvien SET ChucVu = 'quanly' WHERE ChucVu = 'Quản lý'";
+        String sql3 = "UPDATE nhanvien SET ChucVu = 'nghiviec' WHERE ChucVu = 'Nghỉ việc'";
+        
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql1)) {
+                int result1 = ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql2)) {
+                int result2 = ps.executeUpdate();
+            }
+            
+            try (PreparedStatement ps = conn.prepareStatement(sql3)) {
+                int result3 = ps.executeUpdate();
+            }
+            
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

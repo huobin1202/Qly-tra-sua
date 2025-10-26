@@ -1,8 +1,7 @@
 package dto;
 import java.util.Scanner;
 
-import controller.Inhapxuat;
-public class NhaCungCapDTO implements Inhapxuat {
+public class NhaCungCapDTO {
     private int maNCC;
     private String tenNCC;
     private String soDienThoai;
@@ -48,23 +47,5 @@ public class NhaCungCapDTO implements Inhapxuat {
 
     public void setDiaChi(String diaChi) {
         this.diaChi = diaChi;
-    }
-
-    @Override
-    public void nhap() {
-        Scanner sc = new Scanner(System.in);
-        System.out.print("Nhap ma nha cung cap: ");
-        maNCC = Integer.parseInt(sc.nextLine());
-        System.out.print("Nhap ten nha cung cap: ");
-        tenNCC = sc.nextLine();
-        System.out.print("Nhap so dien thoai: ");
-        soDienThoai = sc.nextLine();
-        System.out.print("Nhap dia chi: ");
-        diaChi = sc.nextLine();
-    }
-
-    @Override
-    public void xuat() {
-        System.out.printf("%-10d %-20s %-15s %-30s\n", maNCC, tenNCC, soDienThoai, diaChi);
     }
 }
