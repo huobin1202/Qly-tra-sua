@@ -216,7 +216,7 @@ public class NhaCungCapView extends JPanel {
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String ten = (String) tableModel.getValueAt(selectedRow, 1);
-        long sdt = Long.parseLong((String) tableModel.getValueAt(selectedRow, 2));
+        String sdt = (String) tableModel.getValueAt(selectedRow, 2);
         String diaChi = (String) tableModel.getValueAt(selectedRow, 3);
         
         NhaCungCapDTO ncc = new NhaCungCapDTO(id, ten, sdt, diaChi);
@@ -314,7 +314,7 @@ public class NhaCungCapView extends JPanel {
             
             if (ncc != null) {
                 tenField.setText(ncc.getTenNCC() != null ? ncc.getTenNCC() : "");
-                sdtField.setText(ncc.getSoDienThoai() != 0 ? String.valueOf(ncc.getSoDienThoai()) : "");
+                sdtField.setText(ncc.getSoDienThoai() != null ? ncc.getSoDienThoai() : "");
                 diaChiField.setText(ncc.getDiaChi() != null ? ncc.getDiaChi() : "");
             }
         }
@@ -417,6 +417,24 @@ public class NhaCungCapView extends JPanel {
                 return;
             }
             
+            // Validation số điện thoại
+            if (sdt.startsWith("0")) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại không được bắt đầu bằng số 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Kiểm tra chỉ chứa số
+            if (!sdt.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại chỉ được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Kiểm tra độ dài
+            if (sdt.length() < 9 || sdt.length() > 11) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
             try (Connection conn = DBUtil.getConnection()) {
                 System.out.println("Kết nối database thành công!");
                 
@@ -425,7 +443,7 @@ public class NhaCungCapView extends JPanel {
                     try (PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
                         ps.setString(1, ten);
-                        ps.setLong(2, Long.parseLong(sdt));
+                        ps.setString(2, sdt);
                         ps.setString(3, diaChi);
                         int result = ps.executeUpdate();
                         JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -435,7 +453,7 @@ public class NhaCungCapView extends JPanel {
                     try (PreparedStatement ps = conn.prepareStatement(
                         "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?")) {
                         ps.setString(1, ten);
-                        ps.setLong(2, Long.parseLong(sdt));
+                        ps.setString(2, sdt);
                         ps.setString(3, diaChi);
                         ps.setInt(4, ncc.getMaNCC());
                         int result = ps.executeUpdate();
@@ -447,8 +465,6 @@ public class NhaCungCapView extends JPanel {
             } catch (SQLException e) {
                 System.err.println("Lỗi kết nối database: " + e.getMessage());
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Số điện thoại phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
         

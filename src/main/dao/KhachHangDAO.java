@@ -20,7 +20,7 @@ public class KhachHangDAO {
             while (rs.next()) {
                 KhachHangDTO khachHang = new KhachHangDTO();
                 khachHang.setMaKH(rs.getInt("MaKH"));
-                khachHang.setSoDienThoai(rs.getLong("SDT"));
+                khachHang.setSoDienThoai(rs.getString("SDT"));
                 khachHang.setHoTen(rs.getString("HoTen"));
                 khachHang.setDiaChi(rs.getString("DiaChi"));
                 khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
@@ -59,7 +59,7 @@ public class KhachHangDAO {
                 while (rs.next()) {
                     KhachHangDTO khachHang = new KhachHangDTO();
                     khachHang.setMaKH(rs.getInt("MaKH"));
-                    khachHang.setSoDienThoai(rs.getLong("SDT"));
+                    khachHang.setSoDienThoai(rs.getString("SDT"));
                     khachHang.setHoTen(rs.getString("HoTen"));
                     khachHang.setDiaChi(rs.getString("DiaChi"));
                     khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
@@ -84,7 +84,7 @@ public class KhachHangDAO {
                 if (rs.next()) {
                     KhachHangDTO khachHang = new KhachHangDTO();
                     khachHang.setMaKH(rs.getInt("MaKH"));
-                    khachHang.setSoDienThoai(rs.getLong("SDT"));
+                    khachHang.setSoDienThoai(rs.getString("SDT"));
                     khachHang.setHoTen(rs.getString("HoTen"));
                     khachHang.setDiaChi(rs.getString("DiaChi"));
                     khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
@@ -109,7 +109,7 @@ public class KhachHangDAO {
                 if (rs.next()) {
                     KhachHangDTO khachHang = new KhachHangDTO();
                     khachHang.setMaKH(rs.getInt("MaKH"));
-                    khachHang.setSoDienThoai(rs.getLong("SDT"));
+                    khachHang.setSoDienThoai(rs.getString("SDT"));
                     khachHang.setHoTen(rs.getString("HoTen"));
                     khachHang.setDiaChi(rs.getString("DiaChi"));
                     khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
@@ -128,7 +128,7 @@ public class KhachHangDAO {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
-            ps.setLong(1, khachHang.getSoDienThoai());
+                ps.setString(1, khachHang.getSoDienThoai());
             ps.setString(2, khachHang.getHoTen());
             ps.setString(3, khachHang.getDiaChi());
             ps.setTimestamp(4, khachHang.getNgaySinh());
@@ -155,7 +155,7 @@ public class KhachHangDAO {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
-            ps.setLong(1, khachHang.getSoDienThoai());
+                ps.setString(1, khachHang.getSoDienThoai());
             ps.setString(2, khachHang.getHoTen());
             ps.setString(3, khachHang.getDiaChi());
             ps.setTimestamp(4, khachHang.getNgaySinh());
@@ -215,7 +215,7 @@ public class KhachHangDAO {
                 KhachHangDTO khachHang = new KhachHangDTO();
                 khachHang.setMaKH(rs.getInt("MaKH"));
                 khachHang.setHoTen(rs.getString("HoTen"));
-                khachHang.setSoDienThoai(rs.getLong("SDT"));
+                khachHang.setSoDienThoai(rs.getString("SDT"));
                 danhSach.add(khachHang);
             }
         } catch (SQLException e) {

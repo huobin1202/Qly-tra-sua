@@ -3,7 +3,7 @@ import java.sql.Timestamp;
 
 public class KhachHangDTO {
     private int maKH;
-    private long soDienThoai;
+    private String soDienThoai;
     private String hoTen;
     private String diaChi;
     private Timestamp ngaySinh;
@@ -11,7 +11,7 @@ public class KhachHangDTO {
     public KhachHangDTO() {
     }
 
-    public KhachHangDTO(int maKH, long soDienThoai, String hoTen, String diaChi, Timestamp ngaySinh) {
+    public KhachHangDTO(int maKH, String soDienThoai, String hoTen, String diaChi, Timestamp ngaySinh) {
         this.maKH = maKH;
         this.soDienThoai = soDienThoai;
         this.hoTen = hoTen;
@@ -27,11 +27,11 @@ public class KhachHangDTO {
         this.maKH = maKH;
     }
 
-    public long getSoDienThoai() {
+    public String getSoDienThoai() {
         return soDienThoai;
     }
 
-    public void setSoDienThoai(long soDienThoai) {
+    public void setSoDienThoai(String soDienThoai) {
         this.soDienThoai = soDienThoai;
     }
 

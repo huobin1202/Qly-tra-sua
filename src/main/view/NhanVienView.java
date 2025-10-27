@@ -226,7 +226,7 @@ public class NhanVienView extends JPanel {
         String taiKhoan = (String) tableModel.getValueAt(selectedRow, 1);
         String matKhau = (String) tableModel.getValueAt(selectedRow, 2);
         String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
-        long sdt = Long.parseLong((String) tableModel.getValueAt(selectedRow, 4));
+        String sdt = (String) tableModel.getValueAt(selectedRow, 4);
         String ngayVaoLamStr = (String) tableModel.getValueAt(selectedRow, 5);
         String chucVu = (String) tableModel.getValueAt(selectedRow, 6);
         String luongStr = (String) tableModel.getValueAt(selectedRow, 7);
@@ -479,17 +479,29 @@ public class NhanVienView extends JPanel {
             }
             
             int luong;
-            int sdt;
+            long sdt;
             try {
                 luong = Integer.parseInt(luongStr);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Lương phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             } 
-            try {
-                sdt = Integer.parseInt(sdtStr);
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Số điện thoại phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            
+            // Validation số điện thoại
+            if (sdtStr.startsWith("0")) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại không được bắt đầu bằng số 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Kiểm tra chỉ chứa số
+            if (!sdtStr.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại chỉ được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Kiểm tra độ dài
+            if (sdtStr.length() < 9 || sdtStr.length() > 11) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
@@ -506,7 +518,7 @@ public class NhanVienView extends JPanel {
                     ps.setString(1, taiKhoan);
                     ps.setString(2, matKhau);
                     ps.setString(3, hoTen);
-                    ps.setInt(4, sdt);
+                    ps.setString(4, sdtStr);
                     
                     if (!ngayVaoLamStr.isEmpty()) {
                         ps.setString(5, ngayVaoLamStr );
@@ -527,7 +539,7 @@ public class NhanVienView extends JPanel {
                         ps.setString(1, taiKhoan);
                         ps.setString(2, matKhau);
                         ps.setString(3, hoTen);
-                        ps.setInt(4, sdt);
+                        ps.setString(4, sdtStr);
                         
                         if (!ngayVaoLamStr.isEmpty()) {
                             ps.setString(5, ngayVaoLamStr );
@@ -543,7 +555,7 @@ public class NhanVienView extends JPanel {
                             "UPDATE nhanvien SET TaiKhoan=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=? WHERE MaNV=?");
                         ps.setString(1, taiKhoan);
                         ps.setString(2, hoTen);
-                        ps.setInt(3, sdt);
+                        ps.setString(3, sdtStr);
                         
                         if (!ngayVaoLamStr.isEmpty()) {
                             ps.setString(4, ngayVaoLamStr );

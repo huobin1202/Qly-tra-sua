@@ -929,6 +929,12 @@ public class ThemDonHangView extends JDialog {
     }
     
     private void saveOrder() {
+        // Kiểm tra xem có sản phẩm nào trong đơn hàng không
+        if (orderedItems.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng thêm ít nhất một sản phẩm vào đơn hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
             
@@ -980,6 +986,12 @@ public class ThemDonHangView extends JDialog {
     }
     
     private void processPayment() {
+        // Kiểm tra xem có sản phẩm nào trong đơn hàng không
+        if (orderedItems.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Không thể thanh toán đơn hàng trống! Vui lòng thêm sản phẩm vào đơn hàng.", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         int result = JOptionPane.showConfirmDialog(this, 
             "Xác nhận thanh toán cho đơn hàng #" + currentOrder.getMaDon() + "?", 
             "Xác nhận thanh toán", JOptionPane.YES_NO_OPTION);

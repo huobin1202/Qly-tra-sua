@@ -155,7 +155,7 @@ CREATE TABLE `giaohang` (
   `MaDon` int(11) NOT NULL,
   `MaKH` int(11) NOT NULL,
   `TenShipper` varchar(50) DEFAULT NULL,
-  `SDTShipper` bigint(20) DEFAULT NULL,
+  `SDTShipper` varchar(15) DEFAULT NULL,
   `PhiShip` int(11) DEFAULT NULL,
   `TrangThai` varchar(45) NOT NULL DEFAULT 'choxacnhan' COMMENT 'choxacnhan - chờ xác nhận\ncholayhang - chờ lấy hàng\ndangiao - đang giao\nhoanthanh - hoàn thành\nhuy - đã hủy',
   `ThongBao` varchar(45) DEFAULT NULL,
@@ -184,7 +184,7 @@ INSERT INTO `giaohang` (`MaDon`, `MaKH`, `TenShipper`, `SDTShipper`, `PhiShip`, 
 
 CREATE TABLE `khachhang` (
   `MaKH` int(11) NOT NULL,
-  `SDT` bigint(20) NOT NULL,
+  `SDT` varchar(15) NOT NULL,
   `HoTen` varchar(50) DEFAULT NULL,
   `DiaChi` varchar(250) DEFAULT NULL,
   `NgaySinh` timestamp NULL DEFAULT NULL
@@ -195,16 +195,16 @@ CREATE TABLE `khachhang` (
 --
 
 INSERT INTO `khachhang` (`MaKH`, `SDT`, `HoTen`, `DiaChi`, `NgaySinh`) VALUES
-(1, 911175581, 'Cường', 'Nghệ An', '2000-04-09 10:00:00'),
-(2, 911175581, 'Linh', 'Hà Nội', '2000-09-16 10:00:00'),
-(3, 987654321, 'Nguyễn Thị Mai', 'Số 12 Nguyễn Trãi, Thanh Xuân, Hà Nội', '1998-03-15 08:30:00'),
-(4, 912345678, 'Trần Văn Nam', 'Số 45 Lê Lợi, Hoàn Kiếm, Hà Nội', '1995-07-22 14:20:00'),
-(5, 965432109, 'Phạm Thị Hoa', 'Số 78 Cầu Giấy, Cầu Giấy, Hà Nội', '2001-11-08 09:15:00'),
-(6, 934567890, 'Lê Minh Tuấn', 'Số 23 Đống Đa, Đống Đa, Hà Nội', '1997-05-30 16:45:00'),
-(7, 976543210, 'Hoàng Thị Lan', 'Số 67 Hai Bà Trưng, Hai Bà Trưng, Hà Nội', '1999-12-12 11:30:00'),
-(8, 945678901, 'Vũ Đức Anh', 'Số 89 Ba Đình, Ba Đình, Hà Nội', '1996-08-25 13:10:00'),
-(9, 923456789, 'Đặng Thị Nga', 'Số 34 Tây Hồ, Tây Hồ, Hà Nội', '2000-01-18 10:25:00'),
-(10, 956789012, 'Bùi Văn Hùng', 'Số 56 Long Biên, Long Biên, Hà Nội', '1994-09-03 15:40:00');
+(1, '911175581', 'Cường', 'Nghệ An', '2000-04-09 10:00:00'),
+(2, '911175581', 'Linh', 'Hà Nội', '2000-09-16 10:00:00'),
+(3, '987654321', 'Nguyễn Thị Mai', 'Số 12 Nguyễn Trãi, Thanh Xuân, Hà Nội', '1998-03-15 08:30:00'),
+(4, '912345678', 'Trần Văn Nam', 'Số 45 Lê Lợi, Hoàn Kiếm, Hà Nội', '1995-07-22 14:20:00'),
+(5, '965432109', 'Phạm Thị Hoa', 'Số 78 Cầu Giấy, Cầu Giấy, Hà Nội', '2001-11-08 09:15:00'),
+(6, '934567890', 'Lê Minh Tuấn', 'Số 23 Đống Đa, Đống Đa, Hà Nội', '1997-05-30 16:45:00'),
+(7, '976543210', 'Hoàng Thị Lan', 'Số 67 Hai Bà Trưng, Hai Bà Trưng, Hà Nội', '1999-12-12 11:30:00'),
+(8, '945678901', 'Vũ Đức Anh', 'Số 89 Ba Đình, Ba Đình, Hà Nội', '1996-08-25 13:10:00'),
+(9, '923456789', 'Đặng Thị Nga', 'Số 34 Tây Hồ, Tây Hồ, Hà Nội', '2000-01-18 10:25:00'),
+(10, '956789012', 'Bùi Văn Hùng', 'Số 56 Long Biên, Long Biên, Hà Nội', '1994-09-03 15:40:00');
 
 -- --------------------------------------------------------
 
@@ -346,7 +346,7 @@ INSERT INTO `nguyenlieu` (`MaNL`, `TenNL`, `DonVi`) VALUES
 CREATE TABLE `nhacungcap` (
   `MaNCC` int(11) NOT NULL,
   `TenNCC` varchar(100) NOT NULL,
-  `SDT` bigint(20) DEFAULT NULL,
+  `SDT` varchar(15) DEFAULT NULL,
   `DiaChi` varchar(200) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -374,7 +374,7 @@ CREATE TABLE `nhanvien` (
   `TaiKhoan` varchar(50) NOT NULL,
   `MatKhau` varchar(50) NOT NULL,
   `HoTen` varchar(50) NOT NULL,
-  `SDT` bigint(20) DEFAULT NULL,
+  `SDT` varchar(15) DEFAULT NULL,
   `NgayVaoLam` timestamp NOT NULL DEFAULT current_timestamp(),
   `ChucVu` varchar(50) NOT NULL COMMENT 'quanly-quản lý\r\nnhanvien-nhân viên\r\nnghiviec-nghỉ việc',
   `Luong` int(11) NOT NULL

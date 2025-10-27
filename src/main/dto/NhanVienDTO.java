@@ -6,7 +6,7 @@ public class NhanVienDTO {
     private String taiKhoan;
     private String matKhau;
     private String hoTen;
-    private long soDienThoai;
+    private String soDienThoai;
     private Timestamp ngayVaoLam;
     private String chucVu;
     private int luong;
@@ -14,7 +14,7 @@ public class NhanVienDTO {
     // Constructor mặc định
     public NhanVienDTO() {}
 
-    public NhanVienDTO(int maNV, String taiKhoan, String matKhau, String hoTen, long soDienThoai, Timestamp ngayVaoLam, String chucVu, int luong) {
+    public NhanVienDTO(int maNV, String taiKhoan, String matKhau, String hoTen, String soDienThoai, Timestamp ngayVaoLam, String chucVu, int luong) {
         this.maNV = maNV;
         this.taiKhoan = taiKhoan;
         this.matKhau = matKhau;
@@ -33,8 +33,8 @@ public class NhanVienDTO {
     public void setMatKhau(String matKhau) { this.matKhau = matKhau; }
     public String getHoTen() { return hoTen; }
     public void setHoTen(String hoTen) { this.hoTen = hoTen; }
-    public long getSoDienThoai() { return soDienThoai; }
-    public void setSoDienThoai(long soDienThoai) { this.soDienThoai = soDienThoai; }
+    public String getSoDienThoai() { return soDienThoai; }
+    public void setSoDienThoai(String soDienThoai) { this.soDienThoai = soDienThoai; }
     public Timestamp getNgayVaoLam() { return ngayVaoLam; }
     public void setNgayVaoLam(Timestamp ngayVaoLam) { this.ngayVaoLam = ngayVaoLam; }
     public String getChucVu() { return chucVu; }

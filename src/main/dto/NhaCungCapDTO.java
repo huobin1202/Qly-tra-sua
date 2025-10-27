@@ -4,13 +4,13 @@ import java.util.Scanner;
 public class NhaCungCapDTO {
     private int maNCC;
     private String tenNCC;
-    private long soDienThoai;
+    private String soDienThoai;
     private String diaChi;
 
     public NhaCungCapDTO() {
     }
 
-    public NhaCungCapDTO(int maNCC, String tenNCC, long soDienThoai, String diaChi) {
+    public NhaCungCapDTO(int maNCC, String tenNCC, String soDienThoai, String diaChi) {
         this.maNCC = maNCC;
         this.tenNCC = tenNCC;
         this.soDienThoai = soDienThoai;
@@ -33,11 +33,11 @@ public class NhaCungCapDTO {
         this.tenNCC = tenNCC;
     }
 
-    public long getSoDienThoai() {
+    public String getSoDienThoai() {
         return soDienThoai;
     }
 
-    public void setSoDienThoai(long soDienThoai) {
+    public void setSoDienThoai(String soDienThoai) {
         this.soDienThoai = soDienThoai;
     }
 

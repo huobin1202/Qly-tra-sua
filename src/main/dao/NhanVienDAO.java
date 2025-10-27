@@ -23,7 +23,7 @@ public class NhanVienDAO {
                 nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
                 nhanVien.setMatKhau(rs.getString("MatKhau"));
                 nhanVien.setHoTen(rs.getString("HoTen"));
-                nhanVien.setSoDienThoai(rs.getLong("SDT"));
+                nhanVien.setSoDienThoai(rs.getString("SDT"));
                 nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
                 nhanVien.setChucVu(rs.getString("ChucVu"));
                 nhanVien.setLuong(rs.getInt("Luong"));
@@ -69,7 +69,7 @@ public class NhanVienDAO {
                     nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
                     nhanVien.setMatKhau(rs.getString("MatKhau"));
                     nhanVien.setHoTen(rs.getString("HoTen"));
-                    nhanVien.setSoDienThoai(rs.getLong("SDT"));
+                    nhanVien.setSoDienThoai(rs.getString("SDT"));
                     nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
                     nhanVien.setChucVu(rs.getString("ChucVu"));
                     nhanVien.setLuong(rs.getInt("Luong"));
@@ -97,7 +97,7 @@ public class NhanVienDAO {
                     nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
                     nhanVien.setMatKhau(rs.getString("MatKhau"));
                     nhanVien.setHoTen(rs.getString("HoTen"));
-                    nhanVien.setSoDienThoai(rs.getLong("SDT"));
+                    nhanVien.setSoDienThoai(rs.getString("SDT"));
                     nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
                     nhanVien.setChucVu(rs.getString("ChucVu"));
                     nhanVien.setLuong(rs.getInt("Luong"));
@@ -126,7 +126,7 @@ public class NhanVienDAO {
                     nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
                     nhanVien.setMatKhau(rs.getString("MatKhau"));
                     nhanVien.setHoTen(rs.getString("HoTen"));
-                    nhanVien.setSoDienThoai(rs.getLong("SDT"));
+                    nhanVien.setSoDienThoai(rs.getString("SDT"));
                     nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
                     nhanVien.setChucVu(rs.getString("ChucVu"));
                     nhanVien.setLuong(rs.getInt("Luong"));
@@ -148,7 +148,7 @@ public class NhanVienDAO {
             ps.setString(1, nhanVien.getTaiKhoan());
             ps.setString(2, nhanVien.getMatKhau());
             ps.setString(3, nhanVien.getHoTen());
-            ps.setLong(4, nhanVien.getSoDienThoai());
+                    ps.setString(4, nhanVien.getSoDienThoai());
             ps.setTimestamp(5, nhanVien.getNgayVaoLam());
             ps.setString(6, nhanVien.getChucVu());
             ps.setInt(7, nhanVien.getLuong());
@@ -178,7 +178,7 @@ public class NhanVienDAO {
             ps.setString(1, nhanVien.getTaiKhoan());
             ps.setString(2, nhanVien.getMatKhau());
             ps.setString(3, nhanVien.getHoTen());
-            ps.setLong(4, nhanVien.getSoDienThoai());
+                    ps.setString(4, nhanVien.getSoDienThoai());
             ps.setTimestamp(5, nhanVien.getNgayVaoLam());
             ps.setString(6, nhanVien.getChucVu());
             ps.setInt(7, nhanVien.getLuong());

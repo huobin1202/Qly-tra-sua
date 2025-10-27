@@ -224,7 +224,7 @@ public class KhachHangView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        long sdt = (Long) tableModel.getValueAt(selectedRow, 1);
+        String sdt = (String) tableModel.getValueAt(selectedRow, 1);
         String hoTen = (String) tableModel.getValueAt(selectedRow, 2);
         String diaChi = (String) tableModel.getValueAt(selectedRow, 3);
         String ngaySinhStr = (String) tableModel.getValueAt(selectedRow, 4);
@@ -409,12 +409,30 @@ public class KhachHangView extends JPanel {
                 return;
             }
             
+            // Validation số điện thoại
+            if (sdtStr.startsWith("0")) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại không được bắt đầu bằng số 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Kiểm tra chỉ chứa số
+            if (!sdtStr.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại chỉ được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Kiểm tra độ dài
+            if (sdtStr.length() < 9 || sdtStr.length() > 11) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
             try (Connection conn = DBUtil.getConnection()) {
                 if (kh == null) {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO khachhang (SDT, HoTen, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)");
-                    ps.setLong(1, Long.parseLong(sdtStr));
+                    ps.setString(1, sdtStr);
                     ps.setString(2, hoTen);
                     ps.setString(3, diaChi);
                     
@@ -430,7 +448,7 @@ public class KhachHangView extends JPanel {
                     // Sửa
                     PreparedStatement ps = conn.prepareStatement(
                         "UPDATE khachhang SET SDT=?, HoTen=?, DiaChi=?, NgaySinh=? WHERE MaKH=?");
-                    ps.setLong(1, Long.parseLong(sdtStr));
+                    ps.setString(1, sdtStr);
                     ps.setString(2, hoTen);
                     ps.setString(3, diaChi);
                     
