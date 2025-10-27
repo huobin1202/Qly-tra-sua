@@ -27,7 +27,6 @@ public class NhaCungCapDAO {
                 danhSach.add(nhaCungCap);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -63,7 +62,6 @@ public class NhaCungCapDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -88,7 +86,6 @@ public class NhaCungCapDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -115,7 +112,6 @@ public class NhaCungCapDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -135,7 +131,6 @@ public class NhaCungCapDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -151,7 +146,6 @@ public class NhaCungCapDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -172,7 +166,6 @@ public class NhaCungCapDAO {
                 danhSach.add(nhaCungCap);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -208,7 +201,6 @@ public class NhaCungCapDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -238,7 +230,6 @@ public class NhaCungCapDAO {
                 danhSach.add(sanPham);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -261,7 +252,6 @@ public class NhaCungCapDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -281,7 +271,6 @@ public class NhaCungCapDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -299,7 +288,6 @@ public class NhaCungCapDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }

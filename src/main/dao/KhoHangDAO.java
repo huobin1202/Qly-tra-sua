@@ -29,7 +29,6 @@ public class KhoHangDAO {
                 danhSach.add(khoHang);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -71,7 +70,6 @@ public class KhoHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -99,7 +97,6 @@ public class KhoHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -119,7 +116,6 @@ public class KhoHangDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -138,7 +134,6 @@ public class KhoHangDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -159,7 +154,6 @@ public class KhoHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -189,7 +183,6 @@ public class KhoHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -208,7 +201,6 @@ public class KhoHangDAO {
                 return rs.getLong("TongGiaTri");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return 0;
     }

@@ -13,8 +13,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     private JPanel mainPanel;
     private CardLayout cardLayout;
     private JPanel leftSidebar;
-    private JPanel topBar;
-    private JPanel rightSidebar;
     private JLabel userInfoLabel;
     private JLabel roleLabel;
     private String currentUserRole; // Lưu chức vụ hiện tại
@@ -174,7 +172,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 conn.close();
             }
         } catch (Exception e) {
-            e.printStackTrace();
             userInfoLabel.setText("Không thể tải thông tin");
         }
     }
@@ -531,12 +528,8 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 currentUserRole = Session.currentChucVu;
                 
                 // Debug: In ra thông tin để kiểm tra
-                System.out.println("Debug - Current User: " + currentUser);
-                System.out.println("Debug - Current Role from Session: " + currentUserRole);
-                
                 // Nếu chưa có chức vụ trong Session, query từ database
                 if (currentUserRole == null || currentUserRole.isEmpty()) {
-                    System.out.println("Debug - Querying database for role...");
                     Connection conn = DBUtil.getConnection();
                     String sql = "SELECT HoTen, ChucVu FROM nhanvien WHERE TaiKhoan = ?";
                     PreparedStatement stmt = conn.prepareStatement(sql);
@@ -547,7 +540,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                         String chucVu = rs.getString("ChucVu");
                         currentUserRole = chucVu;
                         Session.currentChucVu = chucVu; // Cập nhật lại Session
-                        System.out.println("Debug - Role from DB: " + chucVu);
                     }
                     
                     rs.close();
@@ -555,10 +547,8 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                     conn.close();
                 }
                 
-                System.out.println("Debug - Final Role: " + currentUserRole);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             currentUserRole = "nhanvien"; // Mặc định là nhân viên nếu có lỗi
         }
     }
@@ -625,7 +615,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
-                e.printStackTrace();
             }
             
             new MainDashboard().setVisible(true);

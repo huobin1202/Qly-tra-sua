@@ -33,7 +33,6 @@ public class HangHoaDAO {
                 danhSach.add(mon);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -62,7 +61,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -91,7 +89,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -117,7 +114,6 @@ public class HangHoaDAO {
                 danhSach.add(mon);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -164,7 +160,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -194,7 +189,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -217,7 +211,6 @@ public class HangHoaDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -233,7 +226,6 @@ public class HangHoaDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -253,7 +245,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return -1;
     }
@@ -276,7 +267,6 @@ public class HangHoaDAO {
                 danhSach.add(loaiMon);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -299,7 +289,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -322,7 +311,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -347,7 +335,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -365,7 +352,6 @@ public class HangHoaDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -381,7 +367,6 @@ public class HangHoaDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -405,7 +390,6 @@ public class HangHoaDAO {
                 danhSach.add(nguyenLieu);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -440,7 +424,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -466,7 +449,6 @@ public class HangHoaDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -485,7 +467,6 @@ public class HangHoaDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -501,7 +482,6 @@ public class HangHoaDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }

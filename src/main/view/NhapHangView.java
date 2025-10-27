@@ -94,23 +94,11 @@ public class NhapHangView extends JPanel {
         viewDetailsButton.setForeground(Color.BLACK);
         viewDetailsButton.setFocusPainted(false);
         
-        JButton printButton = new JButton("🖨️ In phiếu nhập");
-        printButton.setBackground(new Color(70, 130, 180));
-        printButton.setForeground(Color.BLACK);
-        printButton.setFocusPainted(false);
-        
-        JButton exportButton = new JButton("💾 Xuất file");
-        exportButton.setBackground(new Color(34, 139, 34));
-        exportButton.setForeground(Color.BLACK);
-        exportButton.setFocusPainted(false);
-        
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         buttonPanel.add(confirmButton);
         buttonPanel.add(viewDetailsButton);
-        buttonPanel.add(printButton);
-        buttonPanel.add(exportButton);
         
         // Search panel (bên phải) - Tìm kiếm
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -156,8 +144,6 @@ public class NhapHangView extends JPanel {
         deleteButton.addActionListener(e -> performDelete());
         confirmButton.addActionListener(e -> performConfirm());
         viewDetailsButton.addActionListener(e -> showDetailsDialog());
-        printButton.addActionListener(e -> printSelectedPhieuNhap());
-        exportButton.addActionListener(e -> exportSelectedPhieuNhap());
     }
     
     private void setupEventHandlers() {
@@ -403,216 +389,6 @@ public class NhapHangView extends JPanel {
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
             loadData();
-        }
-    }
-    
-    private void printSelectedPhieuNhap() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn phiếu nhập cần in!", "Thông báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        int maPN = (Integer) tableModel.getValueAt(selectedRow, 0);
-        printPhieuNhap(maPN);
-    }
-    
-    private void exportSelectedPhieuNhap() {
-        int selectedRow = table.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this, "Vui lòng chọn phiếu nhập cần xuất!", "Thông báo", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        int maPN = (Integer) tableModel.getValueAt(selectedRow, 0);
-        exportPhieuNhap(maPN);
-    }
-    
-    private void printPhieuNhap(int maPN) {
-        try {
-            // Tạo nội dung phiếu nhập để in với định dạng đẹp
-            StringBuilder content = new StringBuilder();
-            
-            // Header
-            content.append("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
-            content.append("║                                    PHIẾU NHẬP HÀNG                                    ║\n");
-            content.append("║                                        #").append(String.format("%-6d", maPN)).append("                                        ║\n");
-            content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-            
-            // Lấy thông tin phiếu nhập
-            try (Connection conn = DBUtil.getConnection()) {
-                String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
-                           "FROM phieunhap p " +
-                           "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
-                           "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
-                           "WHERE p.MaPN = ?";
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ps.setInt(1, maPN);
-                ResultSet rs = ps.executeQuery();
-                
-                if (rs.next()) {
-                    content.append("║ Mã phiếu nhập: ").append(String.format("%-20s", rs.getInt("MaPN"))).append(" Ngày nhập: ").append(String.format("%-20s", rs.getDate("Ngay"))).append(" ║\n");
-                    content.append("║ Nhân viên:     ").append(String.format("%-20s", rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A")).append(" Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(rs.getString("TrangThai")))).append(" ║\n");
-                    content.append("║ Nhà cung cấp: ").append(String.format("%-20s", rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A")).append(" ").append("                                ").append(" ║\n");
-                }
-                rs.close();
-                ps.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            
-            content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-            content.append("║                                    CHI TIẾT NGUYÊN LIỆU                              ║\n");
-            content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-            content.append("║ STT │ Mã NL │ Tên nguyên liệu        │ Số lượng │ Đơn giá      │ Đơn vị │ Thành tiền    ║\n");
-            content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-            
-            // Lấy chi tiết nguyên liệu
-            try (Connection conn = DBUtil.getConnection()) {
-                String sql = "SELECT ct.*, nl.TenNL " +
-                           "FROM chitietnhap_nl ct " +
-                           "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
-                           "WHERE ct.MaPN = ?";
-                PreparedStatement ps = conn.prepareStatement(sql);
-                ps.setInt(1, maPN);
-                ResultSet rs = ps.executeQuery();
-                
-                long tongTien = 0;
-                int stt = 1;
-                while (rs.next()) {
-                    long thanhTien = rs.getLong("SoLuong") * rs.getLong("DonGia");
-                    tongTien += thanhTien;
-                    
-                    String tenNL = rs.getString("TenNL");
-                    if (tenNL.length() > 20) {
-                        tenNL = tenNL.substring(0, 17) + "...";
-                    }
-                    
-                    content.append(String.format("║ %-3d │ %-5d │ %-22s │ %-8d │ %-12s │ %-6s │ %-13s ║\n",
-                        stt++,
-                        rs.getInt("MaNL"),
-                        tenNL,
-                        rs.getInt("SoLuong"),
-                        String.format("%,d VNĐ", rs.getLong("DonGia")),
-                        rs.getString("DonVi"),
-                        String.format("%,d VNĐ", thanhTien)
-                    ));
-                }
-                rs.close();
-                ps.close();
-                
-                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-                content.append("║ ").append("                                ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                                ").append(" ║\n");
-                content.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            
-            // In
-            JTextArea printArea = new JTextArea(content.toString());
-            printArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-            printArea.print();
-            
-            JOptionPane.showMessageDialog(this, "In phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi in phiếu nhập: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    private void exportPhieuNhap(int maPN) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Xuất phiếu nhập");
-        fileChooser.setSelectedFile(new java.io.File("PhieuNhap_" + maPN + "_" + 
-            new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".txt"));
-        
-        int result = fileChooser.showSaveDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            try (java.io.FileWriter writer = new java.io.FileWriter(fileChooser.getSelectedFile())) {
-                // Tạo nội dung phiếu nhập để xuất với định dạng đẹp
-                StringBuilder content = new StringBuilder();
-                
-                // Header
-                content.append("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
-                content.append("║                                    PHIẾU NHẬP HÀNG                                    ║\n");
-                content.append("║                                        #").append(String.format("%-6d", maPN)).append("                                        ║\n");
-                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-                
-                // Lấy thông tin phiếu nhập
-                try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
-                               "FROM phieunhap p " +
-                               "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
-                               "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
-                               "WHERE p.MaPN = ?";
-                    PreparedStatement ps = conn.prepareStatement(sql);
-                    ps.setInt(1, maPN);
-                    ResultSet rs = ps.executeQuery();
-                    
-                    if (rs.next()) {
-                        content.append("║ Mã phiếu nhập: ").append(String.format("%-20s", rs.getInt("MaPN"))).append(" Ngày nhập: ").append(String.format("%-20s", rs.getDate("Ngay"))).append(" ║\n");
-                        content.append("║ Nhân viên:     ").append(String.format("%-20s", rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A")).append(" Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(rs.getString("TrangThai")))).append(" ║\n");
-                        content.append("║ Nhà cung cấp: ").append(String.format("%-20s", rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A")).append(" ").append("                                ").append(" ║\n");
-                    }
-                    rs.close();
-                    ps.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                
-                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-                content.append("║                                    CHI TIẾT NGUYÊN LIỆU                              ║\n");
-                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-                content.append("║ STT │ Mã NL │ Tên nguyên liệu        │ Số lượng │ Đơn giá      │ Đơn vị │ Thành tiền    ║\n");
-                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-                
-                // Lấy chi tiết nguyên liệu
-                try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT ct.*, nl.TenNL " +
-                               "FROM chitietnhap_nl ct " +
-                               "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
-                               "WHERE ct.MaPN = ?";
-                    PreparedStatement ps = conn.prepareStatement(sql);
-                    ps.setInt(1, maPN);
-                    ResultSet rs = ps.executeQuery();
-                    
-                    long tongTien = 0;
-                    int stt = 1;
-                    while (rs.next()) {
-                        long thanhTien = rs.getLong("SoLuong") * rs.getLong("DonGia");
-                        tongTien += thanhTien;
-                        
-                        String tenNL = rs.getString("TenNL");
-                        if (tenNL.length() > 20) {
-                            tenNL = tenNL.substring(0, 17) + "...";
-                        }
-                        
-                        content.append(String.format("║ %-3d │ %-5d │ %-22s │ %-8d │ %-12s │ %-6s │ %-13s ║\n",
-                            stt++,
-                            rs.getInt("MaNL"),
-                            tenNL,
-                            rs.getInt("SoLuong"),
-                            String.format("%,d VNĐ", rs.getLong("DonGia")),
-                            rs.getString("DonVi"),
-                            String.format("%,d VNĐ", thanhTien)
-                        ));
-                    }
-                    rs.close();
-                    ps.close();
-                    
-                    content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-                    content.append("║ ").append("                                ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                                ").append(" ║\n");
-                    content.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-                
-                writer.write(content.toString());
-                JOptionPane.showMessageDialog(this, "Xuất phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                
-            } catch (java.io.IOException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
         }
     }
     
@@ -1025,10 +801,14 @@ public class NhapHangView extends JPanel {
         
         private void printPhieuNhap() {
             try {
-                // Tạo nội dung phiếu nhập để in
+                // Tạo nội dung phiếu nhập để in với định dạng đẹp
                 StringBuilder content = new StringBuilder();
-                content.append("PHIẾU NHẬP HÀNG #").append(maPN).append("\n");
-                content.append("==================================================\n\n");
+                
+                // Header
+                content.append("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
+                content.append("║                                    PHIẾU NHẬP HÀNG                                    ║\n");
+                content.append("║                                        #").append(String.format("%-6d", maPN)).append("                                        ║\n");
+                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
                 
                 // Lấy thông tin phiếu nhập
                 try (Connection conn = DBUtil.getConnection()) {
@@ -1042,34 +822,60 @@ public class NhapHangView extends JPanel {
                     ResultSet rs = ps.executeQuery();
                     
                     if (rs.next()) {
-                        content.append("Mã phiếu: ").append(rs.getInt("MaPN")).append("\n");
-                        content.append("Nhân viên: ").append(rs.getString("TenNV")).append("\n");
-                        content.append("Nhà cung cấp: ").append(rs.getString("TenNCC")).append("\n");
-                        content.append("Ngày nhập: ").append(rs.getDate("Ngay")).append("\n");
-                        content.append("Trạng thái: ").append(convertTrangThaiToUI(rs.getString("TrangThai"))).append("\n\n");
+                        content.append("║ Mã phiếu nhập: ").append(String.format("%-20s", rs.getInt("MaPN"))).append(" Ngày nhập: ").append(String.format("%-20s", rs.getDate("Ngay"))).append(" ║\n");
+                        content.append("║ Nhân viên:     ").append(String.format("%-20s", rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A")).append(" Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(rs.getString("TrangThai")))).append(" ║\n");
+                        content.append("║ Nhà cung cấp: ").append(String.format("%-20s", rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A")).append(" ").append("                                ").append(" ║\n");
                     }
                     rs.close();
                     ps.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
                 }
                 
-                // Thêm chi tiết nguyên liệu
-                content.append("CHI TIẾT NGUYÊN LIỆU:\n");
-                content.append("--------------------------------------------------\n");
+                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                content.append("║                                    CHI TIẾT NGUYÊN LIỆU                              ║\n");
+                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                content.append("║ STT │ Mã NL │ Tên nguyên liệu        │ Số lượng │ Đơn giá      │ Đơn vị │ Thành tiền    ║\n");
+                content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
                 
-                for (int i = 0; i < chiTietTableModel.getRowCount(); i++) {
-                    content.append(String.format("%-5s %-20s %-10s %-15s %-10s %-15s\n",
-                        chiTietTableModel.getValueAt(i, 0), // Mã NL
-                        chiTietTableModel.getValueAt(i, 1), // Tên NL
-                        chiTietTableModel.getValueAt(i, 2), // Số lượng
-                        chiTietTableModel.getValueAt(i, 3), // Đơn giá
-                        chiTietTableModel.getValueAt(i, 4), // Đơn vị
-                        chiTietTableModel.getValueAt(i, 5)  // Thành tiền
-                    ));
+                // Lấy chi tiết nguyên liệu
+                try (Connection conn = DBUtil.getConnection()) {
+                    String sql = "SELECT ct.*, nl.TenNL " +
+                               "FROM chitietnhap_nl ct " +
+                               "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
+                               "WHERE ct.MaPN = ?";
+                    PreparedStatement ps = conn.prepareStatement(sql);
+                    ps.setInt(1, maPN);
+                    ResultSet rs = ps.executeQuery();
+                    
+                    long tongTien = 0;
+                    int stt = 1;
+                    while (rs.next()) {
+                        long thanhTien = rs.getLong("SoLuong") * rs.getLong("DonGia");
+                        tongTien += thanhTien;
+                        
+                        String tenNL = rs.getString("TenNL");
+                        if (tenNL.length() > 20) {
+                            tenNL = tenNL.substring(0, 17) + "...";
+                        }
+                        
+                        content.append(String.format("║ %-3d │ %-5d │ %-22s │ %-8d │ %-12s │ %-6s │ %-13s ║\n",
+                            stt++,
+                            rs.getInt("MaNL"),
+                            tenNL,
+                            rs.getInt("SoLuong"),
+                            String.format("%,d VNĐ", rs.getLong("DonGia")),
+                            rs.getString("DonVi"),
+                            String.format("%,d VNĐ", thanhTien)
+                        ));
+                    }
+                    rs.close();
+                    ps.close();
+                    
+                    content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                    content.append("║ ").append("                                ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                                ").append(" ║\n");
+                    content.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
+                } catch (SQLException e) {
                 }
-                
-                content.append("\n").append(tongTienLabel.getText()).append("\n");
                 
                 // In
                 JTextArea printArea = new JTextArea(content.toString());
@@ -1092,10 +898,14 @@ public class NhapHangView extends JPanel {
             int result = fileChooser.showSaveDialog(this);
             if (result == JFileChooser.APPROVE_OPTION) {
                 try (java.io.FileWriter writer = new java.io.FileWriter(fileChooser.getSelectedFile())) {
-                    // Tạo nội dung phiếu nhập để xuất
+                    // Tạo nội dung phiếu nhập để xuất với định dạng đẹp
                     StringBuilder content = new StringBuilder();
-                    content.append("PHIẾU NHẬP HÀNG #").append(maPN).append("\n");
-                    content.append("==================================================\n\n");
+                    
+                    // Header
+                    content.append("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
+                    content.append("║                                    PHIẾU NHẬP HÀNG                                    ║\n");
+                    content.append("║                                        #").append(String.format("%-6d", maPN)).append("                                        ║\n");
+                    content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
                     
                     // Lấy thông tin phiếu nhập
                     try (Connection conn = DBUtil.getConnection()) {
@@ -1109,34 +919,60 @@ public class NhapHangView extends JPanel {
                         ResultSet rs = ps.executeQuery();
                         
                         if (rs.next()) {
-                            content.append("Mã phiếu: ").append(rs.getInt("MaPN")).append("\n");
-                            content.append("Nhân viên: ").append(rs.getString("TenNV")).append("\n");
-                            content.append("Nhà cung cấp: ").append(rs.getString("TenNCC")).append("\n");
-                            content.append("Ngày nhập: ").append(rs.getDate("Ngay")).append("\n");
-                            content.append("Trạng thái: ").append(convertTrangThaiToUI(rs.getString("TrangThai"))).append("\n\n");
+                            content.append("║ Mã phiếu nhập: ").append(String.format("%-20s", rs.getInt("MaPN"))).append(" Ngày nhập: ").append(String.format("%-20s", rs.getDate("Ngay"))).append(" ║\n");
+                            content.append("║ Nhân viên:     ").append(String.format("%-20s", rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A")).append(" Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(rs.getString("TrangThai")))).append(" ║\n");
+                            content.append("║ Nhà cung cấp: ").append(String.format("%-20s", rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A")).append(" ").append("                                ").append(" ║\n");
                         }
                         rs.close();
                         ps.close();
                     } catch (SQLException e) {
-                        e.printStackTrace();
                     }
                     
-                    // Thêm chi tiết nguyên liệu
-                    content.append("CHI TIẾT NGUYÊN LIỆU:\n");
-                    content.append("--------------------------------------------------\n");
+                    content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                    content.append("║                                    CHI TIẾT NGUYÊN LIỆU                              ║\n");
+                    content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                    content.append("║ STT │ Mã NL │ Tên nguyên liệu        │ Số lượng │ Đơn giá      │ Đơn vị │ Thành tiền    ║\n");
+                    content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
                     
-                    for (int i = 0; i < chiTietTableModel.getRowCount(); i++) {
-                        content.append(String.format("%-5s %-20s %-10s %-15s %-10s %-15s\n",
-                            chiTietTableModel.getValueAt(i, 0), // Mã NL
-                            chiTietTableModel.getValueAt(i, 1), // Tên NL
-                            chiTietTableModel.getValueAt(i, 2), // Số lượng
-                            chiTietTableModel.getValueAt(i, 3), // Đơn giá
-                            chiTietTableModel.getValueAt(i, 4), // Đơn vị
-                            chiTietTableModel.getValueAt(i, 5)  // Thành tiền
-                        ));
+                    // Lấy chi tiết nguyên liệu
+                    try (Connection conn = DBUtil.getConnection()) {
+                        String sql = "SELECT ct.*, nl.TenNL " +
+                                   "FROM chitietnhap_nl ct " +
+                                   "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
+                                   "WHERE ct.MaPN = ?";
+                        PreparedStatement ps = conn.prepareStatement(sql);
+                        ps.setInt(1, maPN);
+                        ResultSet rs = ps.executeQuery();
+                        
+                        long tongTien = 0;
+                        int stt = 1;
+                        while (rs.next()) {
+                            long thanhTien = rs.getLong("SoLuong") * rs.getLong("DonGia");
+                            tongTien += thanhTien;
+                            
+                            String tenNL = rs.getString("TenNL");
+                            if (tenNL.length() > 20) {
+                                tenNL = tenNL.substring(0, 17) + "...";
+                            }
+                            
+                            content.append(String.format("║ %-3d │ %-5d │ %-22s │ %-8d │ %-12s │ %-6s │ %-13s ║\n",
+                                stt++,
+                                rs.getInt("MaNL"),
+                                tenNL,
+                                rs.getInt("SoLuong"),
+                                String.format("%,d VNĐ", rs.getLong("DonGia")),
+                                rs.getString("DonVi"),
+                                String.format("%,d VNĐ", thanhTien)
+                            ));
+                        }
+                        rs.close();
+                        ps.close();
+                        
+                        content.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                        content.append("║ ").append("                                ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                                ").append(" ║\n");
+                        content.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
+                    } catch (SQLException e) {
                     }
-                    
-                    content.append("\n").append(tongTienLabel.getText()).append("\n");
                     
                     writer.write(content.toString());
                     JOptionPane.showMessageDialog(this, "Xuất phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);

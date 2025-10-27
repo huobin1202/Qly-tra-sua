@@ -30,7 +30,6 @@ public class NhanVienDAO {
                 danhSach.add(nhanVien);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -78,7 +77,6 @@ public class NhanVienDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -107,7 +105,6 @@ public class NhanVienDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -137,7 +134,6 @@ public class NhanVienDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -168,7 +164,6 @@ public class NhanVienDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -192,7 +187,6 @@ public class NhanVienDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -208,7 +202,6 @@ public class NhanVienDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -228,7 +221,6 @@ public class NhanVienDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -249,7 +241,6 @@ public class NhanVienDAO {
                 danhSach.add(nhanVien);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -278,7 +269,6 @@ public class NhanVienDAO {
             conn.commit();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }

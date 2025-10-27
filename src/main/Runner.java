@@ -13,7 +13,6 @@ public class Runner {
         try {
             setLookAndFeel(getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            e.printStackTrace();
         }
         // Chạy trên EDT (Event Dispatch Thread)
         SwingUtilities.invokeLater(new Runnable() {

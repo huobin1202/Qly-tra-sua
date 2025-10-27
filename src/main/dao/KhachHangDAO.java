@@ -27,7 +27,6 @@ public class KhachHangDAO {
                 danhSach.add(khachHang);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -68,7 +67,6 @@ public class KhachHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -94,7 +92,6 @@ public class KhachHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -120,7 +117,6 @@ public class KhachHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -148,7 +144,6 @@ public class KhachHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -169,7 +164,6 @@ public class KhachHangDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -185,7 +179,6 @@ public class KhachHangDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -205,7 +198,6 @@ public class KhachHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -227,7 +219,6 @@ public class KhachHangDAO {
                 danhSach.add(khachHang);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }

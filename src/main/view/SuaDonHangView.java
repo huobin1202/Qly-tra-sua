@@ -359,7 +359,6 @@ public class SuaDonHangView extends JDialog {
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải danh mục: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
         }
         
         
@@ -529,7 +528,6 @@ public class SuaDonHangView extends JDialog {
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải sản phẩm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
         }
         
         

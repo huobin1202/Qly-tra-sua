@@ -24,7 +24,6 @@ public class MonDAO {
             conn.commit();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }

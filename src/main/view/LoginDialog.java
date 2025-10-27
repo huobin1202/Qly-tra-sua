@@ -10,7 +10,6 @@ public class LoginDialog extends JDialog {
     private JTextField usernameField;
     private JPasswordField passwordField;
     private JButton loginButton;
-    private JButton cancelButton;
     private boolean loginSuccessful = false;
     
     public LoginDialog(Frame parent) {
@@ -217,10 +216,6 @@ public class LoginDialog extends JDialog {
                 database.Session.currentChucVu = rs.getString("ChucVu");
                 
                 // Debug: In ra thông tin để kiểm tra
-                System.out.println("Debug Login - MaNV: " + database.Session.currentMaNV);
-                System.out.println("Debug Login - TaiKhoan: " + database.Session.currentTaiKhoan);
-                System.out.println("Debug Login - ChucVu: " + database.Session.currentChucVu);
-                
                 loginSuccessful = true;
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 dispose();

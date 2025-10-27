@@ -211,7 +211,7 @@ public class ThongKeView extends JPanel {
         table.setRowHeight(25);
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.getTableHeader().setBackground(new Color(70, 130, 180));
-        table.getTableHeader().setForeground(Color.WHITE);
+        table.getTableHeader().setForeground(Color.BLACK);
         
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));

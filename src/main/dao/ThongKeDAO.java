@@ -39,7 +39,6 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;
@@ -76,7 +75,6 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;
@@ -111,7 +109,6 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;
@@ -144,7 +141,6 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;
@@ -176,7 +172,6 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;
@@ -245,7 +240,6 @@ public class ThongKeDAO {
             }
             
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;
@@ -269,7 +263,6 @@ public class ThongKeDAO {
                 result.add(tk);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;
@@ -298,7 +291,6 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         
         return result;

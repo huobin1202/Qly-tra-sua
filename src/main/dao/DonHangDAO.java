@@ -30,7 +30,6 @@ public class DonHangDAO {
                 danhSach.add(donHang);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -77,7 +76,6 @@ public class DonHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -105,7 +103,6 @@ public class DonHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -135,7 +132,6 @@ public class DonHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -158,7 +154,6 @@ public class DonHangDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -189,7 +184,6 @@ public class DonHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -207,7 +201,6 @@ public class DonHangDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -246,7 +239,6 @@ public class DonHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return danhSach;
     }
@@ -269,7 +261,6 @@ public class DonHangDAO {
             int result = ps.executeUpdate();
             return result > 0;
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -285,7 +276,6 @@ public class DonHangDAO {
             int result = ps.executeUpdate();
             return result >= 0; // >= 0 vì có thể không có chi tiết nào
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return false;
     }
@@ -316,7 +306,6 @@ public class DonHangDAO {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
         }
         return null;
     }
@@ -345,7 +334,6 @@ public class DonHangDAO {
             conn.commit();
             return true;
         } catch (SQLException e) {
-            e.printStackTrace();
             return false;
         }
     }

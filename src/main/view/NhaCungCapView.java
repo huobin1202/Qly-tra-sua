@@ -200,11 +200,9 @@ public class NhaCungCapView extends JPanel {
     }
     
     private void showAddDialog() {
-        System.out.println("Mở dialog thêm nhà cung cấp...");
         NhaCungCapDialog dialog = new NhaCungCapDialog(SwingUtilities.getWindowAncestor(this), "Thêm nhà cung cấp mới", null);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
-            System.out.println("Dữ liệu đã thay đổi, tải lại...");
             loadData();
         }
     }
@@ -221,13 +219,10 @@ public class NhaCungCapView extends JPanel {
         long sdt = Long.parseLong((String) tableModel.getValueAt(selectedRow, 2));
         String diaChi = (String) tableModel.getValueAt(selectedRow, 3);
         
-        System.out.println("Mở dialog sửa nhà cung cấp - ID: " + id + ", Tên: " + ten);
-        
         NhaCungCapDTO ncc = new NhaCungCapDTO(id, ten, sdt, diaChi);
         NhaCungCapDialog dialog = new NhaCungCapDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhà cung cấp", ncc);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
-            System.out.println("Dữ liệu đã thay đổi, tải lại...");
             loadData();
         }
     }
@@ -290,8 +285,6 @@ public class NhaCungCapView extends JPanel {
                     JOptionPane.showMessageDialog(this, "Không tìm thấy nhà cung cấp để xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (SQLException e) {
-                System.err.println("Lỗi xóa nhà cung cấp: " + e.getMessage());
-                e.printStackTrace();
                 JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -306,11 +299,9 @@ public class NhaCungCapView extends JPanel {
         public NhaCungCapDialog(Window parent, String title, NhaCungCapDTO ncc) {
             super(parent, title, ModalityType.APPLICATION_MODAL);
             this.ncc = ncc;
-            System.out.println("Tạo NhaCungCapDialog với title: " + title);
             initializeComponents();
             setupLayout();
             setupEventHandlers();
-            System.out.println("Dialog đã được khởi tạo hoàn tất");
         }
         
         private void initializeComponents() {
@@ -325,12 +316,6 @@ public class NhaCungCapView extends JPanel {
                 tenField.setText(ncc.getTenNCC() != null ? ncc.getTenNCC() : "");
                 sdtField.setText(ncc.getSoDienThoai() != 0 ? String.valueOf(ncc.getSoDienThoai()) : "");
                 diaChiField.setText(ncc.getDiaChi() != null ? ncc.getDiaChi() : "");
-                System.out.println("Khởi tạo dialog sửa với dữ liệu:");
-                System.out.println("Tên: " + ncc.getTenNCC());
-                System.out.println("SĐT: " + ncc.getSoDienThoai());
-                System.out.println("Địa chỉ: " + ncc.getDiaChi());
-            } else {
-                System.out.println("Khởi tạo dialog thêm mới");
             }
         }
         
@@ -395,7 +380,6 @@ public class NhaCungCapView extends JPanel {
         
         private void setupEventHandlers() {
             // Event handlers đã được thêm trực tiếp trong setupLayout()
-            System.out.println("Event handlers đã được thiết lập trực tiếp trong setupLayout()");
         }
         
         private JButton findButton(String text) {
@@ -424,48 +408,30 @@ public class NhaCungCapView extends JPanel {
         }
 
         private void saveData() {
-            System.out.println("=== BẮT ĐẦU saveData() ===");
-            
             String ten = tenField.getText().trim();
             String sdt = sdtField.getText().trim();
             String diaChi = diaChiField.getText().trim();
             
-            System.out.println("Dữ liệu từ form:");
-            System.out.println("Tên: '" + ten + "'");
-            System.out.println("SĐT: '" + sdt + "'");
-            System.out.println("Địa chỉ: '" + diaChi + "'");
-            
             if (ten.isEmpty() || sdt.isEmpty() || diaChi.isEmpty()) {
-                System.out.println("Lỗi: Thiếu thông tin bắt buộc");
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
-            System.out.println("Đang lưu dữ liệu nhà cung cấp...");
-            System.out.println("Tên: " + ten);
-            System.out.println("SĐT: " + sdt);
-            System.out.println("Địa chỉ: " + diaChi);
-            System.out.println("Mode: " + (ncc == null ? "Thêm mới" : "Sửa"));
             
             try (Connection conn = DBUtil.getConnection()) {
                 System.out.println("Kết nối database thành công!");
                 
                 if (ncc == null) {
                     // Thêm mới
-                    System.out.println("Thực hiện INSERT...");
                     try (PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
                         ps.setString(1, ten);
                         ps.setLong(2, Long.parseLong(sdt));
                         ps.setString(3, diaChi);
                         int result = ps.executeUpdate();
-                        System.out.println("INSERT thành công! Rows affected: " + result);
                         JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                     }
                 } else {
                     // Sửa
-                    System.out.println("Thực hiện UPDATE...");
-                    System.out.println("MaNCC: " + ncc.getMaNCC());
                     try (PreparedStatement ps = conn.prepareStatement(
                         "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?")) {
                         ps.setString(1, ten);
@@ -473,20 +439,16 @@ public class NhaCungCapView extends JPanel {
                         ps.setString(3, diaChi);
                         ps.setInt(4, ncc.getMaNCC());
                         int result = ps.executeUpdate();
-                        System.out.println("UPDATE thành công! Rows affected: " + result);
                         JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                     }
                 }
                 dataChanged = true;
                 dispose();
             } catch (SQLException e) {
-                System.err.println("Lỗi SQL: " + e.getMessage());
-                e.printStackTrace();
+                System.err.println("Lỗi kết nối database: " + e.getMessage());
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            } catch (Exception e) {
-                System.err.println("Lỗi khác: " + e.getMessage());
-                e.printStackTrace();
-                JOptionPane.showMessageDialog(this, "Lỗi: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
         
