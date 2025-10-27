@@ -96,12 +96,12 @@ public class NhapHangView extends JPanel {
         
         JButton printButton = new JButton("🖨️ In phiếu nhập");
         printButton.setBackground(new Color(70, 130, 180));
-        printButton.setForeground(Color.WHITE);
+        printButton.setForeground(Color.BLACK);
         printButton.setFocusPainted(false);
         
         JButton exportButton = new JButton("💾 Xuất file");
         exportButton.setBackground(new Color(34, 139, 34));
-        exportButton.setForeground(Color.WHITE);
+        exportButton.setForeground(Color.BLACK);
         exportButton.setFocusPainted(false);
         
         buttonPanel.add(addButton);
@@ -889,12 +889,12 @@ public class NhapHangView extends JPanel {
             
             JButton printButton = new JButton("🖨️ In phiếu nhập");
             printButton.setBackground(new Color(70, 130, 180));
-            printButton.setForeground(Color.WHITE);
+            printButton.setForeground(Color.BLACK);
             printButton.setFocusPainted(false);
             
             JButton exportButton = new JButton("💾 Xuất file");
             exportButton.setBackground(new Color(34, 139, 34));
-            exportButton.setForeground(Color.WHITE);
+            exportButton.setForeground(Color.BLACK);
             exportButton.setFocusPainted(false);
             
             JButton closeButton = new JButton("❌ Đóng");

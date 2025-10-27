@@ -326,13 +326,13 @@ public class DonHangView extends JPanel {
             
             JButton printButton = new JButton("🖨️ In hóa đơn");
             printButton.setBackground(new Color(70, 130, 180));
-            printButton.setForeground(Color.WHITE);
+            printButton.setForeground(Color.BLACK);
             printButton.setFocusPainted(false);
             printButton.addActionListener(e -> printInvoice(detail.toString(), maDon));
             
             JButton exportButton = new JButton("💾 Xuất file");
             exportButton.setBackground(new Color(34, 139, 34));
-            exportButton.setForeground(Color.WHITE);
+            exportButton.setForeground(Color.BLACK);
             exportButton.setFocusPainted(false);
             exportButton.addActionListener(e -> exportInvoice(detail.toString(), maDon));
             

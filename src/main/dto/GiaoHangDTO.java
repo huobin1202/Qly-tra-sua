@@ -5,14 +5,14 @@ public class GiaoHangDTO {
     private int maDon;
     private int maKH;
     private String tenShipper;
-    private String sdtShipper;
+    private long sdtShipper;
     private int phiShip;
     private String trangThai;
     private String thongBao;
     private Timestamp ngayBatDau;
     private Timestamp ngayKetThuc;
 
-    public GiaoHangDTO(int maDon, int maKH, String tenShipper, String sdtShipper, 
+    public GiaoHangDTO(int maDon, int maKH, String tenShipper, long sdtShipper,
                       int phiShip, String trangThai, String thongBao, Timestamp ngayBatDau, Timestamp ngayKetThuc) {
         this.maDon = maDon;
         this.maKH = maKH;
@@ -31,8 +31,8 @@ public class GiaoHangDTO {
     public void setMaKH(int maKH) { this.maKH = maKH; }
     public String getTenShipper() { return tenShipper; }
     public void setTenShipper(String tenShipper) { this.tenShipper = tenShipper; }
-    public String getSdtShipper() { return sdtShipper; }
-    public void setSdtShipper(String sdtShipper) { this.sdtShipper = sdtShipper; }
+    public long getSdtShipper() { return sdtShipper; }
+    public void setSdtShipper(long sdtShipper) { this.sdtShipper = sdtShipper; }
     public int getPhiShip() { return phiShip; }
     public void setPhiShip(int phiShip) { this.phiShip = phiShip; }
     public String getTrangThai() { return trangThai; }

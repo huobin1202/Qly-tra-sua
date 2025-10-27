@@ -151,7 +151,7 @@ public class KhachHangView extends JPanel {
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaKH"),
-                    rs.getString("SDT"),
+                    rs.getLong("SDT"),
                     rs.getString("HoTen"),
                     rs.getString("DiaChi"),
                     rs.getTimestamp("NgaySinh") != null ? dateFormat.format(rs.getTimestamp("NgaySinh")) : ""
@@ -194,7 +194,7 @@ public class KhachHangView extends JPanel {
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaKH"),
-                    rs.getString("SDT"),
+                    rs.getLong("SDT"),
                     rs.getString("HoTen"),
                     rs.getString("DiaChi"),
                     rs.getTimestamp("NgaySinh") != null ? dateFormat.format(rs.getTimestamp("NgaySinh")) : ""
@@ -224,7 +224,7 @@ public class KhachHangView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String sdt = (String) tableModel.getValueAt(selectedRow, 1);
+        long sdt = (Long) tableModel.getValueAt(selectedRow, 1);
         String hoTen = (String) tableModel.getValueAt(selectedRow, 2);
         String diaChi = (String) tableModel.getValueAt(selectedRow, 3);
         String ngaySinhStr = (String) tableModel.getValueAt(selectedRow, 4);
@@ -298,7 +298,7 @@ public class KhachHangView extends JPanel {
             ngaySinhField = new JTextField(20);
             
             if (kh != null) {
-                sdtField.setText(kh.getSoDienThoai());
+                sdtField.setText(String.valueOf(kh.getSoDienThoai()));
                 hoTenField.setText(kh.getHoTen());
                 diaChiField.setText(kh.getDiaChi());
                 if (kh.getNgaySinh() != null) {
@@ -399,12 +399,12 @@ public class KhachHangView extends JPanel {
         }
         
         private void saveData() {
-            String sdt = sdtField.getText().trim();
+            String sdtStr = sdtField.getText().trim();
             String hoTen = hoTenField.getText().trim();
             String diaChi = diaChiField.getText().trim();
             String ngaySinhStr = ngaySinhField.getText().trim();
             
-            if (sdt.isEmpty() || hoTen.isEmpty() || diaChi.isEmpty()) {
+            if (sdtStr.isEmpty() || hoTen.isEmpty() || diaChi.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -414,7 +414,7 @@ public class KhachHangView extends JPanel {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO khachhang (SDT, HoTen, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)");
-                    ps.setString(1, sdt);
+                    ps.setLong(1, Long.parseLong(sdtStr));
                     ps.setString(2, hoTen);
                     ps.setString(3, diaChi);
                     
@@ -430,7 +430,7 @@ public class KhachHangView extends JPanel {
                     // Sửa
                     PreparedStatement ps = conn.prepareStatement(
                         "UPDATE khachhang SET SDT=?, HoTen=?, DiaChi=?, NgaySinh=? WHERE MaKH=?");
-                    ps.setString(1, sdt);
+                    ps.setLong(1, Long.parseLong(sdtStr));
                     ps.setString(2, hoTen);
                     ps.setString(3, diaChi);
                     

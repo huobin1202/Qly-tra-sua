@@ -150,7 +150,7 @@ public class NhaCungCapView extends JPanel {
                 Object[] row = {
                     rs.getInt("MaNCC"),
                     rs.getString("TenNCC"),
-                    rs.getString("SDT"),
+                    String.valueOf(rs.getLong("SDT")),
                     rs.getString("DiaChi")
                 };
                 tableModel.addRow(row);
@@ -187,7 +187,7 @@ public class NhaCungCapView extends JPanel {
                 Object[] row = {
                     rs.getInt("MaNCC"),
                     rs.getString("TenNCC"),
-                    rs.getString("SDT"),
+                    String.valueOf(rs.getLong("SDT")),
                     rs.getString("DiaChi")
                 };
                 tableModel.addRow(row);
@@ -218,7 +218,7 @@ public class NhaCungCapView extends JPanel {
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String ten = (String) tableModel.getValueAt(selectedRow, 1);
-        String sdt = (String) tableModel.getValueAt(selectedRow, 2);
+        long sdt = Long.parseLong((String) tableModel.getValueAt(selectedRow, 2));
         String diaChi = (String) tableModel.getValueAt(selectedRow, 3);
         
         System.out.println("Mở dialog sửa nhà cung cấp - ID: " + id + ", Tên: " + ten);
@@ -323,7 +323,7 @@ public class NhaCungCapView extends JPanel {
             
             if (ncc != null) {
                 tenField.setText(ncc.getTenNCC() != null ? ncc.getTenNCC() : "");
-                sdtField.setText(ncc.getSoDienThoai() != null ? ncc.getSoDienThoai() : "");
+                sdtField.setText(ncc.getSoDienThoai() != 0 ? String.valueOf(ncc.getSoDienThoai()) : "");
                 diaChiField.setText(ncc.getDiaChi() != null ? ncc.getDiaChi() : "");
                 System.out.println("Khởi tạo dialog sửa với dữ liệu:");
                 System.out.println("Tên: " + ncc.getTenNCC());
@@ -456,7 +456,7 @@ public class NhaCungCapView extends JPanel {
                     try (PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
                         ps.setString(1, ten);
-                        ps.setString(2, sdt);
+                        ps.setLong(2, Long.parseLong(sdt));
                         ps.setString(3, diaChi);
                         int result = ps.executeUpdate();
                         System.out.println("INSERT thành công! Rows affected: " + result);
@@ -469,7 +469,7 @@ public class NhaCungCapView extends JPanel {
                     try (PreparedStatement ps = conn.prepareStatement(
                         "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?")) {
                         ps.setString(1, ten);
-                        ps.setString(2, sdt);
+                        ps.setLong(2, Long.parseLong(sdt));
                         ps.setString(3, diaChi);
                         ps.setInt(4, ncc.getMaNCC());
                         int result = ps.executeUpdate();

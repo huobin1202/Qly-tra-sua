@@ -739,7 +739,7 @@ public class ThemDonHangView extends JDialog {
         imageLabel.setMinimumSize(new Dimension(60, 60));
         imageLabel.setMaximumSize(new Dimension(60, 60));
         imageLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-        imageLabel.setBackground(Color.WHITE);
+        imageLabel.setBackground(Color.BLACK);
         imageLabel.setOpaque(true);
         
         // Load và hiển thị ảnh sản phẩm
@@ -819,7 +819,7 @@ public class ThemDonHangView extends JDialog {
         JButton minusButton = new JButton("-");
         minusButton.setPreferredSize(new Dimension(25, 25));
         minusButton.setBackground(new Color(70, 130, 180));
-        minusButton.setForeground(Color.WHITE);
+        minusButton.setForeground(Color.BLACK);
         minusButton.setFocusPainted(false);
         minusButton.setFont(new Font("Arial", Font.BOLD, 12));
         minusButton.addActionListener(e -> {
@@ -844,7 +844,7 @@ public class ThemDonHangView extends JDialog {
         JButton plusButton = new JButton("+");
         plusButton.setPreferredSize(new Dimension(25, 25));
         plusButton.setBackground(new Color(70, 130, 180));
-        plusButton.setForeground(Color.WHITE);
+        plusButton.setForeground(Color.BLACK);
         plusButton.setFocusPainted(false);
         plusButton.setFont(new Font("Arial", Font.BOLD, 12));
         plusButton.addActionListener(e -> {

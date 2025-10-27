@@ -22,7 +22,7 @@ public class NhaCungCapDAO {
                 NhaCungCapDTO nhaCungCap = new NhaCungCapDTO();
                 nhaCungCap.setMaNCC(rs.getInt("MaNCC"));
                 nhaCungCap.setTenNCC(rs.getString("TenNCC"));
-                nhaCungCap.setSoDienThoai(rs.getString("SDT"));
+                nhaCungCap.setSoDienThoai(rs.getLong("SDT"));
                 nhaCungCap.setDiaChi(rs.getString("DiaChi"));
                 danhSach.add(nhaCungCap);
             }
@@ -57,7 +57,7 @@ public class NhaCungCapDAO {
                     NhaCungCapDTO nhaCungCap = new NhaCungCapDTO();
                     nhaCungCap.setMaNCC(rs.getInt("MaNCC"));
                     nhaCungCap.setTenNCC(rs.getString("TenNCC"));
-                    nhaCungCap.setSoDienThoai(rs.getString("SDT"));
+                    nhaCungCap.setSoDienThoai(rs.getLong("SDT"));
                     nhaCungCap.setDiaChi(rs.getString("DiaChi"));
                     danhSach.add(nhaCungCap);
                 }
@@ -82,7 +82,7 @@ public class NhaCungCapDAO {
                     NhaCungCapDTO nhaCungCap = new NhaCungCapDTO();
                     nhaCungCap.setMaNCC(rs.getInt("MaNCC"));
                     nhaCungCap.setTenNCC(rs.getString("TenNCC"));
-                    nhaCungCap.setSoDienThoai(rs.getString("SDT"));
+                    nhaCungCap.setSoDienThoai(rs.getLong("SDT"));
                     nhaCungCap.setDiaChi(rs.getString("DiaChi"));
                     return nhaCungCap;
                 }
@@ -101,7 +101,7 @@ public class NhaCungCapDAO {
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             ps.setString(1, nhaCungCap.getTenNCC());
-            ps.setString(2, nhaCungCap.getSoDienThoai());
+            ps.setLong(2, nhaCungCap.getSoDienThoai());
             ps.setString(3, nhaCungCap.getDiaChi());
             
             int result = ps.executeUpdate();
@@ -128,7 +128,7 @@ public class NhaCungCapDAO {
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setString(1, nhaCungCap.getTenNCC());
-            ps.setString(2, nhaCungCap.getSoDienThoai());
+            ps.setLong(2, nhaCungCap.getSoDienThoai());
             ps.setString(3, nhaCungCap.getDiaChi());
             ps.setInt(4, nhaCungCap.getMaNCC());
             

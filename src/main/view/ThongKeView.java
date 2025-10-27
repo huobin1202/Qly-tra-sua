@@ -90,7 +90,7 @@ public class ThongKeView extends JPanel {
         JButton refreshButton = new JButton("🔄 Làm mới");
         refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
         refreshButton.setBackground(new Color(34, 139, 34));
-        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
         refreshButton.addActionListener(e -> refreshAllTabs());
         controlPanel.add(refreshButton);

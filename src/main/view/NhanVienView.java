@@ -143,7 +143,7 @@ public class NhanVienView extends JPanel {
                     rs.getString("TaiKhoan"),
                     rs.getString("MatKhau"),
                     rs.getString("HoTen"),
-                    rs.getString("SDT"),
+                    String.valueOf(rs.getLong("SDT")),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
                     String.format("%,d", rs.getInt("Luong")) + " VNĐ"
@@ -193,7 +193,7 @@ public class NhanVienView extends JPanel {
                     rs.getString("TaiKhoan"),
                     rs.getString("MatKhau"),
                     rs.getString("HoTen"),
-                    rs.getString("SDT"),
+                    String.valueOf(rs.getLong("SDT")),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
                     String.format("%,d", rs.getInt("Luong")) + " VNĐ"
@@ -226,7 +226,7 @@ public class NhanVienView extends JPanel {
         String taiKhoan = (String) tableModel.getValueAt(selectedRow, 1);
         String matKhau = (String) tableModel.getValueAt(selectedRow, 2);
         String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
-        String sdt = (String) tableModel.getValueAt(selectedRow, 4);
+        long sdt = Long.parseLong((String) tableModel.getValueAt(selectedRow, 4));
         String ngayVaoLamStr = (String) tableModel.getValueAt(selectedRow, 5);
         String chucVu = (String) tableModel.getValueAt(selectedRow, 6);
         String luongStr = (String) tableModel.getValueAt(selectedRow, 7);
@@ -349,7 +349,7 @@ public class NhanVienView extends JPanel {
                 taiKhoanField.setText(nv.getTaiKhoan());
                 matKhauField.setText(nv.getMatKhau());
                 hoTenField.setText(nv.getHoTen());
-                sdtField.setText(nv.getSoDienThoai());
+                sdtField.setText(String.valueOf(nv.getSoDienThoai()));
                 if (nv.getNgayVaoLam() != null) {
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
                     ngayVaoLamField.setText(dateFormat.format(nv.getNgayVaoLam()));

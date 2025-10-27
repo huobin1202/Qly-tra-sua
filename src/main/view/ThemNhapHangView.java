@@ -396,7 +396,7 @@ public class ThemNhapHangView extends JPanel {
                 NhaCungCapDTO supplier = new NhaCungCapDTO(
                     rs.getInt("MaNCC"),
                     rs.getString("TenNCC"),
-                    rs.getString("SDT"),
+                    rs.getLong("SDT"),
                     rs.getString("DiaChi")
                 );
                 suppliers.add(supplier);
