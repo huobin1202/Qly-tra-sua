@@ -1,0 +1,9 @@
+Mọi thứ đều đã ổn, lỗi đều đã đc fix
+
+TO DO SOON:
+Thêm khả năng nhập số lượng cho hàng tồn kho, hoặc quản lý nguyên liệu.
+Ràng buộc dữ liệu : Tên thì kh đc chứa ký tự đặc biệt hay số, số lượng kh đc âm, số điện thoại phải đúng định dạng, v.v...
+Trong phần thống kê, tại vị trí lọc ngày tháng, thêm lựa chọn lọc theo tháng, năm. (thay vì nhập ngày tháng như hiện tại)
+
+Dũng sẽ thêm tính năng xuất file excel cho phần thống kê doanh thu hoặc xuất file pdf cho báo cáo bán hàng.
+Bình với Minh tập trung làm lại những tính năng trên.
