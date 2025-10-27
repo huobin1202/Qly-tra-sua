@@ -488,11 +488,6 @@ public class NhanVienView extends JPanel {
             } 
             
             // Validation số điện thoại
-            if (sdtStr.startsWith("0")) {
-                JOptionPane.showMessageDialog(this, "Số điện thoại không được bắt đầu bằng số 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
             // Kiểm tra chỉ chứa số
             if (!sdtStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Số điện thoại chỉ được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
