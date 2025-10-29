@@ -5,9 +5,13 @@ import java.awt.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.Calendar;
+import java.text.SimpleDateFormat;
 
 import database.DBUtil;
 import database.Session;
+import dao.ThongKeDAO;
+import dto.ThongKeDTO;
 
 public class MainDashboard extends JFrame implements MainFrameInterface {
     private JPanel mainPanel;
@@ -49,6 +53,9 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         //add(topBar, BorderLayout.NORTH);
         add(mainPanel, BorderLayout.CENTER);
         //add(rightSidebar, BorderLayout.EAST);
+        
+        // Hiển thị dashboard mặc định khi đăng nhập
+        cardLayout.show(mainPanel, "DEFAULT");
     }
     
     private void createLeftSidebar() {
@@ -403,33 +410,127 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     }
     
     private JPanel createDefaultView() {
-        JPanel defaultPanel = new JPanel(new BorderLayout());
-        defaultPanel.setBackground(Color.BLACK);
+        JPanel dashboardPanel = new JPanel(new BorderLayout());
+        dashboardPanel.setBackground(new Color(240, 248, 255));
         
-        // Tạo bảng mẫu như trong ảnh
-        String[] columnNames = {"ID", "Tên Món", "Mô tả", "Link ảnh", "Tên đv", "Giá đv", "Mã loại"};
-        Object[][] data = {
-            {1, "Hướng dương", "", "", "", 10000, 1},
-            {2, "Bánh Flan", "", "", "", 10000, 2},
-            {3, "Trà Sữa Matcha(L)", "", "", "", 50000, 2},
-            {4, "Espresso", "", "", "", 45000, 3},
-            {5, "No Topping", "", "", "", 0, 4},
-            {6, "Trân Châu Trắng", "", "", "", 10000, 4},
-            {7, "Trân Châu Tuyết Sợi", "", "", "", 10000, 4}
-        };
+        // Header
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(70, 130, 180));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         
-        JTable table = new JTable(data, columnNames);
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
-        table.setRowHeight(30);
-        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(173, 216, 230));
+        JLabel titleLabel = new JLabel("📊 DASHBOARD TỔNG QUAN");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setForeground(Color.WHITE);
         
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        // Hiển thị ngày hiện tại
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat dateFormat;
+        try {
+            dateFormat = new SimpleDateFormat("EEEE, dd MMMM yyyy", java.util.Locale.forLanguageTag("vi"));
+        } catch (Exception e) {
+            // Fallback to default locale if Vietnamese locale not available
+            dateFormat = new SimpleDateFormat("EEEE, dd MMMM yyyy");
+        }
+        JLabel dateLabel = new JLabel(dateFormat.format(cal.getTime()));
+        dateLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        dateLabel.setForeground(Color.WHITE);
         
-        defaultPanel.add(scrollPane, BorderLayout.CENTER);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
+        headerPanel.add(dateLabel, BorderLayout.EAST);
         
-        return defaultPanel;
+        dashboardPanel.add(headerPanel, BorderLayout.NORTH);
+        
+        // Content panel với các card thống kê
+        JPanel contentPanel = new JPanel(new GridLayout(2, 3, 20, 20));
+        contentPanel.setBackground(new Color(240, 248, 255));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+        
+        // Load dữ liệu thống kê
+        ThongKeDAO thongKeDAO = new ThongKeDAO();
+        ThongKeDTO tongQuan = thongKeDAO.thongKeTongQuan();
+        
+        // Tạo các card thống kê
+        contentPanel.add(createStatCard("💰 TỔNG DOANH THU", 
+            String.format("%,d VNĐ", tongQuan.getDoanhThu()), 
+            new Color(46, 125, 50)));
+        
+        contentPanel.add(createStatCard("👥 KHÁCH HÀNG", 
+            String.valueOf(tongQuan.getSoKhachHang()), 
+            new Color(156, 39, 176)));
+        
+        contentPanel.add(createStatCard("👨‍💼 NHÂN VIÊN", 
+            String.valueOf(tongQuan.getSoNhanVien()), 
+            new Color(255, 87, 34)));
+        
+        contentPanel.add(createStatCard("🍴 MÓN ĂN", 
+            String.valueOf(tongQuan.getSoMon()), 
+            new Color(0, 150, 136)));
+        
+        contentPanel.add(createStatCard("📦 NGUYÊN LIỆU", 
+            String.valueOf(tongQuan.getSoNguyenLieu()), 
+            new Color(121, 85, 72)));
+        
+        contentPanel.add(createStatCard("🏢 NHÀ CUNG CẤP", 
+            String.valueOf(tongQuan.getSoNhaCungCap()), 
+            new Color(63, 81, 181)));
+        
+        dashboardPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        // Footer với thông tin thêm
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        footerPanel.setBackground(new Color(240, 248, 255));
+        footerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JLabel footerLabel = new JLabel("Chào mừng bạn đến với hệ thống quản lý trà sữa!");
+        footerLabel.setFont(new Font("Arial", Font.ITALIC, 14));
+        footerLabel.setForeground(new Color(100, 100, 100));
+        footerPanel.add(footerLabel);
+        
+        dashboardPanel.add(footerPanel, BorderLayout.SOUTH);
+        
+        return dashboardPanel;
+    }
+    
+    private JPanel createStatCard(String title, String value, Color color) {
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+            BorderFactory.createEmptyBorder(30, 30, 30, 30)
+        ));
+        
+        // Title
+        JLabel titleLabel = new JLabel(title);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        titleLabel.setForeground(new Color(100, 100, 100));
+        titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        // Value
+        JLabel valueLabel = new JLabel(value);
+        valueLabel.setFont(new Font("Arial", Font.BOLD, 32));
+        valueLabel.setForeground(color);
+        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        card.add(titleLabel, BorderLayout.NORTH);
+        card.add(valueLabel, BorderLayout.CENTER);
+        
+        // Hover effect
+        card.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(color, 2),
+                    BorderFactory.createEmptyBorder(29, 29, 29, 29)
+                ));
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                card.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                    BorderFactory.createEmptyBorder(30, 30, 30, 30)
+                ));
+            }
+        });
+        
+        return card;
     }
     
     private JPanel createMonView() {

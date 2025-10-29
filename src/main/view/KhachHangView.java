@@ -5,8 +5,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import database.DBUtil;
 import dto.KhachHangDTO;
+import utils.DateChooserComponent;
 
 public class KhachHangView extends JPanel {
     private JTable table;
@@ -278,6 +280,7 @@ public class KhachHangView extends JPanel {
     private class KhachHangDialog extends JDialog {
         private JTextField sdtField, hoTenField, diaChiField;
         private DateChooserComponent ngaySinhPicker;
+        private JButton saveButton, cancelButton;
         private boolean dataChanged = false;
         private KhachHangDTO kh;
         
@@ -296,7 +299,9 @@ public class KhachHangView extends JPanel {
             sdtField = new JTextField(20);
             hoTenField = new JTextField(20);
             diaChiField = new JTextField(20);
-            ngaySinhPicker = new DateChooserComponent();
+            // Tạo DateChooserComponent cho ngày sinh: ẩn nút "Hôm nay" và giới hạn tối đa là hôm nay
+            Date today = new Date();
+            ngaySinhPicker = new DateChooserComponent(false, today);
             
             if (kh != null) {
                 sdtField.setText(String.valueOf(kh.getSoDienThoai()));
@@ -345,14 +350,16 @@ public class KhachHangView extends JPanel {
             gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JPanel buttonPanel = new JPanel(new FlowLayout());
             
-            JButton saveButton = new JButton("Lưu");
+            saveButton = new JButton("Lưu");
             saveButton.setBackground(new Color(34, 139, 34));
             saveButton.setForeground(Color.BLACK);
             saveButton.setFocusPainted(false);
+            saveButton.addActionListener(e -> saveData());
             
-            JButton cancelButton = new JButton("Hủy");
+            cancelButton = new JButton("Hủy");
             cancelButton.setBackground(new Color(220, 220, 220));
             cancelButton.setFocusPainted(false);
+            cancelButton.addActionListener(e -> dispose());
             
             buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
@@ -362,40 +369,7 @@ public class KhachHangView extends JPanel {
         }
         
         private void setupEventHandlers() {
-            JButton saveButton = findButton("Lưu");
-            JButton cancelButton = findButton("Hủy");
-            
-            if (saveButton != null) {
-                saveButton.addActionListener(e -> saveData());
-            }
-            if (cancelButton != null) {
-                cancelButton.addActionListener(e -> dispose());
-            }
-        }
-        
-        private JButton findButton(String text) {
-            for (Component comp : getComponents()) {
-                if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
-        }
-        
-        private JButton findButtonInPanel(JPanel panel, String text) {
-            for (Component comp : panel.getComponents()) {
-                if (comp instanceof JButton) {
-                    JButton button = (JButton) comp;
-                    if (button.getText().equals(text)) {
-                        return button;
-                    }
-                } else if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
+            // Action listeners đã được thêm trực tiếp khi tạo nút
         }
         
         private void saveData() {

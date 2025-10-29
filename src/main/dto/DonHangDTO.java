@@ -4,12 +4,14 @@ import java.sql.Timestamp;
 public class DonHangDTO {
     private int maDon;
     private int maNV;
+    private Integer maKH; // nullable - có thể không có khách hàng (đơn tại quán)
     private String loai;
     private String trangThai;
     private Timestamp ngayDat;
     private long tongTien;
     private int giamGia;
     private String tenNV;
+    private String tenKH; // Tên khách hàng
 
     // Constructor mặc định
     public DonHangDTO() {}
@@ -30,6 +32,8 @@ public class DonHangDTO {
     public void setMaDon(int maDon) { this.maDon = maDon; }
     public int getMaNV() { return maNV; }
     public void setMaNV(int maNV) { this.maNV = maNV; }
+    public Integer getMaKH() { return maKH; }
+    public void setMaKH(Integer maKH) { this.maKH = maKH; }
     public String getLoai() { return loai; }
     public void setLoai(String loai) { this.loai = loai; }
     public String getTrangThai() { return trangThai; }
@@ -42,4 +46,6 @@ public class DonHangDTO {
     public void setGiamGia(int giamGia) { this.giamGia = giamGia; }
     public String getTenNV() { return tenNV; }
     public void setTenNV(String tenNV) { this.tenNV = tenNV; }
+    public String getTenKH() { return tenKH; }
+    public void setTenKH(String tenKH) { this.tenKH = tenKH; }
 }

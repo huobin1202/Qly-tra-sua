@@ -15,9 +15,10 @@ public class ThongKeDAO {
         String sql = "SELECT m.TenMon, SUM(ct.SoLuong) as SoLuongBan, SUM(ct.SoLuong * (ct.GiaMon + ct.GiaTopping)) as TongTien " +
                     "FROM chitietdonhang ct " +
                     "JOIN mon m ON ct.MaMon = m.MaMon " +
-                    "JOIN dondathang dh ON ct.MaDon = dh.MaDon " +
+                    "JOIN donhang dh ON ct.MaDon = dh.MaDon " +
                     "WHERE dh.TrangThai = 'dathanhtoan' " +
-                    "AND dh.NgayDat BETWEEN ? AND ? " +
+                    "AND DATE(dh.NgayDat) >= DATE(?) " +
+                    "AND DATE(dh.NgayDat) <= DATE(?) " +
                     "GROUP BY m.MaMon, m.TenMon " +
                     "ORDER BY SoLuongBan DESC " +
                     "LIMIT 10";
@@ -39,6 +40,7 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace(); // Log error để debug
         }
         
         return result;
@@ -51,9 +53,10 @@ public class ThongKeDAO {
                     "FROM chitietdonhang ct " +
                     "JOIN mon m ON ct.MaMon = m.MaMon " +
                     "JOIN loaimon lm ON m.MaLoai = lm.MaLoai " +
-                    "JOIN dondathang dh ON ct.MaDon = dh.MaDon " +
+                    "JOIN donhang dh ON ct.MaDon = dh.MaDon " +
                     "WHERE dh.TrangThai = 'dathanhtoan' " +
-                    "AND dh.NgayDat BETWEEN ? AND ? " +
+                    "AND DATE(dh.NgayDat) >= DATE(?) " +
+                    "AND DATE(dh.NgayDat) <= DATE(?) " +
                     "GROUP BY lm.MaLoai, lm.TenLoai " +
                     "ORDER BY TongTien DESC";
         
@@ -75,6 +78,7 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace(); // Log error để debug
         }
         
         return result;
@@ -84,10 +88,11 @@ public class ThongKeDAO {
     public List<ThongKeDTO> thongKeNhanVienBanHang(String tuNgay, String denNgay) {
         List<ThongKeDTO> result = new ArrayList<>();
         String sql = "SELECT nv.HoTen, COUNT(dh.MaDon) as SoDonHang, SUM(dh.TongTien) as DoanhThu " +
-                    "FROM dondathang dh " +
+                    "FROM donhang dh " +
                     "JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
                     "WHERE dh.TrangThai = 'dathanhtoan' " +
-                    "AND dh.NgayDat BETWEEN ? AND ? " +
+                    "AND DATE(dh.NgayDat) >= DATE(?) " +
+                    "AND DATE(dh.NgayDat) <= DATE(?) " +
                     "GROUP BY nv.MaNV, nv.HoTen " +
                     "ORDER BY DoanhThu DESC";
         
@@ -109,6 +114,7 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace(); // Log error để debug
         }
         
         return result;
@@ -118,9 +124,10 @@ public class ThongKeDAO {
     public List<ThongKeDTO> thongKeDoanhThuTheoNgay(String tuNgay, String denNgay) {
         List<ThongKeDTO> result = new ArrayList<>();
         String sql = "SELECT DATE(dh.NgayDat) as Ngay, SUM(dh.TongTien) as DoanhThu " +
-                    "FROM dondathang dh " +
+                    "FROM donhang dh " +
                     "WHERE dh.TrangThai = 'dathanhtoan' " +
-                    "AND dh.NgayDat BETWEEN ? AND ? " +
+                    "AND DATE(dh.NgayDat) >= DATE(?) " +
+                    "AND DATE(dh.NgayDat) <= DATE(?) " +
                     "GROUP BY DATE(dh.NgayDat) " +
                     "ORDER BY Ngay ASC";
         
@@ -141,6 +148,7 @@ public class ThongKeDAO {
                 }
             }
         } catch (SQLException e) {
+            e.printStackTrace(); // Log error để debug
         }
         
         return result;
@@ -150,7 +158,7 @@ public class ThongKeDAO {
     public List<ThongKeDTO> thongKeDoanhThuTheoThang(String nam) {
         List<ThongKeDTO> result = new ArrayList<>();
         String sql = "SELECT MONTH(dh.NgayDat) as Thang, SUM(dh.TongTien) as DoanhThu " +
-                    "FROM dondathang dh " +
+                    "FROM donhang dh " +
                     "WHERE dh.TrangThai = 'dathanhtoan' " +
                     "AND YEAR(dh.NgayDat) = ? " +
                     "GROUP BY MONTH(dh.NgayDat) " +
@@ -183,8 +191,8 @@ public class ThongKeDAO {
         
         try (Connection conn = DBUtil.getConnection()) {
             // Tổng doanh thu
-            String sqlDoanhThu = "SELECT SUM(TongTien) as TongDoanhThu " +
-                                "FROM dondathang " +
+            String sqlDoanhThu = "SELECT COALESCE(SUM(TongTien), 0) as TongDoanhThu " +
+                                "FROM donhang " +
                                 "WHERE TrangThai = 'dathanhtoan'";
             
             try (PreparedStatement ps = conn.prepareStatement(sqlDoanhThu);
@@ -240,6 +248,7 @@ public class ThongKeDAO {
             }
             
         } catch (SQLException e) {
+            e.printStackTrace(); // Log error để debug
         }
         
         return result;
@@ -249,7 +258,7 @@ public class ThongKeDAO {
     public List<ThongKeDTO> thongKeDonHangTheoTrangThai() {
         List<ThongKeDTO> result = new ArrayList<>();
         String sql = "SELECT TrangThai, COUNT(*) as SoDonHang " +
-                    "FROM dondathang " +
+                    "FROM donhang " +
                     "GROUP BY TrangThai";
         
         try (Connection conn = DBUtil.getConnection();

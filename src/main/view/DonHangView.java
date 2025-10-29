@@ -10,6 +10,7 @@ import database.DBUtil;
 import dto.DonHangDTO;
 import dto.ChiTietDonHangDTO;
 import dao.DonHangDAO;
+import utils.DateChooserComponent;
 
 public class DonHangView extends JPanel {
     private JTable table;
@@ -30,7 +31,7 @@ public class DonHangView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Mã NV", "Loại", "Trạng thái", "Ngày đặt", "Tổng tiền", "Giảm giá"};
+        String[] columns = {"ID", "Tên NV", "Mã KH", "Tên KH", "Loại", "Trạng thái", "Ngày đặt", "Tổng tiền", "Giảm giá"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -45,7 +46,7 @@ public class DonHangView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Mã NV", "Loại", "Trạng thái"});
+        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Tên NV", "Loại", "Trạng thái"});
         searchField = new JTextField(20);
     }
     
@@ -160,7 +161,9 @@ public class DonHangView extends JPanel {
             for (DonHangDTO donHang : danhSach) {
                 Object[] row = {
                     donHang.getMaDon(),
-                    donHang.getMaNV(),
+                    donHang.getTenNV() != null ? donHang.getTenNV() : "N/A",
+                    donHang.getMaKH() != null ? donHang.getMaKH() : "",
+                    donHang.getTenKH() != null ? donHang.getTenKH() : "",
                     donHang.getLoai(),
                     convertTrangThaiToUI(donHang.getTrangThai()),
                     donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
@@ -186,7 +189,9 @@ public class DonHangView extends JPanel {
             for (DonHangDTO donHang : danhSach) {
                 Object[] row = {
                     donHang.getMaDon(),
-                    donHang.getMaNV(),
+                    donHang.getTenNV() != null ? donHang.getTenNV() : "N/A",
+                    donHang.getMaKH() != null ? donHang.getMaKH() : "",
+                    donHang.getTenKH() != null ? donHang.getTenKH() : "",
                     donHang.getLoai(),
                     convertTrangThaiToUI(donHang.getTrangThai()),
                     donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
@@ -263,7 +268,10 @@ public class DonHangView extends JPanel {
             
             // Thông tin đơn hàng
             detail.append("║ Mã đơn hàng: ").append(String.format("%-20s", donHang.getMaDon())).append(" Ngày đặt: ").append(String.format("%-20s", donHang.getNgayDat())).append(" ║\n");
-            detail.append("║ Mã nhân viên: ").append(String.format("%-20s", donHang.getMaNV())).append(" Loại: ").append(String.format("%-20s", donHang.getLoai())).append(" ║\n");
+            detail.append("║ Nhân viên: ").append(String.format("%-20s", donHang.getTenNV() != null ? donHang.getTenNV() : "N/A")).append(" Loại: ").append(String.format("%-20s", donHang.getLoai())).append(" ║\n");
+            if (donHang.getTenKH() != null && !donHang.getTenKH().isEmpty()) {
+                detail.append("║ Khách hàng: ").append(String.format("%-20s", donHang.getTenKH())).append(" Mã KH: ").append(String.format("%-20s", donHang.getMaKH())).append(" ║\n");
+            }
             detail.append("║ Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(donHang.getTrangThai()))).append(" Giảm giá: ").append(String.format("%-20s", donHang.getGiamGia() + "%")).append(" ║\n");
             
             detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");

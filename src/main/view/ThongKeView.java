@@ -3,12 +3,12 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 
 import dao.ThongKeDAO;
 import dto.ThongKeDTO;
+import utils.DateChooserComponent;
 
 public class ThongKeView extends JPanel {
     private JTabbedPane tabbedPane;
@@ -16,6 +16,9 @@ public class ThongKeView extends JPanel {
     private JComboBox<String> yearCombo;
     private DateChooserComponent fromDatePicker;
     private DateChooserComponent toDatePicker;
+    
+    // Lưu reference đến các label trong tab tổng quan để cập nhật dễ dàng hơn
+    private JLabel doanhThuLabel, khachHangLabel, nhanVienLabel, monLabel, nguyenLieuLabel, nhaCungCapLabel;
     
     public ThongKeView() {
         thongKeDAO = new ThongKeDAO();
@@ -143,13 +146,30 @@ public class ThongKeView extends JPanel {
         contentPanel.setBackground(new Color(240, 248, 255));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        // Tạo các card thống kê
-        contentPanel.add(createStatCard("💰 TỔNG DOANH THU", "0 VNĐ", new Color(46, 125, 50)));
-        contentPanel.add(createStatCard("👥 KHÁCH HÀNG", "0", new Color(156, 39, 176)));
-        contentPanel.add(createStatCard("👨‍💼 NHÂN VIÊN", "0", new Color(255, 87, 34)));
-        contentPanel.add(createStatCard("🍴 MÓN ĂN", "0", new Color(0, 150, 136)));
-        contentPanel.add(createStatCard("📦 NGUYÊN LIỆU", "0", new Color(121, 85, 72)));
-        contentPanel.add(createStatCard("🏢 NHÀ CUNG CẤP", "0", new Color(63, 81, 181)));
+        // Tạo các card thống kê và lưu reference đến labels
+        JPanel card1 = createStatCard("💰 TỔNG DOANH THU", "0 VNĐ", new Color(46, 125, 50));
+        doanhThuLabel = (JLabel) card1.getComponent(1);
+        contentPanel.add(card1);
+        
+        JPanel card2 = createStatCard("👥 KHÁCH HÀNG", "0", new Color(156, 39, 176));
+        khachHangLabel = (JLabel) card2.getComponent(1);
+        contentPanel.add(card2);
+        
+        JPanel card3 = createStatCard("👨‍💼 NHÂN VIÊN", "0", new Color(255, 87, 34));
+        nhanVienLabel = (JLabel) card3.getComponent(1);
+        contentPanel.add(card3);
+        
+        JPanel card4 = createStatCard("🍴 MÓN ĂN", "0", new Color(0, 150, 136));
+        monLabel = (JLabel) card4.getComponent(1);
+        contentPanel.add(card4);
+        
+        JPanel card5 = createStatCard("📦 NGUYÊN LIỆU", "0", new Color(121, 85, 72));
+        nguyenLieuLabel = (JLabel) card5.getComponent(1);
+        contentPanel.add(card5);
+        
+        JPanel card6 = createStatCard("🏢 NHÀ CUNG CẤP", "0", new Color(63, 81, 181));
+        nhaCungCapLabel = (JLabel) card6.getComponent(1);
+        contentPanel.add(card6);
         
         tongQuanPanel.add(contentPanel, BorderLayout.CENTER);
         
@@ -417,36 +437,63 @@ public class ThongKeView extends JPanel {
         String year = (String) yearCombo.getSelectedItem();
         
         // Validate dates
-        if (fromDate.isEmpty() || toDate.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ ngày bắt đầu và kết thúc!", 
-                "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
+        if (fromDate == null || fromDate.isEmpty() || toDate == null || toDate.isEmpty()) {
+            // Nếu ngày rỗng, set lại ngày mặc định và thử lại
+            setDefaultDates();
+            fromDate = fromDatePicker.getSelectedDateString();
+            toDate = toDatePicker.getSelectedDateString();
+            
+            if (fromDate == null || fromDate.isEmpty() || toDate == null || toDate.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ ngày bắt đầu và kết thúc!", 
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
         
         // Load data for each tab
-        loadTongQuanData();
-        loadMonBanChayData(fromDate, toDate);
-        loadDoanhThuData(fromDate, toDate, year);
-        loadNhanVienData(fromDate, toDate);
-        loadKhachHangData(year);
+        try {
+            loadTongQuanData();
+            loadMonBanChayData(fromDate, toDate);
+            loadDoanhThuData(fromDate, toDate, year);
+            loadNhanVienData(fromDate, toDate);
+            loadKhachHangData(year);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Lỗi khi tải dữ liệu thống kê: " + e.getMessage(), 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
     
     private void loadTongQuanData() {
-        ThongKeDTO tongQuan = thongKeDAO.thongKeTongQuan();
-        
-        // Update stat cards
-        JPanel tongQuanPanel = (JPanel) tabbedPane.getComponentAt(0);
-        JPanel contentPanel = (JPanel) tongQuanPanel.getComponent(1);
-        
-        Component[] cards = contentPanel.getComponents();
-        
-        // Update values
-        ((JLabel) ((JPanel) cards[0]).getComponent(1)).setText(String.format("%,d VNĐ", tongQuan.getDoanhThu()));
-        ((JLabel) ((JPanel) cards[1]).getComponent(1)).setText(String.valueOf(tongQuan.getSoKhachHang()));
-        ((JLabel) ((JPanel) cards[2]).getComponent(1)).setText(String.valueOf(tongQuan.getSoNhanVien()));
-        ((JLabel) ((JPanel) cards[3]).getComponent(1)).setText(String.valueOf(tongQuan.getSoMon()));
-        ((JLabel) ((JPanel) cards[4]).getComponent(1)).setText(String.valueOf(tongQuan.getSoNguyenLieu()));
-        ((JLabel) ((JPanel) cards[5]).getComponent(1)).setText(String.valueOf(tongQuan.getSoNhaCungCap()));
+        try {
+            ThongKeDTO tongQuan = thongKeDAO.thongKeTongQuan();
+            
+            // Update values trực tiếp vào các label đã lưu
+            if (doanhThuLabel != null) {
+                doanhThuLabel.setText(String.format("%,d VNĐ", tongQuan.getDoanhThu()));
+            }
+            if (khachHangLabel != null) {
+                khachHangLabel.setText(String.valueOf(tongQuan.getSoKhachHang()));
+            }
+            if (nhanVienLabel != null) {
+                nhanVienLabel.setText(String.valueOf(tongQuan.getSoNhanVien()));
+            }
+            if (monLabel != null) {
+                monLabel.setText(String.valueOf(tongQuan.getSoMon()));
+            }
+            if (nguyenLieuLabel != null) {
+                nguyenLieuLabel.setText(String.valueOf(tongQuan.getSoNguyenLieu()));
+            }
+            if (nhaCungCapLabel != null) {
+                nhaCungCapLabel.setText(String.valueOf(tongQuan.getSoNhaCungCap()));
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                "Lỗi khi tải dữ liệu tổng quan: " + e.getMessage(), 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace();
+        }
     }
     
     private void loadMonBanChayData(String fromDate, String toDate) {

@@ -117,6 +117,7 @@ INSERT INTO `chitietnhap_nl` (`MaPN`, `MaNL`, `SoLuong`, `DonGia`, `DonVi`) VALU
 CREATE TABLE `donhang` (
   `MaDon` int(11) NOT NULL,
   `MaNV` int(11) NOT NULL,
+  `MaKH` int(11) DEFAULT NULL,
   `Loai` varchar(45) NOT NULL DEFAULT 'taiquan' COMMENT 'taiquan - tại quán\nonline - đặt online',
   `TrangThai` varchar(45) NOT NULL DEFAULT 'chuathanhtoan' COMMENT 'chuathanhtoan - chưa thanh toán\ndathanhtoan - đã thanh toán\nbihuy - bị hủy',
   `NgayDat` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -128,22 +129,22 @@ CREATE TABLE `donhang` (
 -- Dumping data for table `donhang`
 --
 
-INSERT INTO `donhang` (`MaDon`, `MaNV`, `Loai`, `TrangThai`, `NgayDat`, `TongTien`, `GiamGia`) VALUES
-(1, 1, 'taiquan', 'dathanhtoan', '2020-11-24 07:28:41', 450000, 0),
-(2, 1, 'online', 'dathanhtoan', '2020-11-24 08:05:08', 406000, 0),
-(3, 1, 'taiquan', 'dathanhtoan', '2020-12-16 08:55:36', 550000, 5),
-(4, 2, 'taiquan', 'dathanhtoan', '2025-10-19 09:15:00', 120000, 0),
-(5, 1, 'online', 'dathanhtoan', '2025-10-19 14:30:00', 180000, 10),
-(6, 5, 'taiquan', 'bihuy', '2025-10-20 11:45:00', 95000, 0),
-(7, 2, 'online', 'dathanhtoan', '2025-10-20 16:20:00', 220000, 5),
-(8, 1, 'taiquan', 'dathanhtoan', '2025-10-21 08:30:00', 150000, 0),
-(9, 6, 'online', 'dathanhtoan', '2025-10-21 19:15:00', 300000, 15),
-(10, 2, 'taiquan', 'bihuy', '2025-10-22 12:00:00', 75000, 0),
-(11, 1, 'online', 'dathanhtoan', '2025-10-22 20:45:00', 250000, 0),
-(12, 5, 'taiquan', 'dathanhtoan', '2025-10-23 10:30:00', 135000, 0),
-(13, 2, 'online', 'dathanhtoan', '2025-10-23 18:00:00', 190000, 8),
-(14, 1, 'taiquan', 'dathanhtoan', '2025-10-24 13:15:00', 165000, 0),
-(15, 6, 'online', 'bihuy', '2025-10-24 21:30:00', 280000, 12);
+INSERT INTO `donhang` (`MaDon`, `MaNV`, `MaKH`, `Loai`, `TrangThai`, `NgayDat`, `TongTien`, `GiamGia`) VALUES
+(1, 1, NULL, 'taiquan', 'dathanhtoan', '2020-11-24 07:28:41', 450000, 0),
+(2, 1, 1, 'online', 'dathanhtoan', '2020-11-24 08:05:08', 406000, 0),
+(3, 1, NULL, 'taiquan', 'dathanhtoan', '2020-12-16 08:55:36', 550000, 5),
+(4, 2, NULL, 'taiquan', 'dathanhtoan', '2025-10-19 09:15:00', 120000, 0),
+(5, 1, 3, 'online', 'dathanhtoan', '2025-10-19 14:30:00', 180000, 10),
+(6, 5, NULL, 'taiquan', 'bihuy', '2025-10-20 11:45:00', 95000, 0),
+(7, 2, 4, 'online', 'dathanhtoan', '2025-10-20 16:20:00', 220000, 5),
+(8, 1, NULL, 'taiquan', 'dathanhtoan', '2025-10-21 08:30:00', 150000, 0),
+(9, 6, 5, 'online', 'dathanhtoan', '2025-10-21 19:15:00', 300000, 15),
+(10, 2, NULL, 'taiquan', 'bihuy', '2025-10-22 12:00:00', 75000, 0),
+(11, 1, 6, 'online', 'dathanhtoan', '2025-10-22 20:45:00', 250000, 0),
+(12, 5, NULL, 'taiquan', 'dathanhtoan', '2025-10-23 10:30:00', 135000, 0),
+(13, 2, 7, 'online', 'dathanhtoan', '2025-10-23 18:00:00', 190000, 8),
+(14, 1, NULL, 'taiquan', 'dathanhtoan', '2025-10-24 13:15:00', 165000, 0),
+(15, 6, 8, 'online', 'bihuy', '2025-10-24 21:30:00', 280000, 12);
 
 -- --------------------------------------------------------
 
@@ -444,7 +445,8 @@ ALTER TABLE `chitietnhap_nl`
 --
 ALTER TABLE `donhang`
   ADD PRIMARY KEY (`MaDon`),
-  ADD KEY `fk_nhanvien_don` (`MaNV`);
+  ADD KEY `fk_nhanvien_don` (`MaNV`),
+  ADD KEY `fk_donhang_khachhang` (`MaKH`);
 
 --
 -- Indexes for table `giaohang`
@@ -590,7 +592,8 @@ ALTER TABLE `chitietnhap_nl`
 -- Constraints for table `donhang`
 --
 ALTER TABLE `donhang`
-  ADD CONSTRAINT `fk_nhanvien_don` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`);
+  ADD CONSTRAINT `fk_nhanvien_don` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`),
+  ADD CONSTRAINT `fk_donhang_khachhang` FOREIGN KEY (`MaKH`) REFERENCES `khachhang` (`MaKH`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `giaohang`

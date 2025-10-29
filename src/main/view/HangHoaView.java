@@ -228,7 +228,7 @@ public class HangHoaView extends JPanel {
                     rs.getString("TenMon"),
                     rs.getString("MoTa"),
                     String.format("%,d", rs.getLong("Gia")) + " VNĐ",
-                    rs.getString("TinhTrang"),
+                    convertTinhTrangToUI(rs.getString("TinhTrang")), // Chuyển đổi trạng thái sang tiếng Việt
                     rs.getString("TenLoai"),
                     rs.getString("Anh")
                 };
@@ -307,9 +307,17 @@ public class HangHoaView extends JPanel {
             ps = conn.prepareStatement(sql);
             ps.setString(1, "%" + searchText + "%");
         } else {
+            // Tìm kiếm theo trạng thái: chuyển đổi từ UI sang database nếu cần
+            String tinhTrangSearch = searchText;
+            // Kiểm tra nếu là tiếng Việt thì chuyển sang database
+            if ("Đang bán".equals(searchText) || searchText.contains("Đang bán")) {
+                tinhTrangSearch = "dangban";
+            } else if ("Tạm ngừng".equals(searchText) || searchText.contains("Tạm ngừng")) {
+                tinhTrangSearch = "ngungban";
+            }
             sql += "m.TinhTrang LIKE ? ORDER BY m.MaMon";
             ps = conn.prepareStatement(sql);
-            ps.setString(1, "%" + searchText + "%");
+            ps.setString(1, "%" + tinhTrangSearch + "%");
         }
         
         ResultSet rs = ps.executeQuery();
@@ -319,7 +327,7 @@ public class HangHoaView extends JPanel {
                 rs.getString("TenMon"),
                 rs.getString("MoTa"),
                 String.format("%,d", rs.getLong("Gia")) + " VNĐ",
-                rs.getString("TinhTrang"),
+                convertTinhTrangToUI(rs.getString("TinhTrang")), // Chuyển đổi trạng thái sang tiếng Việt
                 rs.getString("TenLoai"),
                 rs.getString("Anh")
             };
@@ -390,9 +398,12 @@ public class HangHoaView extends JPanel {
             String ten = (String) tableModel.getValueAt(selectedRow, 1);
             String moTa = (String) tableModel.getValueAt(selectedRow, 2);
             String giaStr = (String) tableModel.getValueAt(selectedRow, 3);
-            String tinhTrang = (String) tableModel.getValueAt(selectedRow, 4);
+            String tinhTrangUI = (String) tableModel.getValueAt(selectedRow, 4); // Trạng thái hiển thị (ví dụ: "Đang bán")
             String loai = (String) tableModel.getValueAt(selectedRow, 5);
             String anh = (String) tableModel.getValueAt(selectedRow, 6);
+            
+            // Chuyển đổi trạng thái từ UI về database
+            String tinhTrang = convertTinhTrangToDatabase(tinhTrangUI);
             
             long gia = 0;
             if (!giaStr.isEmpty()) {

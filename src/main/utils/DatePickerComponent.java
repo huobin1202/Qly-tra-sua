@@ -1,4 +1,4 @@
-package view;
+package utils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -176,3 +176,4 @@ public class DatePickerComponent extends JPanel {
      */
 
 }
+

@@ -12,7 +12,11 @@ public class DonHangDAO {
     // Lấy tất cả đơn hàng
     public List<DonHangDTO> layTatCaDonHang() {
         List<DonHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM donhang ORDER BY MaDon";
+        String sql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH " +
+                    "FROM donhang dh " +
+                    "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
+                    "LEFT JOIN khachhang kh ON dh.MaKH = kh.MaKH " +
+                    "ORDER BY dh.MaDon";
         
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
@@ -22,11 +26,16 @@ public class DonHangDAO {
                 DonHangDTO donHang = new DonHangDTO();
                 donHang.setMaDon(rs.getInt("MaDon"));
                 donHang.setMaNV(rs.getInt("MaNV"));
+                // MaKH có thể NULL
+                int maKH = rs.getInt("MaKH");
+                donHang.setMaKH(rs.wasNull() ? null : maKH);
                 donHang.setLoai(rs.getString("Loai"));
                 donHang.setTrangThai(rs.getString("TrangThai"));
                 donHang.setNgayDat(rs.getTimestamp("NgayDat"));
                 donHang.setTongTien(rs.getLong("TongTien"));
                 donHang.setGiamGia(rs.getInt("GiamGia"));
+                donHang.setTenNV(rs.getString("TenNV"));
+                donHang.setTenKH(rs.getString("TenKH"));
                 danhSach.add(donHang);
             }
         } catch (SQLException e) {
@@ -37,27 +46,31 @@ public class DonHangDAO {
     // Tìm kiếm đơn hàng
     public List<DonHangDTO> timKiemDonHang(String searchType, String searchText) {
         List<DonHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM donhang WHERE ";
+        String baseSql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH " +
+                        "FROM donhang dh " +
+                        "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
+                        "LEFT JOIN khachhang kh ON dh.MaKH = kh.MaKH ";
+        String sql = baseSql + "WHERE ";
         PreparedStatement ps;
         
         try (Connection conn = DBUtil.getConnection()) {
             if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-                sql = "SELECT * FROM donhang ORDER BY MaDon";
+                sql = baseSql + "ORDER BY dh.MaDon";
                 ps = conn.prepareStatement(sql);
             } else if (searchType.equals("ID")) {
-                sql += "MaDon = ? ORDER BY MaDon";
+                sql += "dh.MaDon = ? ORDER BY dh.MaDon";
                 ps = conn.prepareStatement(sql);
                 ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Mã NV")) {
-                sql += "MaNV = ? ORDER BY MaDon";
+            } else if (searchType.equals("Tên NV")) {
+                sql += "nv.HoTen LIKE ? ORDER BY dh.MaDon";
                 ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
+                ps.setString(1, "%" + searchText + "%");
             } else if (searchType.equals("Loại")) {
-                sql += "Loai LIKE ? ORDER BY MaDon";
+                sql += "dh.Loai LIKE ? ORDER BY dh.MaDon";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
             } else {
-                sql += "TrangThai LIKE ? ORDER BY MaDon";
+                sql += "dh.TrangThai LIKE ? ORDER BY dh.MaDon";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
             }
@@ -67,11 +80,16 @@ public class DonHangDAO {
                     DonHangDTO donHang = new DonHangDTO();
                     donHang.setMaDon(rs.getInt("MaDon"));
                     donHang.setMaNV(rs.getInt("MaNV"));
+                    // MaKH có thể NULL
+                    int maKH = rs.getInt("MaKH");
+                    donHang.setMaKH(rs.wasNull() ? null : maKH);
                     donHang.setLoai(rs.getString("Loai"));
                     donHang.setTrangThai(rs.getString("TrangThai"));
                     donHang.setNgayDat(rs.getTimestamp("NgayDat"));
                     donHang.setTongTien(rs.getLong("TongTien"));
                     donHang.setGiamGia(rs.getInt("GiamGia"));
+                    donHang.setTenNV(rs.getString("TenNV"));
+                    donHang.setTenKH(rs.getString("TenKH"));
                     danhSach.add(donHang);
                 }
             }
@@ -94,6 +112,9 @@ public class DonHangDAO {
                     DonHangDTO donHang = new DonHangDTO();
                     donHang.setMaDon(rs.getInt("MaDon"));
                     donHang.setMaNV(rs.getInt("MaNV"));
+                    // MaKH có thể NULL
+                    int maKH = rs.getInt("MaKH");
+                    donHang.setMaKH(rs.wasNull() ? null : maKH);
                     donHang.setLoai(rs.getString("Loai"));
                     donHang.setTrangThai(rs.getString("TrangThai"));
                     donHang.setNgayDat(rs.getTimestamp("NgayDat"));
@@ -109,17 +130,22 @@ public class DonHangDAO {
     
     // Thêm đơn hàng mới
     public boolean themDonHang(DonHangDTO donHang) {
-        String sql = "INSERT INTO donhang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO donhang (MaNV, MaKH, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             ps.setInt(1, donHang.getMaNV());
-            ps.setString(2, donHang.getLoai());
-            ps.setString(3, donHang.getTrangThai());
-            ps.setTimestamp(4, donHang.getNgayDat());
-            ps.setLong(5, donHang.getTongTien());
-            ps.setInt(6, donHang.getGiamGia());
+            if (donHang.getMaKH() != null) {
+                ps.setInt(2, donHang.getMaKH());
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
+            ps.setString(3, donHang.getLoai());
+            ps.setString(4, donHang.getTrangThai());
+            ps.setTimestamp(5, donHang.getNgayDat());
+            ps.setLong(6, donHang.getTongTien());
+            ps.setInt(7, donHang.getGiamGia());
             
             int result = ps.executeUpdate();
             
@@ -138,18 +164,23 @@ public class DonHangDAO {
     
     // Cập nhật đơn hàng
     public boolean capNhatDonHang(DonHangDTO donHang) {
-        String sql = "UPDATE donhang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
+        String sql = "UPDATE donhang SET MaNV=?, MaKH=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
             ps.setInt(1, donHang.getMaNV());
-            ps.setString(2, donHang.getLoai());
-            ps.setString(3, donHang.getTrangThai());
-            ps.setTimestamp(4, donHang.getNgayDat());
-            ps.setLong(5, donHang.getTongTien());
-            ps.setInt(6, donHang.getGiamGia());
-            ps.setInt(7, donHang.getMaDon());
+            if (donHang.getMaKH() != null) {
+                ps.setInt(2, donHang.getMaKH());
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
+            ps.setString(3, donHang.getLoai());
+            ps.setString(4, donHang.getTrangThai());
+            ps.setTimestamp(5, donHang.getNgayDat());
+            ps.setLong(6, donHang.getTongTien());
+            ps.setInt(7, donHang.getGiamGia());
+            ps.setInt(8, donHang.getMaDon());
             
             int result = ps.executeUpdate();
             return result > 0;
@@ -280,10 +311,12 @@ public class DonHangDAO {
         return false;
     }
     
-    // Lấy thông tin đơn hàng với tên nhân viên
+    // Lấy thông tin đơn hàng với tên nhân viên và tên khách hàng
     public DonHangDTO layDonHangVoiTenNV(int maDon) {
-        String sql = "SELECT dh.*, nv.HoTen FROM donhang dh " +
+        String sql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH " +
+                    "FROM donhang dh " +
                     "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
+                    "LEFT JOIN khachhang kh ON dh.MaKH = kh.MaKH " +
                     "WHERE dh.MaDon = ?";
         
         try (Connection conn = DBUtil.getConnection();
@@ -296,12 +329,16 @@ public class DonHangDAO {
                     DonHangDTO donHang = new DonHangDTO();
                     donHang.setMaDon(rs.getInt("MaDon"));
                     donHang.setMaNV(rs.getInt("MaNV"));
+                    // MaKH có thể NULL
+                    int maKH = rs.getInt("MaKH");
+                    donHang.setMaKH(rs.wasNull() ? null : maKH);
                     donHang.setLoai(rs.getString("Loai"));
                     donHang.setTrangThai(rs.getString("TrangThai"));
                     donHang.setNgayDat(rs.getTimestamp("NgayDat"));
                     donHang.setTongTien(rs.getLong("TongTien"));
                     donHang.setGiamGia(rs.getInt("GiamGia"));
-                    donHang.setTenNV(rs.getString("HoTen"));
+                    donHang.setTenNV(rs.getString("TenNV"));
+                    donHang.setTenKH(rs.getString("TenKH"));
                     return donHang;
                 }
             }
