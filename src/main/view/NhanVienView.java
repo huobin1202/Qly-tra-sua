@@ -143,7 +143,7 @@ public class NhanVienView extends JPanel {
                     rs.getString("TaiKhoan"),
                     rs.getString("MatKhau"),
                     rs.getString("HoTen"),
-                    String.valueOf(rs.getLong("SDT")),
+                    rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
                     String.format("%,d", rs.getInt("Luong")) + " VNĐ"
@@ -193,7 +193,7 @@ public class NhanVienView extends JPanel {
                     rs.getString("TaiKhoan"),
                     rs.getString("MatKhau"),
                     rs.getString("HoTen"),
-                    String.valueOf(rs.getLong("SDT")),
+                    rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
                     String.format("%,d", rs.getInt("Luong")) + " VNĐ"
@@ -271,7 +271,7 @@ public class NhanVienView extends JPanel {
         // Kiểm tra khóa ngoại trước khi xóa
         try (Connection conn = DBUtil.getConnection()) {
             // Kiểm tra nhân viên có được sử dụng trong đơn đặt hàng không
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM dondathang WHERE MaNV=?")) {
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM donhang WHERE MaNV=?")) {
                 ps.setInt(1, id);
                 try (ResultSet rs = ps.executeQuery()) {
                     if (rs.next() && rs.getInt(1) > 0) {
@@ -319,7 +319,8 @@ public class NhanVienView extends JPanel {
     
     // Inner class for Add/Edit dialog
     private class NhanVienDialog extends JDialog {
-        private JTextField taiKhoanField, matKhauField, hoTenField, sdtField, ngayVaoLamField, luongField;
+        private JTextField taiKhoanField, matKhauField, hoTenField, sdtField, luongField;
+        private DateChooserComponent ngayVaoLamPicker;
         private JComboBox<String> chucVuCombo;
         private boolean dataChanged = false;
         private NhanVienDTO nv;
@@ -340,7 +341,7 @@ public class NhanVienView extends JPanel {
             matKhauField = new JTextField(20);
             hoTenField = new JTextField(20);
             sdtField = new JTextField(20);
-            ngayVaoLamField = new JTextField(20);
+            ngayVaoLamPicker = new DateChooserComponent();
             chucVuCombo = new JComboBox<>(new String[]{"Nhân viên", "Quản lý"});
             luongField = new JTextField(20);
             
@@ -351,15 +352,13 @@ public class NhanVienView extends JPanel {
                 hoTenField.setText(nv.getHoTen());
                 sdtField.setText(String.valueOf(nv.getSoDienThoai()));
                 if (nv.getNgayVaoLam() != null) {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    ngayVaoLamField.setText(dateFormat.format(nv.getNgayVaoLam()));
+                    ngayVaoLamPicker.setDate(nv.getNgayVaoLam());
                 }
                 chucVuCombo.setSelectedItem(convertChucVuToUI(nv.getChucVu()));
                 luongField.setText(String.valueOf(nv.getLuong()));
             } else {
                 // Thêm nhân viên mới - tự động set ngày hiện tại
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                ngayVaoLamField.setText(dateFormat.format(new java.util.Date()));
+                ngayVaoLamPicker.setCurrentDate();
             }
         }
         
@@ -398,9 +397,9 @@ public class NhanVienView extends JPanel {
             
             // Ngày vào làm
             gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Ngày vào làm (yyyy-mm-dd):"), gbc);
+            mainPanel.add(new JLabel("Ngày vào làm:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(ngayVaoLamField, gbc);
+            mainPanel.add(ngayVaoLamPicker, gbc);
             
             // Chức vụ
             gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
@@ -469,7 +468,7 @@ public class NhanVienView extends JPanel {
             String taiKhoan = taiKhoanField.getText().trim();
             String matKhau = matKhauField.getText().trim();
             String hoTen = hoTenField.getText().trim();
-            String ngayVaoLamStr = ngayVaoLamField.getText().trim();
+            String ngayVaoLamStr = ngayVaoLamPicker.getSelectedDateString();
             String chucVu = (String) chucVuCombo.getSelectedItem();
             String luongStr = luongField.getText().trim();
             String sdtStr = sdtField.getText().trim();

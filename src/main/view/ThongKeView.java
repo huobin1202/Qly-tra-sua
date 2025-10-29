@@ -14,8 +14,8 @@ public class ThongKeView extends JPanel {
     private JTabbedPane tabbedPane;
     private final ThongKeDAO thongKeDAO;
     private JComboBox<String> yearCombo;
-    private JTextField fromDateField;
-    private JTextField toDateField;
+    private DateChooserComponent fromDatePicker;
+    private DateChooserComponent toDatePicker;
     
     public ThongKeView() {
         thongKeDAO = new ThongKeDAO();
@@ -69,15 +69,15 @@ public class ThongKeView extends JPanel {
         
         // Từ ngày
         controlPanel.add(new JLabel("Từ:"));
-        fromDateField = new JTextField(10);
-        fromDateField.setFont(new Font("Arial", Font.PLAIN, 12));
-        controlPanel.add(fromDateField);
+        fromDatePicker = new DateChooserComponent();
+        fromDatePicker.setFont(new Font("Arial", Font.PLAIN, 12));
+        controlPanel.add(fromDatePicker);
         
         // Đến ngày
         controlPanel.add(new JLabel("Đến:"));
-        toDateField = new JTextField(10);
-        toDateField.setFont(new Font("Arial", Font.PLAIN, 12));
-        controlPanel.add(toDateField);
+        toDatePicker = new DateChooserComponent();
+        toDatePicker.setFont(new Font("Arial", Font.PLAIN, 12));
+        controlPanel.add(toDatePicker);
         
         // Năm
         controlPanel.add(new JLabel("Năm:"));
@@ -112,15 +112,14 @@ public class ThongKeView extends JPanel {
     }
     
     private void setDefaultDates() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Calendar cal = Calendar.getInstance();
         
         // Đến ngày = hôm nay
-        toDateField.setText(sdf.format(cal.getTime()));
+        toDatePicker.setDate(cal.getTime());
         
         // Từ ngày = đầu tháng
         cal.set(Calendar.DAY_OF_MONTH, 1);
-        fromDateField.setText(sdf.format(cal.getTime()));
+        fromDatePicker.setDate(cal.getTime());
     }
     
     private void createTongQuanTab() {
@@ -413,8 +412,8 @@ public class ThongKeView extends JPanel {
     }
     
     private void refreshAllTabs() {
-        String fromDate = fromDateField.getText().trim();
-        String toDate = toDateField.getText().trim();
+        String fromDate = fromDatePicker.getSelectedDateString();
+        String toDate = toDatePicker.getSelectedDateString();
         String year = (String) yearCombo.getSelectedItem();
         
         // Validate dates

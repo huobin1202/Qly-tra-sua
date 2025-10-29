@@ -111,10 +111,10 @@ INSERT INTO `chitietnhap_nl` (`MaPN`, `MaNL`, `SoLuong`, `DonGia`, `DonVi`) VALU
 -- --------------------------------------------------------
 
 --
--- Table structure for table `dondathang`
+-- Table structure for table `donhang`
 --
 
-CREATE TABLE `dondathang` (
+CREATE TABLE `donhang` (
   `MaDon` int(11) NOT NULL,
   `MaNV` int(11) NOT NULL,
   `Loai` varchar(45) NOT NULL DEFAULT 'taiquan' COMMENT 'taiquan - tại quán\nonline - đặt online',
@@ -125,10 +125,10 @@ CREATE TABLE `dondathang` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `dondathang`
+-- Dumping data for table `donhang`
 --
 
-INSERT INTO `dondathang` (`MaDon`, `MaNV`, `Loai`, `TrangThai`, `NgayDat`, `TongTien`, `GiamGia`) VALUES
+INSERT INTO `donhang` (`MaDon`, `MaNV`, `Loai`, `TrangThai`, `NgayDat`, `TongTien`, `GiamGia`) VALUES
 (1, 1, 'taiquan', 'dathanhtoan', '2020-11-24 07:28:41', 450000, 0),
 (2, 1, 'online', 'dathanhtoan', '2020-11-24 08:05:08', 406000, 0),
 (3, 1, 'taiquan', 'dathanhtoan', '2020-12-16 08:55:36', 550000, 5),
@@ -440,9 +440,9 @@ ALTER TABLE `chitietnhap_nl`
   ADD KEY `fk_ctnnl_nl` (`MaNL`);
 
 --
--- Indexes for table `dondathang`
+-- Indexes for table `donhang`
 --
-ALTER TABLE `dondathang`
+ALTER TABLE `donhang`
   ADD PRIMARY KEY (`MaDon`),
   ADD KEY `fk_nhanvien_don` (`MaNV`);
 
@@ -520,9 +520,9 @@ ALTER TABLE `phieunhap`
 --
 
 --
--- AUTO_INCREMENT for table `dondathang`
+-- AUTO_INCREMENT for table `donhang`
 --
-ALTER TABLE `dondathang`
+ALTER TABLE `donhang`
   MODIFY `MaDon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
@@ -575,7 +575,7 @@ ALTER TABLE `phieunhap`
 -- Constraints for table `chitietdonhang`
 --
 ALTER TABLE `chitietdonhang`
-  ADD CONSTRAINT `fk_don_chitiet` FOREIGN KEY (`MaDon`) REFERENCES `dondathang` (`MaDon`),
+  ADD CONSTRAINT `fk_don_chitiet` FOREIGN KEY (`MaDon`) REFERENCES `donhang` (`MaDon`),
   ADD CONSTRAINT `fk_don_mon` FOREIGN KEY (`MaMon`) REFERENCES `mon` (`MaMon`),
   ADD CONSTRAINT `fk_don_topping` FOREIGN KEY (`MaTopping`) REFERENCES `mon` (`MaMon`);
 
@@ -587,16 +587,16 @@ ALTER TABLE `chitietnhap_nl`
   ADD CONSTRAINT `fk_ctnnl_pn` FOREIGN KEY (`MaPN`) REFERENCES `phieunhap` (`MaPN`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Constraints for table `dondathang`
+-- Constraints for table `donhang`
 --
-ALTER TABLE `dondathang`
+ALTER TABLE `donhang`
   ADD CONSTRAINT `fk_nhanvien_don` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`);
 
 --
 -- Constraints for table `giaohang`
 --
 ALTER TABLE `giaohang`
-  ADD CONSTRAINT `fk_don_giao` FOREIGN KEY (`MaDon`) REFERENCES `dondathang` (`MaDon`),
+  ADD CONSTRAINT `fk_don_giao` FOREIGN KEY (`MaDon`) REFERENCES `donhang` (`MaDon`),
   ADD CONSTRAINT `fk_khachhang_giao` FOREIGN KEY (`MaKH`) REFERENCES `khachhang` (`MaKH`);
 
 --

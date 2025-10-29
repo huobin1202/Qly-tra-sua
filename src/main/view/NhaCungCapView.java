@@ -150,7 +150,7 @@ public class NhaCungCapView extends JPanel {
                 Object[] row = {
                     rs.getInt("MaNCC"),
                     rs.getString("TenNCC"),
-                    String.valueOf(rs.getLong("SDT")),
+                    rs.getString("SDT"),
                     rs.getString("DiaChi")
                 };
                 tableModel.addRow(row);
@@ -187,7 +187,7 @@ public class NhaCungCapView extends JPanel {
                 Object[] row = {
                     rs.getInt("MaNCC"),
                     rs.getString("TenNCC"),
-                    String.valueOf(rs.getLong("SDT")),
+                    rs.getString("SDT"),
                     rs.getString("DiaChi")
                 };
                 tableModel.addRow(row);

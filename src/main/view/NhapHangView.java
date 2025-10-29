@@ -395,7 +395,8 @@ public class NhapHangView extends JPanel {
     
     // Inner class for Add/Edit dialog
     private class NhapHangDialog extends JDialog {
-        private JTextField maNVField, maNCCField, ngayField, thanhTienField;
+        private JTextField maNVField, maNCCField, thanhTienField;
+        private DateChooserComponent ngayPicker;
         private JComboBox<String> trangThaiCombo;
         private boolean dataChanged = false;
         private NhapHangDTO nh;
@@ -414,21 +415,20 @@ public class NhapHangView extends JPanel {
             
             maNVField = new JTextField(20);
             maNCCField = new JTextField(20);
-            ngayField = new JTextField(20);
+            ngayPicker = new DateChooserComponent();
             thanhTienField = new JTextField(20);
             trangThaiCombo = new JComboBox<>(new String[]{"Chưa xác nhận", "Đã xác nhận"});
             
             if (nh != null) {
                 maNVField.setText(String.valueOf(nh.getMaNV()));
                 maNCCField.setText(String.valueOf(nh.getMaNCC()));
-                ngayField.setText(nh.getNgay());
+                ngayPicker.setDate(java.sql.Date.valueOf(nh.getNgay()));
                 thanhTienField.setText(String.valueOf(nh.getThanhTien()));
                 trangThaiCombo.setSelectedItem(convertTrangThaiToUI(nh.getTrangThai()));
             } else {
                 // Mặc định cho phiếu nhập mới
                 maNVField.setText(String.valueOf(database.Session.currentMaNV));
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                ngayField.setText(dateFormat.format(new java.util.Date()));
+                ngayPicker.setCurrentDate();
                 trangThaiCombo.setSelectedItem("Chưa xác nhận");
             }
         }
@@ -456,26 +456,26 @@ public class NhapHangView extends JPanel {
             
             // Ngày
             gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Ngày (yyyy-mm-dd):"), gbc);
+            mainPanel.add(new JLabel("Ngày:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(ngayField, gbc);
+            mainPanel.add(ngayPicker, gbc);
             
       
             
             // Thành tiền
-            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Thành tiền (VNĐ):"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(thanhTienField, gbc);
             
             // Trạng thái
-            gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Trạng thái:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(trangThaiCombo, gbc);
             
             // Buttons
-            gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JPanel buttonPanel = new JPanel(new FlowLayout());
             
             JButton saveButton = new JButton("Lưu");
@@ -535,7 +535,7 @@ public class NhapHangView extends JPanel {
         private void saveData() {
             String maNVStr = maNVField.getText().trim();
             String maNCCStr = maNCCField.getText().trim();
-            String ngay = ngayField.getText().trim();
+            String ngay = ngayPicker.getSelectedDateString();
             String thanhTienStr = thanhTienField.getText().trim();
             String trangThai = (String) trangThaiCombo.getSelectedItem();
             

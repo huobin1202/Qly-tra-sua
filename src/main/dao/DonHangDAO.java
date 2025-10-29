@@ -12,7 +12,7 @@ public class DonHangDAO {
     // Lấy tất cả đơn hàng
     public List<DonHangDTO> layTatCaDonHang() {
         List<DonHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM dondathang ORDER BY MaDon";
+        String sql = "SELECT * FROM donhang ORDER BY MaDon";
         
         try (Connection conn = DBUtil.getConnection();
              Statement stmt = conn.createStatement();
@@ -37,12 +37,12 @@ public class DonHangDAO {
     // Tìm kiếm đơn hàng
     public List<DonHangDTO> timKiemDonHang(String searchType, String searchText) {
         List<DonHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM dondathang WHERE ";
+        String sql = "SELECT * FROM donhang WHERE ";
         PreparedStatement ps;
         
         try (Connection conn = DBUtil.getConnection()) {
             if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-                sql = "SELECT * FROM dondathang ORDER BY MaDon";
+                sql = "SELECT * FROM donhang ORDER BY MaDon";
                 ps = conn.prepareStatement(sql);
             } else if (searchType.equals("ID")) {
                 sql += "MaDon = ? ORDER BY MaDon";
@@ -82,7 +82,7 @@ public class DonHangDAO {
     
     // Lấy đơn hàng theo mã
     public DonHangDTO layDonHangTheoMa(int maDon) {
-        String sql = "SELECT * FROM dondathang WHERE MaDon = ?";
+        String sql = "SELECT * FROM donhang WHERE MaDon = ?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -109,7 +109,7 @@ public class DonHangDAO {
     
     // Thêm đơn hàng mới
     public boolean themDonHang(DonHangDTO donHang) {
-        String sql = "INSERT INTO dondathang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO donhang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -138,7 +138,7 @@ public class DonHangDAO {
     
     // Cập nhật đơn hàng
     public boolean capNhatDonHang(DonHangDTO donHang) {
-        String sql = "UPDATE dondathang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
+        String sql = "UPDATE donhang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -171,7 +171,7 @@ public class DonHangDAO {
             }
             
             // Xóa đơn hàng
-            String sqlDonHang = "DELETE FROM dondathang WHERE MaDon = ?";
+            String sqlDonHang = "DELETE FROM donhang WHERE MaDon = ?";
             try (PreparedStatement ps = conn.prepareStatement(sqlDonHang)) {
                 ps.setInt(1, maDon);
                 int result = ps.executeUpdate();
@@ -190,7 +190,7 @@ public class DonHangDAO {
     
     // Cập nhật trạng thái đơn hàng
     public boolean capNhatTrangThaiDonHang(int maDon, String trangThai) {
-        String sql = "UPDATE dondathang SET TrangThai = ? WHERE MaDon = ?";
+        String sql = "UPDATE donhang SET TrangThai = ? WHERE MaDon = ?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -282,7 +282,7 @@ public class DonHangDAO {
     
     // Lấy thông tin đơn hàng với tên nhân viên
     public DonHangDTO layDonHangVoiTenNV(int maDon) {
-        String sql = "SELECT dh.*, nv.HoTen FROM dondathang dh " +
+        String sql = "SELECT dh.*, nv.HoTen FROM donhang dh " +
                     "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
                     "WHERE dh.MaDon = ?";
         
@@ -312,9 +312,9 @@ public class DonHangDAO {
     
     // Method để chuẩn hóa trạng thái đơn hàng trong database
     public boolean chuanHoaTrangThaiDonHang() {
-        String sql1 = "UPDATE dondathang SET TrangThai = 'chuathanhtoan' WHERE TrangThai = '0'";
-        String sql2 = "UPDATE dondathang SET TrangThai = 'dathanhtoan' WHERE TrangThai = '1'";
-        String sql3 = "UPDATE dondathang SET TrangThai = 'bihuy' WHERE TrangThai = '2'";
+        String sql1 = "UPDATE donhang SET TrangThai = 'chuathanhtoan' WHERE TrangThai = '0'";
+        String sql2 = "UPDATE donhang SET TrangThai = 'dathanhtoan' WHERE TrangThai = '1'";
+        String sql3 = "UPDATE donhang SET TrangThai = 'bihuy' WHERE TrangThai = '2'";
         
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);

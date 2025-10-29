@@ -14,8 +14,8 @@ import dto.ThongKeDTO;
 public class BaoCaoView extends JPanel {
     private final ThongKeDAO thongKeDAO;
     private JComboBox<String> yearCombo;
-    private JTextField fromDateField;
-    private JTextField toDateField;
+    private DateChooserComponent fromDatePicker;
+    private DateChooserComponent toDatePicker;
     private JTextArea reportArea;
     
     public BaoCaoView() {
@@ -31,8 +31,8 @@ public class BaoCaoView extends JPanel {
         
         // Initialize components
         yearCombo = new JComboBox<>();
-        fromDateField = new JTextField(10);
-        toDateField = new JTextField(10);
+        fromDatePicker = new DateChooserComponent();
+        toDatePicker = new DateChooserComponent();
         reportArea = new JTextArea();
         
         // Populate year combo
@@ -78,13 +78,13 @@ public class BaoCaoView extends JPanel {
         
         // Từ ngày
         controlPanel.add(new JLabel("Từ:"));
-        fromDateField.setFont(new Font("Arial", Font.PLAIN, 12));
-        controlPanel.add(fromDateField);
+        fromDatePicker.setFont(new Font("Arial", Font.PLAIN, 12));
+        controlPanel.add(fromDatePicker);
         
         // Đến ngày
         controlPanel.add(new JLabel("Đến:"));
-        toDateField.setFont(new Font("Arial", Font.PLAIN, 12));
-        controlPanel.add(toDateField);
+        toDatePicker.setFont(new Font("Arial", Font.PLAIN, 12));
+        controlPanel.add(toDatePicker);
         
         // Năm
         controlPanel.add(new JLabel("Năm:"));
@@ -147,15 +147,14 @@ public class BaoCaoView extends JPanel {
     }
     
     private void setDefaultDates() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         java.util.Calendar cal = java.util.Calendar.getInstance();
         
         // Đến ngày = hôm nay
-        toDateField.setText(sdf.format(cal.getTime()));
+        toDatePicker.setDate(cal.getTime());
         
         // Từ ngày = đầu tháng
         cal.set(java.util.Calendar.DAY_OF_MONTH, 1);
-        fromDateField.setText(sdf.format(cal.getTime()));
+        fromDatePicker.setDate(cal.getTime());
     }
     
     private void generateDefaultReport() {
@@ -163,8 +162,8 @@ public class BaoCaoView extends JPanel {
     }
     
     private void generateReport() {
-        String fromDate = fromDateField.getText().trim();
-        String toDate = toDateField.getText().trim();
+        String fromDate = fromDatePicker.getSelectedDateString();
+        String toDate = toDatePicker.getSelectedDateString();
         String year = (String) yearCombo.getSelectedItem();
         
         // Validate dates

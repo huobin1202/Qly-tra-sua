@@ -434,7 +434,7 @@ public class SuaDonHangView extends JDialog {
     private void loadOrderData() {
         try (Connection conn = DBUtil.getConnection()) {
             // Load thông tin đơn hàng
-            String sql = "SELECT dh.*, nv.HoTen FROM dondathang dh " +
+            String sql = "SELECT dh.*, nv.HoTen FROM donhang dh " +
                         "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
                         "WHERE dh.MaDon = ?";
             
@@ -1004,7 +1004,7 @@ public class SuaDonHangView extends JDialog {
             conn.setAutoCommit(false);
             
             // Cập nhật thông tin đơn hàng
-            String updateOrderSql = "UPDATE dondathang SET Loai = ?, GiamGia = ?, TongTien = ? WHERE MaDon = ?";
+            String updateOrderSql = "UPDATE donhang SET Loai = ?, GiamGia = ?, TongTien = ? WHERE MaDon = ?";
             try (PreparedStatement ps = conn.prepareStatement(updateOrderSql)) {
                 String loai = (String) loaiHoaDonCombo.getSelectedItem();
                 String loaiValue = "taiquan"; // Mặc định
@@ -1063,7 +1063,7 @@ public class SuaDonHangView extends JDialog {
         
         if (result == JOptionPane.YES_OPTION) {
             try (Connection conn = DBUtil.getConnection()) {
-                String sql = "UPDATE dondathang SET TrangThai = ? WHERE MaDon = ?";
+                String sql = "UPDATE donhang SET TrangThai = ? WHERE MaDon = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, "dathanhtoan");
                     ps.setInt(2, currentOrder.getMaDon());
@@ -1097,7 +1097,7 @@ public class SuaDonHangView extends JDialog {
         if (result == JOptionPane.YES_OPTION) {
             try (Connection conn = DBUtil.getConnection()) {
                 // Cập nhật trạng thái đơn hàng thành "Bị hủy"
-                String sql = "UPDATE dondathang SET TrangThai = ? WHERE MaDon = ?";
+                String sql = "UPDATE donhang SET TrangThai = ? WHERE MaDon = ?";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, "bihuy");
                     ps.setInt(2, currentOrder.getMaDon());

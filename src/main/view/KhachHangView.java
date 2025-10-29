@@ -151,7 +151,7 @@ public class KhachHangView extends JPanel {
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaKH"),
-                    rs.getLong("SDT"),
+                    rs.getString("SDT"),
                     rs.getString("HoTen"),
                     rs.getString("DiaChi"),
                     rs.getTimestamp("NgaySinh") != null ? dateFormat.format(rs.getTimestamp("NgaySinh")) : ""
@@ -194,7 +194,7 @@ public class KhachHangView extends JPanel {
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaKH"),
-                    rs.getLong("SDT"),
+                    rs.getString("SDT"),
                     rs.getString("HoTen"),
                     rs.getString("DiaChi"),
                     rs.getTimestamp("NgaySinh") != null ? dateFormat.format(rs.getTimestamp("NgaySinh")) : ""
@@ -276,7 +276,8 @@ public class KhachHangView extends JPanel {
     
     // Inner class for Add/Edit dialog
     private class KhachHangDialog extends JDialog {
-        private JTextField sdtField, hoTenField, diaChiField, ngaySinhField;
+        private JTextField sdtField, hoTenField, diaChiField;
+        private DateChooserComponent ngaySinhPicker;
         private boolean dataChanged = false;
         private KhachHangDTO kh;
         
@@ -295,15 +296,14 @@ public class KhachHangView extends JPanel {
             sdtField = new JTextField(20);
             hoTenField = new JTextField(20);
             diaChiField = new JTextField(20);
-            ngaySinhField = new JTextField(20);
+            ngaySinhPicker = new DateChooserComponent();
             
             if (kh != null) {
                 sdtField.setText(String.valueOf(kh.getSoDienThoai()));
                 hoTenField.setText(kh.getHoTen());
                 diaChiField.setText(kh.getDiaChi());
                 if (kh.getNgaySinh() != null) {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                    ngaySinhField.setText(dateFormat.format(kh.getNgaySinh()));
+                    ngaySinhPicker.setDate(kh.getNgaySinh());
                 }
             }
         }
@@ -337,9 +337,9 @@ public class KhachHangView extends JPanel {
             
             // Ngày sinh
             gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Ngày sinh (yyyy-mm-dd):"), gbc);
+            mainPanel.add(new JLabel("Ngày sinh:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(ngaySinhField, gbc);
+            mainPanel.add(ngaySinhPicker, gbc);
             
             // Buttons
             gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
@@ -402,7 +402,7 @@ public class KhachHangView extends JPanel {
             String sdtStr = sdtField.getText().trim();
             String hoTen = hoTenField.getText().trim();
             String diaChi = diaChiField.getText().trim();
-            String ngaySinhStr = ngaySinhField.getText().trim();
+            String ngaySinhStr = ngaySinhPicker.getSelectedDateString();
             
             if (sdtStr.isEmpty() || hoTen.isEmpty() || diaChi.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);

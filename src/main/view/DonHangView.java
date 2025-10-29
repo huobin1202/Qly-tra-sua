@@ -380,7 +380,8 @@ public class DonHangView extends JPanel {
     private class DonHangDialog extends JDialog {
         private JTextField maNVField, loaiField, tongTienField, giamGiaField;
         private JComboBox<String> trangThaiCombo;
-        private JTextField ngayDatField;
+        private DateChooserComponent ngayDatPicker;
+        private JComboBox<String> hourCombo, minuteCombo;
         private boolean dataChanged = false;
         private DonHangDTO dh;
         
@@ -400,7 +401,19 @@ public class DonHangView extends JPanel {
             loaiField = new JTextField(20);
             tongTienField = new JTextField(20);
             giamGiaField = new JTextField(20);
-            ngayDatField = new JTextField(20);
+            ngayDatPicker = new DateChooserComponent();
+            
+            // Tạo dropdown cho giờ và phút
+            hourCombo = new JComboBox<>();
+            for (int i = 0; i < 24; i++) {
+                hourCombo.addItem(String.format("%02d", i));
+            }
+            
+            minuteCombo = new JComboBox<>();
+            for (int i = 0; i < 60; i += 15) { // Mỗi 15 phút
+                minuteCombo.addItem(String.format("%02d", i));
+            }
+            
             trangThaiCombo = new JComboBox<>(new String[]{"Chưa thanh toán", "Đã thanh toán", "Bị hủy"});
             
             if (dh != null) {
@@ -410,14 +423,21 @@ public class DonHangView extends JPanel {
                 tongTienField.setText(String.valueOf(dh.getTongTien()));
                 giamGiaField.setText(String.valueOf(dh.getGiamGia()));
                 if (dh.getNgayDat() != null) {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                    ngayDatField.setText(dateFormat.format(dh.getNgayDat()));
+                    ngayDatPicker.setDate(dh.getNgayDat());
+                    // Thiết lập giờ và phút
+                    java.util.Calendar cal = java.util.Calendar.getInstance();
+                    cal.setTime(dh.getNgayDat());
+                    hourCombo.setSelectedItem(String.format("%02d", cal.get(java.util.Calendar.HOUR_OF_DAY)));
+                    minuteCombo.setSelectedItem(String.format("%02d", (cal.get(java.util.Calendar.MINUTE) / 15) * 15));
                 }
             } else {
                 // Mặc định cho đơn hàng mới
                 maNVField.setText(String.valueOf(database.Session.currentMaNV));
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                ngayDatField.setText(dateFormat.format(new java.util.Date()));
+                ngayDatPicker.setCurrentDate();
+                // Thiết lập giờ hiện tại
+                java.util.Calendar cal = java.util.Calendar.getInstance();
+                hourCombo.setSelectedItem(String.format("%02d", cal.get(java.util.Calendar.HOUR_OF_DAY)));
+                minuteCombo.setSelectedItem(String.format("%02d", (cal.get(java.util.Calendar.MINUTE) / 15) * 15));
                 giamGiaField.setText("0");
             }
         }
@@ -451,24 +471,34 @@ public class DonHangView extends JPanel {
             
             // Ngày đặt
             gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Ngày đặt (yyyy-mm-dd hh:mm):"), gbc);
+            mainPanel.add(new JLabel("Ngày đặt:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(ngayDatField, gbc);
+            mainPanel.add(ngayDatPicker, gbc);
+            
+            // Giờ và phút
+            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Giờ:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            JPanel timePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+            timePanel.add(hourCombo);
+            timePanel.add(new JLabel(":"));
+            timePanel.add(minuteCombo);
+            mainPanel.add(timePanel, gbc);
             
             // Tổng tiền
-            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Tổng tiền (VNĐ):"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(tongTienField, gbc);
             
             // Giảm giá
-            gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 6; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Giảm giá (%):"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(giamGiaField, gbc);
             
             // Buttons
-            gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JPanel buttonPanel = new JPanel(new FlowLayout());
             
             JButton saveButton = new JButton("Lưu");
@@ -522,11 +552,16 @@ public class DonHangView extends JPanel {
             String maNVStr = maNVField.getText().trim();
             String loai = loaiField.getText().trim();
             String trangThai = (String) trangThaiCombo.getSelectedItem();
-            String ngayDatStr = ngayDatField.getText().trim();
+            String ngayDatStr = ngayDatPicker.getSelectedDateString();
+            String hourStr = (String) hourCombo.getSelectedItem();
+            String minuteStr = (String) minuteCombo.getSelectedItem();
             String tongTienStr = tongTienField.getText().trim();
             String giamGiaStr = giamGiaField.getText().trim();
             
-            if (maNVStr.isEmpty() || loai.isEmpty() || ngayDatStr.isEmpty() || tongTienStr.isEmpty() || giamGiaStr.isEmpty()) {
+            // Tạo chuỗi ngày giờ đầy đủ
+            String fullDateTimeStr = ngayDatStr + " " + hourStr + ":" + minuteStr + ":00";
+            
+            if (maNVStr.isEmpty() || loai.isEmpty() || tongTienStr.isEmpty() || giamGiaStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -546,11 +581,11 @@ public class DonHangView extends JPanel {
                 if (dh == null) {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO dondathang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)");
+                        "INSERT INTO donhang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)");
                     ps.setInt(1, maNV);
                     ps.setString(2, loai);
                     ps.setString(3, convertTrangThaiToDatabase(trangThai));
-                    ps.setString(4, ngayDatStr);
+                    ps.setString(4, fullDateTimeStr);
                     ps.setLong(5, tongTien);
                     ps.setInt(6, giamGia);
                     ps.executeUpdate();
@@ -558,11 +593,11 @@ public class DonHangView extends JPanel {
                 } else {
                     // Sửa
                     PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE dondathang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?");
+                        "UPDATE donhang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?");
                     ps.setInt(1, maNV);
                     ps.setString(2, loai);
                     ps.setString(3, convertTrangThaiToDatabase(trangThai));
-                    ps.setString(4, ngayDatStr);
+                    ps.setString(4, fullDateTimeStr);
                     ps.setLong(5, tongTien);
                     ps.setInt(6, giamGia);
                     ps.setInt(7, dh.getMaDon());
