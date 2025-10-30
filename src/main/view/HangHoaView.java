@@ -22,14 +22,14 @@ public class HangHoaView extends JPanel {
     private MainFrameInterface parent;
     private String currentView = "MON"; // MON, LOAIMON, or NGUYENLIEU
     private JComboBox<String> loaiMonFilterCombo;
+    // Thêm biến toàn cục cho searchPanel
+    private JPanel searchPanel;
     
     public void setCurrentView(String view) {
         this.currentView = view;
+        if (currentView.equals("MON")) reloadLoaiMonFilterCombo();
         updateTableHeaders();
-        // Hiện/ẩn loại filter
-        if (loaiMonFilterCombo != null) {
-            loaiMonFilterCombo.setVisible(view.equals("MON"));
-        }
+        refreshSearchPanel();
         loadData();
     }
     
@@ -63,10 +63,10 @@ public class HangHoaView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Tên", "Trạng thái"});
+        searchCombo = new JComboBox<>(new String[]{"ID", "Tên"});
         searchField = new JTextField(20);
-        categoryCombo = new JComboBox<>(new String[]{"Món", "Loại món", "Nguyên liệu"});
-        
+        // categoryCombo = new JComboBox<>(new String[]{"Món", "Loại món", "Nguyên liệu"});
+        // BỎ HOÀN TOÀN categoryCombo, không khởi tạo, không add vào panel nào nữa
         loaiMonFilterCombo = new JComboBox<>();
         loaiMonFilterCombo.addItem("Tất cả loại");
         // Tải loại món từ DB để đưa vào filter
@@ -96,11 +96,7 @@ public class HangHoaView extends JPanel {
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         controlPanel.setBackground(new Color(240, 248, 255));
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        controlPanel.add(searchCombo);
-        controlPanel.add(searchField);
-        controlPanel.add(categoryCombo);
-        controlPanel.add(loaiMonFilterCombo); // Đảm bảo luôn add vào layout
-        loaiMonFilterCombo.setVisible(currentView.equals("MON"));
+        // KHÔNG add categoryCombo nào vào controlPanel nữa!
         
         // Top panel - chứa search và buttons trong cùng một hàng
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -115,40 +111,28 @@ public class HangHoaView extends JPanel {
         addButton.setBackground(new Color(34, 139, 34));
         addButton.setForeground(Color.BLACK);
         addButton.setFocusPainted(false);
-        
         JButton editButton = new JButton("✏️ Sửa");
         editButton.setBackground(new Color(255, 140, 0));
         editButton.setForeground(Color.BLACK);
         editButton.setFocusPainted(false);
-        
         JButton deleteButton = new JButton("🗑️ Xóa");
         deleteButton.setBackground(new Color(220, 20, 60));
         deleteButton.setForeground(Color.BLACK);
         deleteButton.setFocusPainted(false);
+        // THÊM GẮN SỰ KIỆN LẠI CHO CÁC NÚT:
+        addButton.addActionListener(e -> showAddDialog());
+        editButton.addActionListener(e -> showEditDialog());
+        deleteButton.addActionListener(e -> performDelete());
         
         buttonPanel.add(addButton);
         buttonPanel.add(editButton);
         buttonPanel.add(deleteButton);
         
-        // Search panel (bên phải) - Tìm kiếm
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Search panel tạo toàn cục để dùng lại (và có thể refresh sau này)
+        searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchPanel.setBackground(new Color(240, 248, 255));
-        
-        searchPanel.add(new JLabel("Tìm kiếm:"));
-        searchPanel.add(searchCombo);
-        searchPanel.add(searchField);
-        
-        JButton searchButton = new JButton("🔍 Tìm");
-        searchButton.setBackground(new Color(70, 130, 180));
-        searchButton.setForeground(Color.BLACK);
-        searchButton.setFocusPainted(false);
-        searchPanel.add(searchButton);
-        
-        JButton refreshButton = new JButton("🔄 Làm mới");
-        refreshButton.setBackground(new Color(34, 139, 34));
-        refreshButton.setForeground(Color.BLACK);
-        refreshButton.setFocusPainted(false);
-        searchPanel.add(refreshButton);
+        // Nhớ tạo layout ngay lúc khởi tạo lần đầu
+        refreshSearchPanel();
         
         // Thêm button panel và search panel vào top panel
         topPanel.add(buttonPanel, BorderLayout.WEST);
@@ -172,12 +156,8 @@ public class HangHoaView extends JPanel {
         add(centerPanel, BorderLayout.CENTER);
         
         // Event handlers
-        searchButton.addActionListener(e -> performSearch());
-        refreshButton.addActionListener(e -> loadData());
-        addButton.addActionListener(e -> showAddDialog());
-        editButton.addActionListener(e -> showEditDialog());
-        deleteButton.addActionListener(e -> performDelete());
-        loaiMonFilterCombo.addActionListener(e -> loadData());
+        // Lưu ý: KHÔNG thao tác gì với searchButton, refreshButton ở setupLayout!
+        // Mọi event đã gắn đúng bên trong refreshSearchPanel
     }
     
     private void setupEventHandlers() {
@@ -195,18 +175,7 @@ public class HangHoaView extends JPanel {
         searchField.addActionListener(e -> performSearch());
     }
     
-    private void switchView() {
-        String selected = (String) categoryCombo.getSelectedItem();
-        if (selected.equals("Món")) {
-            currentView = "MON";
-        } else if (selected.equals("Loại món")) {
-            currentView = "LOAIMON";
-        } else {
-            currentView = "NGUYENLIEU";
-        }
-        updateTableHeaders();
-        loadData();
-    }
+    // Bỏ hoàn toàn switchView(), categoryCombo không tồn tại nữa nên không dùng mỗi khi đổi view
     
     private void updateTableHeaders() {
         if (currentView.equals("MON")) {
@@ -328,10 +297,7 @@ public class HangHoaView extends JPanel {
         String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
         PreparedStatement ps;
         
-        if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-            sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
-            ps = conn.prepareStatement(sql);
-        } else if (searchType.equals("ID")) {
+        if (searchType.equals("ID")) {
             sql += "m.MaMon = ? ORDER BY m.MaMon";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, Integer.parseInt(searchText));
@@ -371,10 +337,7 @@ public class HangHoaView extends JPanel {
         String sql = "SELECT * FROM nguyenlieu WHERE ";
         PreparedStatement ps;
         
-        if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-            sql = "SELECT * FROM nguyenlieu ORDER BY MaNL";
-            ps = conn.prepareStatement(sql);
-        } else if (searchType.equals("ID")) {
+        if (searchType.equals("ID")) {
             sql += "MaNL = ? ORDER BY MaNL";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, Integer.parseInt(searchText));
@@ -408,6 +371,8 @@ public class HangHoaView extends JPanel {
             dialog.setVisible(true);
             if (dialog.isDataChanged()) {
                 loadData();
+                // Nếu view món đang mở, reload loại cho bên đó luôn
+                reloadLoaiMonFilterCombo();
             }
         } else {
             NguyenLieuDialog dialog = new NguyenLieuDialog(SwingUtilities.getWindowAncestor(this), "Thêm nguyên liệu mới", null);
@@ -474,6 +439,7 @@ public class HangHoaView extends JPanel {
             dialog.setVisible(true);
             if (dialog.isDataChanged()) {
                 loadData();
+                reloadLoaiMonFilterCombo();
             }
         } else {
             int id = (Integer) tableModel.getValueAt(selectedRow, 0);
@@ -622,6 +588,9 @@ public class HangHoaView extends JPanel {
             } catch (SQLException e) {
                 JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
+        }
+        if (currentView.equals("LOAIMON")) {
+            reloadLoaiMonFilterCombo();
         }
     }
     
@@ -1516,5 +1485,49 @@ public class HangHoaView extends JPanel {
             return "Tạm ngừng";
         }
         return "Đang bán"; // Mặc định
+    }
+
+    // Hàm reload lại combo loại từ DB
+    private void reloadLoaiMonFilterCombo() {
+        loaiMonFilterCombo.removeAllItems();
+        loaiMonFilterCombo.addItem("Tất cả loại");
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT TenLoai FROM loaimon ORDER BY MaLoai")) {
+            while (rs.next()) {
+                loaiMonFilterCombo.addItem(rs.getString("TenLoai"));
+            }
+        } catch (SQLException e) {}
+    }
+
+    private void refreshSearchPanel() {
+        if (searchPanel == null) return; // Nếu chưa tạo, bỏ qua
+        searchPanel.removeAll();
+        searchPanel.add(new JLabel("Tìm kiếm:"));
+        searchPanel.add(searchCombo);
+        searchPanel.add(searchField);
+        if (currentView != null && currentView.equals("MON")) {
+            reloadLoaiMonFilterCombo(); // chắc chắn update cho combo
+            JLabel lblLoai = new JLabel("Loại:");
+            searchPanel.add(lblLoai);
+            searchPanel.add(loaiMonFilterCombo);
+            loaiMonFilterCombo.setVisible(true);
+        } else {
+            loaiMonFilterCombo.setVisible(false);
+        }
+        JButton searchButton = new JButton("🔍 Tìm");
+        searchButton.setBackground(new Color(70, 130, 180));
+        searchButton.setForeground(Color.BLACK);
+        searchButton.setFocusPainted(false);
+        searchButton.addActionListener(e -> performSearch());
+        searchPanel.add(searchButton);
+        JButton refreshButton = new JButton("🔄 Làm mới");
+        refreshButton.setBackground(new Color(34, 139, 34));
+        refreshButton.setForeground(Color.BLACK);
+        refreshButton.setFocusPainted(false);
+        refreshButton.addActionListener(e -> loadData());
+        searchPanel.add(refreshButton);
+        searchPanel.revalidate();
+        searchPanel.repaint();
     }
 }

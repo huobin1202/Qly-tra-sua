@@ -103,7 +103,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         rs.getInt("MaNV"),
                         rs.getInt("MaNCC"),
                         rs.getString("Ngay"),
-                        "", // GhiChu không tồn tại trong bảng phieunhap
                         rs.getLong("ThanhTien"),
                         rs.getString("TrangThai")
                     );
@@ -130,7 +129,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                     rs.getInt("MaNV"),
                     rs.getInt("MaNCC"),
                     rs.getString("Ngay"),
-                    "", // GhiChu không tồn tại trong bảng phieunhap
                     rs.getLong("ThanhTien"),
                     rs.getString("TrangThai")
                 ));
@@ -158,7 +156,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         rs.getInt("MaNV"),
                         rs.getInt("MaNCC"),
                         rs.getString("Ngay"),
-                        "", // GhiChu không tồn tại trong bảng phieunhap
                         rs.getLong("ThanhTien"),
                         rs.getString("TrangThai")
                     ));
@@ -187,7 +184,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                         rs.getInt("MaNV"),
                         rs.getInt("MaNCC"),
                         rs.getString("Ngay"),
-                        "", // GhiChu không tồn tại trong bảng phieunhap
                         rs.getLong("ThanhTien"),
                         rs.getString("TrangThai")
                     ));

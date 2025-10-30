@@ -30,7 +30,7 @@ public class NhanVienDAO {
                         rs.getString("HoTen"),
                         rs.getString("SDT"),
                         rs.getTimestamp("NgayVaoLam"),
-                        rs.getDouble("Luong"),
+                        rs.getLong("Luong"),
                         rs.getString("TrangThai")
                     );
                 } else {
@@ -41,7 +41,7 @@ public class NhanVienDAO {
                         rs.getString("HoTen"),
                         rs.getString("SDT"),
                         rs.getTimestamp("NgayVaoLam"),
-                        rs.getDouble("Luong"),
+                        rs.getLong("Luong"),
                         rs.getString("TrangThai")
                     );
                 }
@@ -92,7 +92,7 @@ public class NhanVienDAO {
                             rs.getString("HoTen"),
                             rs.getString("SDT"),
                             rs.getTimestamp("NgayVaoLam"),
-                            rs.getDouble("Luong"),
+                            rs.getLong("Luong"),
                             rs.getString("TrangThai")
                         );
                     } else {
@@ -103,7 +103,7 @@ public class NhanVienDAO {
                             rs.getString("HoTen"),
                             rs.getString("SDT"),
                             rs.getTimestamp("NgayVaoLam"),
-                            rs.getDouble("Luong"),
+                            rs.getLong("Luong"),
                             rs.getString("TrangThai")
                         );
                     }
@@ -136,7 +136,7 @@ public class NhanVienDAO {
                             rs.getString("HoTen"),
                             rs.getString("SDT"),
                             rs.getTimestamp("NgayVaoLam"),
-                            rs.getDouble("Luong"),
+                            rs.getLong("Luong"),
                             rs.getString("TrangThai")
                         );
                     } else {
@@ -147,7 +147,7 @@ public class NhanVienDAO {
                             rs.getString("HoTen"),
                             rs.getString("SDT"),
                             rs.getTimestamp("NgayVaoLam"),
-                            rs.getDouble("Luong"),
+                            rs.getLong("Luong"),
                             rs.getString("TrangThai")
                         );
                     }
@@ -181,7 +181,7 @@ public class NhanVienDAO {
                             rs.getString("HoTen"),
                             rs.getString("SDT"),
                             rs.getTimestamp("NgayVaoLam"),
-                            rs.getDouble("Luong"),
+                            rs.getLong("Luong"),
                             rs.getString("TrangThai")
                         );
                     } else {
@@ -192,7 +192,7 @@ public class NhanVienDAO {
                             rs.getString("HoTen"),
                             rs.getString("SDT"),
                             rs.getTimestamp("NgayVaoLam"),
-                            rs.getDouble("Luong"),
+                            rs.getLong("Luong"),
                             rs.getString("TrangThai")
                         );
                     }
@@ -217,7 +217,7 @@ public class NhanVienDAO {
                     ps.setString(4, nhanVien.getSoDienThoai());
             ps.setTimestamp(5, nhanVien.getNgayVaoLam());
             ps.setString(6, nhanVien.getChucVu());
-            ps.setDouble(7, nhanVien.getLuong());
+            ps.setLong(7, nhanVien.getLuong());
             
             int result = ps.executeUpdate();
             
@@ -247,7 +247,7 @@ public class NhanVienDAO {
                     ps.setString(4, nhanVien.getSoDienThoai());
             ps.setTimestamp(5, nhanVien.getNgayVaoLam());
             ps.setString(6, nhanVien.getChucVu());
-            ps.setDouble(7, nhanVien.getLuong());
+            ps.setLong(7, nhanVien.getLuong());
             ps.setInt(8, nhanVien.getMaNV());
             
             int result = ps.executeUpdate();

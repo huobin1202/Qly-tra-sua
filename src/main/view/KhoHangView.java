@@ -36,9 +36,8 @@ public class KhoHangView extends JPanel {
         table.setRowHeight(25);
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.setFont(new Font("Arial", Font.PLAIN, 12));
-        
-        // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "Mã NL", "Tên NL"});
+        // Chỉ còn 'Mã NL' và 'Tên NL'
+        searchCombo = new JComboBox<>(new String[]{"Mã NL", "Tên NL"});
         searchField = new JTextField(20);
     }
     
@@ -164,7 +163,7 @@ public class KhoHangView extends JPanel {
                         "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL WHERE ";
             PreparedStatement ps;
 
-            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+            if (searchText.isEmpty()) {
                 sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) AS SoLuong " +
                       "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
                 ps = conn.prepareStatement(sql);

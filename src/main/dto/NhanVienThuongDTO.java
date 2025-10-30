@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class NhanVienThuongDTO extends NhanVienDTO {
 
     public NhanVienThuongDTO(int maNV, String taiKhoan, String matKhau, String hoTen, String soDienThoai,
-            Timestamp ngayVaoLam, double luong, String trangThai) {
+            java.sql.Timestamp ngayVaoLam, long luong, String trangThai) {
         super(maNV, taiKhoan, matKhau, hoTen, soDienThoai, ngayVaoLam, "nhanvien", luong, trangThai);
     }
 

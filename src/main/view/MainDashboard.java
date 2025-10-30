@@ -21,6 +21,11 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     private JLabel roleLabel;
     private String currentUserRole; // Lưu chức vụ hiện tại
     
+    // Thêm biến lưu các panel hàng hóa theo loại view
+    private HangHoaView hangHoaMonPanel;
+    private HangHoaView hangHoaLoaiPanel;
+    private HangHoaView hangHoaNguyenLieuPanel;
+    
     public MainDashboard() {
         loadUserInfo(); // Load user info trước để có currentUserRole
         initializeComponents();
@@ -315,7 +320,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         mainPanel.add(new KhoHangView(this), "KHO_HANG");
         mainPanel.add(new NhapHangView(this), "NHAP_HANG");
         mainPanel.add(new ThongKeView(), "THONG_KE");
-        // Tạo các view riêng biệt cho từng loại hàng hóa
+        // Các view MON/LOAIMON/NGUYENLIEU lưu lại instance riêng
         mainPanel.add(createMonView(), "MON");
         mainPanel.add(createLoaiMonView(), "LOAIMON");
         mainPanel.add(createNguyenLieuView(), "NGUYENLIEU");
@@ -446,24 +451,21 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     }
     
     private JPanel createMonView() {
-        HangHoaView hangHoaView = new HangHoaView(this);
-        // Set current view to MON
-        hangHoaView.setCurrentView("MON");
-        return hangHoaView;
+        hangHoaMonPanel = new HangHoaView(this);
+        hangHoaMonPanel.setCurrentView("MON");
+        return hangHoaMonPanel;
     }
     
     private JPanel createLoaiMonView() {
-        HangHoaView hangHoaView = new HangHoaView(this);
-        // Set current view to LOAIMON
-        hangHoaView.setCurrentView("LOAIMON");
-        return hangHoaView;
+        hangHoaLoaiPanel = new HangHoaView(this);
+        hangHoaLoaiPanel.setCurrentView("LOAIMON");
+        return hangHoaLoaiPanel;
     }
     
     private JPanel createNguyenLieuView() {
-        HangHoaView hangHoaView = new HangHoaView(this);
-        // Set current view to NGUYENLIEU
-        hangHoaView.setCurrentView("NGUYENLIEU");
-        return hangHoaView;
+        hangHoaNguyenLieuPanel = new HangHoaView(this);
+        hangHoaNguyenLieuPanel.setCurrentView("NGUYENLIEU");
+        return hangHoaNguyenLieuPanel;
     }
     
     private void setupEventHandlers() {
@@ -564,8 +566,8 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         }
     }
     
+    // Menu handler phải đảm bảo mỗi lần chuyển sang layout "MON", "LOAIMON", "NGUYENLIEU" đều hiển thị đúng panel con với trạng thái currentView chuẩn
     private void handleMenuSelection(String menuText) {
-        // Kiểm tra phân quyền trước khi xử lý
         if (!hasPermission(menuText)) {
             JOptionPane.showMessageDialog(this, 
                 "Bạn không có quyền truy cập chức năng này!", 
@@ -573,7 +575,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
         switch (menuText) {
             case "Quản lý nhân viên":
                 cardLayout.show(mainPanel, "NHAN_VIEN");
@@ -590,15 +591,21 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
             case "Quản lý đơn hàng":
                 cardLayout.show(mainPanel, "DON_HANG");
                 break;
-            case "Quản lý món":
+            case "Quản lý món": {
                 cardLayout.show(mainPanel, "MON");
+                if (hangHoaMonPanel != null) hangHoaMonPanel.setCurrentView("MON");
                 break;
-            case "Quản lý loại món":
+            }
+            case "Quản lý loại món": {
                 cardLayout.show(mainPanel, "LOAIMON");
+                if (hangHoaLoaiPanel != null) hangHoaLoaiPanel.setCurrentView("LOAIMON");
                 break;
-            case "Quản lý nguyên liệu":
+            }
+            case "Quản lý nguyên liệu": {
                 cardLayout.show(mainPanel, "NGUYENLIEU");
+                if (hangHoaNguyenLieuPanel != null) hangHoaNguyenLieuPanel.setCurrentView("NGUYENLIEU");
                 break;
+            }
             case "Kho hàng":
                 cardLayout.show(mainPanel, "KHO_HANG");
                 break;

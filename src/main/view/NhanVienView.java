@@ -147,7 +147,7 @@ public class NhanVienView extends JPanel {
                     rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
-                    String.format("%,.2f", rs.getDouble("Luong")) + " VNĐ",
+                    String.format("%,d", rs.getLong("Luong")) + " VNĐ",
                     convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
                 tableModel.addRow(row);
@@ -198,7 +198,7 @@ public class NhanVienView extends JPanel {
                     rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
-                    String.format("%,.2f", rs.getDouble("Luong")) + " VNĐ",
+                    String.format("%,d", rs.getLong("Luong")) + " VNĐ",
                     convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
                 tableModel.addRow(row);
@@ -245,10 +245,10 @@ public class NhanVienView extends JPanel {
             }
         }
         
-        double luong = 0;
+        long luong = 0;
         if (!luongStr.isEmpty()) {
             try {
-                luong = Double.parseDouble(luongStr.replaceAll("[^0-9\\.]", "")); // Cho phép số thực
+                luong = Long.parseLong(luongStr.replaceAll("[^0-9]", "")); // Cho phép số thực
             } catch (Exception e) {
                 // Ignore parsing error
             }
@@ -367,7 +367,7 @@ public class NhanVienView extends JPanel {
                     ngayVaoLamPicker.setDate(nv.getNgayVaoLam());
                 }
                 chucVuCombo.setSelectedItem(convertChucVuToUI(nv.getChucVu()));
-                luongField.setText(String.valueOf(nv.getLuong())); // đã trả về double
+                luongField.setText(String.valueOf(nv.getLuong()));
                 String trangThaiUi = convertTrangThaiToUI(nv.getTrangThai());
                 trangThaiCombo.setSelectedItem(trangThaiUi);
             } else {
@@ -498,14 +498,14 @@ public class NhanVienView extends JPanel {
                 return;
             }
             
-            double luong;
+            long luong;
             long sdt;
             try {
-                luong = Double.parseDouble(luongStr);
+                luong = Long.parseLong(luongStr.replaceAll("[^0-9]", ""));
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Lương phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
-            } 
+            }
             
             // Validation số điện thoại
             // Kiểm tra chỉ chứa số
@@ -542,7 +542,7 @@ public class NhanVienView extends JPanel {
                     }
                     
                     ps.setString(6, convertChucVuToDatabase(chucVu));
-                    ps.setDouble(7, luong);
+                    ps.setLong(7, luong);
                     ps.setString(8, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
@@ -564,7 +564,7 @@ public class NhanVienView extends JPanel {
                         }
                         
                         ps.setString(6, convertChucVuToDatabase(chucVu));
-                        ps.setDouble(7, luong);
+                        ps.setLong(7, luong);
                         ps.setString(8, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
                         ps.setInt(9, nv.getMaNV());
                     } else {
@@ -581,7 +581,7 @@ public class NhanVienView extends JPanel {
                         }
                         
                         ps.setString(5, chucVu);
-                        ps.setDouble(6, luong);
+                        ps.setLong(6, luong);
                         ps.setString(7, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
                         ps.setInt(8, nv.getMaNV());
                     }

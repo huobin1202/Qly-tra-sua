@@ -11,13 +11,13 @@ public abstract class NhanVienDTO {
     protected String soDienThoai;
     protected Timestamp ngayVaoLam;
     protected String chucVu;
-    protected double luong;
+    protected long luong; // đổi sang long
     protected String trangThai = "danglam";
 
     public NhanVienDTO() {
     }
 
-    public NhanVienDTO(int maNV, String taiKhoan, String matKhau, String hoTen, String soDienThoai, Timestamp ngayVaoLam, String chucVu, double luong, String trangThai) {
+    public NhanVienDTO(int maNV, String taiKhoan, String matKhau, String hoTen, String soDienThoai, Timestamp ngayVaoLam, String chucVu, long luong, String trangThai) {
         this.maNV = maNV;
         this.taiKhoan = taiKhoan;
         this.matKhau = matKhau;
@@ -94,11 +94,11 @@ public abstract class NhanVienDTO {
         this.chucVu = chucVu;
     }
 
-    public double getLuong() {
+    public long getLuong() {
         return luong;
     }
 
-    public void setLuong(double luong) {
+    public void setLuong(long luong) {
         this.luong = luong;
     }
 
