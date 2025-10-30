@@ -3,7 +3,6 @@ package dto;
 public class MonDTO {
     int maMon;
     String tenMon;
-    String moTa;
     long gia;
     String tinhTrang;
     int maLoai;
@@ -12,20 +11,18 @@ public class MonDTO {
     // Constructor mặc định
     public MonDTO() {}
 
-    public MonDTO(int maMon, String tenMon, String moTa, long gia, String tinhTrang, int maLoai) {
+    public MonDTO(int maMon, String tenMon, long gia, String tinhTrang, int maLoai) {
         this.maMon = maMon;
         this.tenMon = tenMon;
-        this.moTa = moTa;
         this.gia = gia;
         this.tinhTrang = tinhTrang;
         this.maLoai = maLoai;
         this.anh = "";
     }
 
-    public MonDTO(int maMon, String tenMon, String moTa, long gia, String tinhTrang, int maLoai, String anh) {
+    public MonDTO(int maMon, String tenMon, long gia, String tinhTrang, int maLoai, String anh) {
         this.maMon = maMon;
         this.tenMon = tenMon;
-        this.moTa = moTa;
         this.gia = gia;
         this.tinhTrang = tinhTrang;
         this.maLoai = maLoai;
@@ -42,12 +39,6 @@ public class MonDTO {
     }
     public void setTenMon(String tenMon) {
         this.tenMon = tenMon;
-    }
-    public String getMoTa() {
-        return moTa;
-    }
-    public void setMoTa(String moTa) {
-        this.moTa = moTa;
     }
    
     public long getGia() {

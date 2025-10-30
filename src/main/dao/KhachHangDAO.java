@@ -22,8 +22,7 @@ public class KhachHangDAO {
                 khachHang.setMaKH(rs.getInt("MaKH"));
                 khachHang.setSoDienThoai(rs.getString("SDT"));
                 khachHang.setHoTen(rs.getString("HoTen"));
-                khachHang.setDiaChi(rs.getString("DiaChi"));
-                khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
+                khachHang.setDiemTichLuy(rs.getInt("DiemTichLuy"));
                 danhSach.add(khachHang);
             }
         } catch (SQLException e) {
@@ -61,8 +60,7 @@ public class KhachHangDAO {
                     khachHang.setMaKH(rs.getInt("MaKH"));
                     khachHang.setSoDienThoai(rs.getString("SDT"));
                     khachHang.setHoTen(rs.getString("HoTen"));
-                    khachHang.setDiaChi(rs.getString("DiaChi"));
-                    khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
+                    khachHang.setDiemTichLuy(rs.getInt("DiemTichLuy"));
                     danhSach.add(khachHang);
                 }
             }
@@ -86,8 +84,7 @@ public class KhachHangDAO {
                     khachHang.setMaKH(rs.getInt("MaKH"));
                     khachHang.setSoDienThoai(rs.getString("SDT"));
                     khachHang.setHoTen(rs.getString("HoTen"));
-                    khachHang.setDiaChi(rs.getString("DiaChi"));
-                    khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
+                    khachHang.setDiemTichLuy(rs.getInt("DiemTichLuy"));
                     return khachHang;
                 }
             }
@@ -111,8 +108,7 @@ public class KhachHangDAO {
                     khachHang.setMaKH(rs.getInt("MaKH"));
                     khachHang.setSoDienThoai(rs.getString("SDT"));
                     khachHang.setHoTen(rs.getString("HoTen"));
-                    khachHang.setDiaChi(rs.getString("DiaChi"));
-                    khachHang.setNgaySinh(rs.getTimestamp("NgaySinh"));
+                    khachHang.setDiemTichLuy(rs.getInt("DiemTichLuy"));
                     return khachHang;
                 }
             }
@@ -123,15 +119,14 @@ public class KhachHangDAO {
     
     // Thêm khách hàng mới
     public boolean themKhachHang(KhachHangDTO khachHang) {
-        String sql = "INSERT INTO khachhang (SDT, HoTen, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO khachhang (SDT, HoTen, DiemTichLuy) VALUES (?, ?, ?)";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
                 ps.setString(1, khachHang.getSoDienThoai());
             ps.setString(2, khachHang.getHoTen());
-            ps.setString(3, khachHang.getDiaChi());
-            ps.setTimestamp(4, khachHang.getNgaySinh());
+            ps.setInt(3, khachHang.getDiemTichLuy());
             
             int result = ps.executeUpdate();
             
@@ -150,16 +145,15 @@ public class KhachHangDAO {
     
     // Cập nhật khách hàng
     public boolean capNhatKhachHang(KhachHangDTO khachHang) {
-        String sql = "UPDATE khachhang SET SDT=?, HoTen=?, DiaChi=?, NgaySinh=? WHERE MaKH=?";
+        String sql = "UPDATE khachhang SET SDT=?, HoTen=?, DiemTichLuy=? WHERE MaKH=?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             
                 ps.setString(1, khachHang.getSoDienThoai());
             ps.setString(2, khachHang.getHoTen());
-            ps.setString(3, khachHang.getDiaChi());
-            ps.setTimestamp(4, khachHang.getNgaySinh());
-            ps.setInt(5, khachHang.getMaKH());
+            ps.setInt(3, khachHang.getDiemTichLuy());
+            ps.setInt(4, khachHang.getMaKH());
             
             int result = ps.executeUpdate();
             return result > 0;

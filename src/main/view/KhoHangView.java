@@ -63,7 +63,7 @@ public class KhoHangView extends JPanel {
         
         JButton editButton = new JButton("✏️ Sửa số lượng");
         editButton.setBackground(new Color(70, 130, 180));
-        editButton.setForeground(Color.WHITE);
+        editButton.setForeground(Color.BLACK);
         editButton.setFocusPainted(false);
         
         JButton lowStockButton = new JButton("⚠️ Hàng sắp hết");
@@ -263,6 +263,8 @@ public class KhoHangView extends JPanel {
         private int maNL;
         private String tenNL;
         private int soLuongHienTai;
+        private JButton saveButton;
+        private JButton cancelButton;
         
         public UpdateStockDialog(Window parent, String title, int maNL, String tenNL, int soLuongHienTai) {
             super(parent, title, ModalityType.APPLICATION_MODAL);
@@ -270,99 +272,49 @@ public class KhoHangView extends JPanel {
             this.tenNL = tenNL;
             this.soLuongHienTai = soLuongHienTai;
             initializeComponents();
-            setupLayout();
-            setupEventHandlers();
+            setupLayout(); // sẽ gắn luôn listener ở đây
         }
         
         private void initializeComponents() {
             setSize(350, 200);
             setLocationRelativeTo(getParent());
-            
             soLuongField = new JTextField(20);
             soLuongField.setText(String.valueOf(soLuongHienTai));
         }
         
         private void setupLayout() {
             setLayout(new BorderLayout());
-            
             JPanel mainPanel = new JPanel(new GridBagLayout());
             mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-            
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(10, 10, 10, 10);
-            
-            // Thông tin món
             gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JLabel infoLabel = new JLabel("Nguyên liệu: " + tenNL + " (Mã: " + maNL + ")");
             infoLabel.setFont(new Font("Arial", Font.BOLD, 14));
             mainPanel.add(infoLabel, gbc);
-            
-            // Số lượng hiện tại
             gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JLabel currentLabel = new JLabel("Số lượng hiện tại: " + soLuongHienTai);
             mainPanel.add(currentLabel, gbc);
-            
-            // Số lượng mới
             gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Số lượng mới:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(soLuongField, gbc);
-            
-            // Buttons
             gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JPanel buttonPanel = new JPanel(new FlowLayout());
-            
-            JButton saveButton = new JButton("Lưu");
+            saveButton = new JButton("Lưu");
             saveButton.setBackground(new Color(34, 139, 34));
             saveButton.setForeground(Color.BLACK);
             saveButton.setFocusPainted(false);
-            
-            JButton cancelButton = new JButton("Hủy");
+            cancelButton = new JButton("Hủy");
             cancelButton.setBackground(new Color(220, 220, 220));
             cancelButton.setFocusPainted(false);
-            
+            // Gắn action listener TRỰC TIẾP
+            saveButton.addActionListener(e -> saveData());
+            cancelButton.addActionListener(e -> dispose());
             buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
             mainPanel.add(buttonPanel, gbc);
-            
             add(mainPanel, BorderLayout.CENTER);
-        }
-        
-        private void setupEventHandlers() {
-            JButton saveButton = findButton("Lưu");
-            JButton cancelButton = findButton("Hủy");
-            
-            if (saveButton != null) {
-                saveButton.addActionListener(e -> saveData());
-            }
-            if (cancelButton != null) {
-                cancelButton.addActionListener(e -> dispose());
-            }
-        }
-        
-        private JButton findButton(String text) {
-            for (Component comp : getComponents()) {
-                if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
-        }
-        
-        private JButton findButtonInPanel(JPanel panel, String text) {
-            for (Component comp : panel.getComponents()) {
-                if (comp instanceof JButton) {
-                    JButton button = (JButton) comp;
-                    if (button.getText().equals(text)) {
-                        return button;
-                    }
-                } else if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
         }
         
         private void saveData() {

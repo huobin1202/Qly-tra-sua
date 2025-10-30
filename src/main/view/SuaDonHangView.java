@@ -4,30 +4,25 @@ import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import database.DBUtil;
 import dto.DonHangDTO;
 import dto.ChiTietDonHangDTO;
 import dto.MonDTO;
 import dto.LoaiMonDTO;
-import dto.KhachHangDTO;
-import utils.DateChooserComponent;
+import dao.DonHangDAO;
 
 public class SuaDonHangView extends JDialog {
     // Thông tin hóa đơn
     private JTextField maHDField;
     private JTextField nhanVienField;
-    private JComboBox<String> loaiHoaDonCombo;
     private JSpinner giamGiaSpinner;
     
     // Thông tin khách hàng
-    private JComboBox<String> khachHangCombo;
     private JTextField khachHangTenField;
     private JTextField khachHangSDTField;
-    private JTextField khachHangDiaChiField;
-    private JButton themKhachHangButton;
-    private List<KhachHangDTO> danhSachKhachHang;
+    private JTextField khachHangDiemTichLuyField;
+    private JButton timKiemKhachHangButton;
     private int selectedKhachHangId = 0;
     
     // Thông tin hóa đơn hiển thị
@@ -45,7 +40,6 @@ public class SuaDonHangView extends JDialog {
     private List<ChiTietDonHangDTO> orderedItems;
     
     // Nút thao tác
-    private JButton quanLyShipButton;
     private JButton thanhToanButton;
     private JButton capNhatButton;
     private JButton dongButton;
@@ -65,8 +59,7 @@ public class SuaDonHangView extends JDialog {
         initializeComponents();
         setupLayout();
         setupEventHandlers();
-        loadKhachHang(); // Load danh sách khách hàng trước
-        loadOrderData(); // Sau đó load đơn hàng để có thể set khách hàng được chọn
+        loadOrderData(); // Load đơn hàng
         // Mặc định hiển thị tất cả sản phẩm
         currentCategoryId = 0;
         loadProducts();
@@ -89,22 +82,18 @@ public class SuaDonHangView extends JDialog {
         nhanVienField = new JTextField(15);
         nhanVienField.setEditable(false);
         
-        loaiHoaDonCombo = new JComboBox<>(new String[]{"Đặt hàng", "Tại chỗ"});
-        
         giamGiaSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
         giamGiaSpinner.setPreferredSize(new Dimension(80, 25));
         
         // Khởi tạo các component thông tin khách hàng
-        khachHangCombo = new JComboBox<>();
-        khachHangCombo.addItem("Chọn khách hàng");
         khachHangTenField = new JTextField(20);
-        khachHangTenField.setEditable(false);
+        khachHangTenField.setEditable(true);
         khachHangSDTField = new JTextField(15);
-        khachHangSDTField.setEditable(false);
-        khachHangDiaChiField = new JTextField(30);
-        khachHangDiaChiField.setEditable(false);
-        themKhachHangButton = new JButton("Thêm khách hàng mới");
-        danhSachKhachHang = new ArrayList<>();
+        khachHangSDTField.setEditable(true);
+        timKiemKhachHangButton = new JButton("🔍 Tìm");
+        timKiemKhachHangButton.setPreferredSize(new Dimension(60, 25));
+        khachHangDiemTichLuyField = new JTextField(15);
+        khachHangDiemTichLuyField.setEditable(false); // Không cho phép chỉnh sửa điểm tích lũy
         
         // Labels hiển thị thông tin
         trangThaiLabel = new JLabel("Chưa thanh toán");
@@ -130,11 +119,6 @@ public class SuaDonHangView extends JDialog {
         // Khởi tạo danh sách món đã đặt
         
         // Khởi tạo các nút thao tác
-        quanLyShipButton = new JButton("Quản lý ship");
-        quanLyShipButton.setBackground(new Color(70, 130, 180));
-        quanLyShipButton.setForeground(Color.BLACK);
-        quanLyShipButton.setFocusPainted(false);
-        
         thanhToanButton = new JButton("Thanh toán");
         thanhToanButton.setBackground(new Color(34, 139, 34));
         thanhToanButton.setForeground(Color.BLACK);
@@ -221,43 +205,31 @@ public class SuaDonHangView extends JDialog {
         gbc.gridx = 1;
         infoPanel.add(nhanVienField, gbc);
         
-        // Loại hóa đơn
-        gbc.gridx = 0; gbc.gridy = 2;
-        infoPanel.add(new JLabel("Loại hóa đơn:"), gbc);
-        gbc.gridx = 1;
-        infoPanel.add(loaiHoaDonCombo, gbc);
-        
         // Giảm giá
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0; gbc.gridy = 2;
         infoPanel.add(new JLabel("Giảm giá(%):"), gbc);
         gbc.gridx = 1;
         infoPanel.add(giamGiaSpinner, gbc);
         
         // Thông tin khách hàng
-        gbc.gridx = 0; gbc.gridy = 4;
-        infoPanel.add(new JLabel("Khách hàng:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 3;
+        infoPanel.add(new JLabel("SĐT:"), gbc);
         gbc.gridx = 1;
-        infoPanel.add(khachHangCombo, gbc);
+        // Panel chứa SĐT và nút tìm kiếm
+        JPanel sdtPanel = new JPanel(new BorderLayout());
+        sdtPanel.add(khachHangSDTField, BorderLayout.CENTER);
+        sdtPanel.add(timKiemKhachHangButton, BorderLayout.EAST);
+        infoPanel.add(sdtPanel, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 5;
+        gbc.gridx = 0; gbc.gridy = 4;
         infoPanel.add(new JLabel("Tên:"), gbc);
         gbc.gridx = 1;
         infoPanel.add(khachHangTenField, gbc);
         
-        gbc.gridx = 0; gbc.gridy = 6;
-        infoPanel.add(new JLabel("SĐT:"), gbc);
+        gbc.gridx = 0; gbc.gridy = 5;
+        infoPanel.add(new JLabel("Điểm tích lũy:"), gbc);
         gbc.gridx = 1;
-        infoPanel.add(khachHangSDTField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 7;
-        infoPanel.add(new JLabel("Địa chỉ:"), gbc);
-        gbc.gridx = 1;
-        infoPanel.add(khachHangDiaChiField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 8;
-        gbc.gridwidth = 2;
-        infoPanel.add(themKhachHangButton, gbc);
-        gbc.gridwidth = 1;
+        infoPanel.add(khachHangDiemTichLuyField, gbc);
         
         // Panel thông tin hóa đơn
         JPanel summaryPanel = new JPanel(new GridBagLayout());
@@ -297,7 +269,6 @@ public class SuaDonHangView extends JDialog {
         actionPanel.setBackground(new Color(240, 248, 255));
         actionPanel.setBorder(BorderFactory.createTitledBorder("Thao tác"));
         
-        actionPanel.add(quanLyShipButton);
         actionPanel.add(thanhToanButton);
         actionPanel.add(capNhatButton);
         actionPanel.add(dongButton);
@@ -463,38 +434,14 @@ public class SuaDonHangView extends JDialog {
         capNhatButton.addActionListener(e -> updateOrder());
         dongButton.addActionListener(e -> dispose());
         thanhToanButton.addActionListener(e -> processPayment());
-        quanLyShipButton.addActionListener(e -> manageShipping());
         inHoaDonButton.addActionListener(e -> printInvoice());
         huyHoaDonButton.addActionListener(e -> cancelOrder());
         
         // Event handler cho giảm giá
         giamGiaSpinner.addChangeListener(e -> updateOrderSummary());
         
-        // Event handlers cho khách hàng
-        khachHangCombo.addActionListener(e -> {
-            // Kiểm tra xem combo box có bị disable không (tức là đã có khách hàng ban đầu)
-            if (!khachHangCombo.isEnabled()) {
-                return; // Không cho phép thay đổi nếu đã có khách hàng
-            }
-            
-            int selectedIndex = khachHangCombo.getSelectedIndex();
-            if (selectedIndex > 0) { // Không phải "Chọn khách hàng"
-                KhachHangDTO selectedKh = danhSachKhachHang.get(selectedIndex - 1);
-                selectedKhachHangId = selectedKh.getMaKH();
-                currentOrder.setMaKH(selectedKhachHangId);
-                khachHangTenField.setText(selectedKh.getHoTen());
-                khachHangSDTField.setText(selectedKh.getSoDienThoai());
-                khachHangDiaChiField.setText(selectedKh.getDiaChi());
-            } else {
-                selectedKhachHangId = 0;
-                currentOrder.setMaKH(null);
-                khachHangTenField.setText("");
-                khachHangSDTField.setText("");
-                khachHangDiaChiField.setText("");
-            }
-        });
-        
-        themKhachHangButton.addActionListener(e -> showAddCustomerDialog());
+        // Event handler cho nút tìm kiếm khách hàng
+        timKiemKhachHangButton.addActionListener(e -> timKiemKhachHangTheoSDT());
     }
     
     
@@ -512,7 +459,6 @@ public class SuaDonHangView extends JDialog {
                 if (rs.next()) {
                     currentOrder.setMaDon(rs.getInt("MaDon"));
                     currentOrder.setMaNV(rs.getInt("MaNV"));
-                    currentOrder.setLoai(rs.getString("Loai"));
                     currentOrder.setTrangThai(rs.getString("TrangThai"));
                     currentOrder.setNgayDat(rs.getTimestamp("NgayDat"));
                     currentOrder.setTongTien(rs.getLong("TongTien"));
@@ -534,49 +480,22 @@ public class SuaDonHangView extends JDialog {
                     maHDField.setText(String.valueOf(currentOrder.getMaDon()));
                     nhanVienField.setText(rs.getString("HoTen") != null ? rs.getString("HoTen") : "Admin");
                     
-                    // Set loại hóa đơn
-                    String loai = currentOrder.getLoai();
-                    if ("taiquan".equals(loai)) {
-                        loaiHoaDonCombo.setSelectedItem("Tại chỗ");
-                    } else if ("online".equals(loai)) {
-                        loaiHoaDonCombo.setSelectedItem("Đặt hàng");
-                    } else {
-                        loaiHoaDonCombo.setSelectedItem("Mang đi");
-                    }
-                    
                     giamGiaSpinner.setValue(currentOrder.getGiamGia());
                     
                     // Cập nhật khách hàng nếu có
                     if (selectedKhachHangId > 0) {
-                        // Tìm khách hàng trong danh sách và chọn
-                        for (int i = 0; i < danhSachKhachHang.size(); i++) {
-                            if (danhSachKhachHang.get(i).getMaKH() == selectedKhachHangId) {
-                                khachHangCombo.setSelectedIndex(i + 1); // +1 vì có "Chọn khách hàng"
-                                
-                                // Load thông tin khách hàng từ database để hiển thị
-                                String khSql = "SELECT * FROM khachhang WHERE MaKH = ?";
-                                try (PreparedStatement khPs = conn.prepareStatement(khSql)) {
-                                    khPs.setInt(1, selectedKhachHangId);
-                                    try (ResultSet khRs = khPs.executeQuery()) {
-                                        if (khRs.next()) {
-                                            khachHangTenField.setText(khRs.getString("HoTen"));
-                                            khachHangSDTField.setText(khRs.getString("SDT"));
-                                            khachHangDiaChiField.setText(khRs.getString("DiaChi"));
-                                        }
-                                    }
+                        // Load thông tin khách hàng từ database để hiển thị
+                        String khSql = "SELECT * FROM khachhang WHERE MaKH = ?";
+                        try (PreparedStatement khPs = conn.prepareStatement(khSql)) {
+                            khPs.setInt(1, selectedKhachHangId);
+                            try (ResultSet khRs = khPs.executeQuery()) {
+                                if (khRs.next()) {
+                                    khachHangTenField.setText(khRs.getString("HoTen"));
+                                    khachHangSDTField.setText(khRs.getString("SDT"));
+                                    khachHangDiemTichLuyField.setText(String.valueOf(khRs.getInt("DiemTichLuy")));
                                 }
-                                
-                                // Vô hiệu hóa combo box và nút thêm khách hàng khi đã có khách hàng
-                                khachHangCombo.setEnabled(false);
-                                themKhachHangButton.setEnabled(false);
-                                break;
                             }
                         }
-                    } else {
-                        khachHangCombo.setSelectedIndex(0); // Chọn "Chọn khách hàng"
-                        // Cho phép chỉnh sửa nếu chưa có khách hàng
-                        khachHangCombo.setEnabled(true);
-                        themKhachHangButton.setEnabled(true);
                     }
                     
                     // Cập nhật trạng thái
@@ -602,28 +521,47 @@ public class SuaDonHangView extends JDialog {
     }
     
     
-    private void loadKhachHang() {
-        danhSachKhachHang.clear();
-        khachHangCombo.removeAllItems();
-        khachHangCombo.addItem("Chọn khách hàng");
+    private void timKiemKhachHangTheoSDT() {
+        String sdt = khachHangSDTField.getText().trim();
+        
+        if (sdt.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         
         try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM khachhang ORDER BY HoTen")) {
+             PreparedStatement ps = conn.prepareStatement("SELECT * FROM khachhang WHERE SDT = ?")) {
             
-            while (rs.next()) {
-                KhachHangDTO kh = new KhachHangDTO(
-                    rs.getInt("MaKH"),
-                    rs.getString("SDT"),
-                    rs.getString("HoTen"),
-                    rs.getString("DiaChi"),
-                    rs.getTimestamp("NgaySinh")
-                );
-                danhSachKhachHang.add(kh);
-                khachHangCombo.addItem(kh.getHoTen() + " - " + kh.getSoDienThoai());
+            ps.setString(1, sdt);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    // Khách hàng đã tồn tại, tự động điền thông tin
+                    int maKH = rs.getInt("MaKH");
+                    String hoTen = rs.getString("HoTen");
+                    int diemTichLuy = rs.getInt("DiemTichLuy");
+                    
+                    // Điền thông tin vào các field
+                    khachHangTenField.setText(hoTen);
+                    khachHangDiemTichLuyField.setText(String.valueOf(diemTichLuy));
+                    
+                    // Cập nhật selected customer
+                    selectedKhachHangId = maKH;
+                    currentOrder.setMaKH(maKH);
+                    
+                    JOptionPane.showMessageDialog(this, "Đã tìm thấy khách hàng!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Không tìm thấy khách hàng - khách hàng mới
+                    JOptionPane.showMessageDialog(this, "Khách hàng mới. Vui lòng nhập đầy đủ thông tin!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                    // Đặt điểm tích lũy mặc định là 0 nếu chưa có
+                    if (khachHangDiemTichLuyField.getText().trim().isEmpty()) {
+                        khachHangDiemTichLuyField.setText("0");
+                    }
+                    selectedKhachHangId = 0;
+                    currentOrder.setMaKH(null);
+                }
             }
         } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tải danh sách khách hàng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm khách hàng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -657,7 +595,6 @@ public class SuaDonHangView extends JDialog {
                     product.setMaMon(rs.getInt("MaMon"));
                     product.setTenMon(rs.getString("TenMon"));
                     product.setGia(rs.getLong("Gia"));
-                    product.setMoTa(rs.getString("MoTa"));
                     product.setAnh(rs.getString("Anh"));
                     product.setMaLoai(rs.getInt("MaLoai"));
                     currentProducts.add(product);
@@ -1137,35 +1074,78 @@ public class SuaDonHangView extends JDialog {
             return;
         }
         
+        // Kiểm tra thông tin khách hàng nếu có nhập
+        String sdt = khachHangSDTField.getText().trim();
+        String ten = khachHangTenField.getText().trim();
+        
+        if (!sdt.isEmpty() && ten.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập tên khách hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        if (sdt.isEmpty() && !ten.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
             
-            // Cập nhật thông tin đơn hàng
-            String updateOrderSql = "UPDATE donhang SET MaKH = ?, Loai = ?, GiamGia = ?, TongTien = ? WHERE MaDon = ?";
-            try (PreparedStatement ps = conn.prepareStatement(updateOrderSql)) {
-                String loai = (String) loaiHoaDonCombo.getSelectedItem();
-                String loaiValue = "taiquan"; // Mặc định
-                if ("Đặt hàng".equals(loai)) {
-                    loaiValue = "online";
-                } else if ("Mang đi".equals(loai)) {
-                    loaiValue = "mangdi";
+            int maKH = selectedKhachHangId;
+            boolean createdNewCustomer = false;
+            
+            // Nếu có nhập thông tin khách hàng nhưng chưa có MaKH (khách hàng mới)
+            // Chỉ tạo khách hàng mới nếu đơn hàng chưa có khách hàng ban đầu
+            if (originalKhachHangId == 0 && selectedKhachHangId == 0 && !sdt.isEmpty() && !ten.isEmpty()) {
+                // Kiểm tra số điện thoại đã tồn tại chưa
+                try (PreparedStatement checkPs = conn.prepareStatement("SELECT MaKH FROM khachhang WHERE SDT = ?")) {
+                    checkPs.setString(1, sdt);
+                    try (ResultSet rs = checkPs.executeQuery()) {
+                        if (rs.next()) {
+                            conn.rollback();
+                            JOptionPane.showMessageDialog(this, "Số điện thoại này đã được sử dụng bởi khách hàng khác!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
                 }
                 
-                // Cập nhật MaKH: nếu đã có khách hàng ban đầu thì giữ nguyên, nếu chưa có thì cho phép cập nhật
-                if (originalKhachHangId > 0) {
-                    // Giữ nguyên khách hàng ban đầu
-                    ps.setInt(1, originalKhachHangId);
-                } else if (selectedKhachHangId > 0) {
-                    // Chưa có khách hàng ban đầu, cho phép thêm mới
-                    ps.setInt(1, selectedKhachHangId);
+                // Tạo khách hàng mới
+                String insertKhSql = "INSERT INTO khachhang (SDT, HoTen, DiemTichLuy) VALUES (?, ?, 0)";
+                try (PreparedStatement ps = conn.prepareStatement(insertKhSql, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, sdt);
+                    ps.setString(2, ten);
+                    ps.executeUpdate();
+                    
+                    // Lấy MaKH vừa tạo
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        if (rs.next()) {
+                            maKH = rs.getInt(1);
+                            selectedKhachHangId = maKH;
+                            currentOrder.setMaKH(maKH);
+                            createdNewCustomer = true;
+                            // Cập nhật điểm tích lũy về 0
+                            khachHangDiemTichLuyField.setText("0");
+                        }
+                    }
+                }
+            } else if (originalKhachHangId > 0) {
+                // Nếu đã có khách hàng ban đầu, giữ nguyên
+                maKH = originalKhachHangId;
+            }
+            
+            // Cập nhật thông tin đơn hàng
+            String updateOrderSql = "UPDATE donhang SET MaKH = ?, GiamGia = ?, TongTien = ? WHERE MaDon = ?";
+            try (PreparedStatement ps = conn.prepareStatement(updateOrderSql)) {
+                // Cập nhật MaKH
+                if (maKH > 0) {
+                    ps.setInt(1, maKH);
                 } else {
                     ps.setNull(1, java.sql.Types.INTEGER);
                 }
                 
-                ps.setString(2, loaiValue);
-                ps.setInt(3, (Integer) giamGiaSpinner.getValue());
-                ps.setLong(4, currentOrder.getTongTien());
-                ps.setInt(5, currentOrder.getMaDon());
+                ps.setInt(2, (Integer) giamGiaSpinner.getValue());
+                ps.setLong(3, currentOrder.getTongTien());
+                ps.setInt(4, currentOrder.getMaDon());
                 ps.executeUpdate();
             }
             
@@ -1191,9 +1171,20 @@ public class SuaDonHangView extends JDialog {
             }
             
             conn.commit();
-            JOptionPane.showMessageDialog(this, "Cập nhật đơn hàng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            
+            String message = "Cập nhật đơn hàng thành công!";
+            if (createdNewCustomer) {
+                message += "\nĐã tạo khách hàng mới với số điện thoại: " + sdt;
+            }
+            JOptionPane.showMessageDialog(this, message, "Thành công", JOptionPane.INFORMATION_MESSAGE);
             
         } catch (SQLException e) {
+            try {
+                Connection rollbackConn = DBUtil.getConnection();
+                rollbackConn.rollback();
+            } catch (SQLException rollbackEx) {
+                // Ignore rollback error
+            }
             JOptionPane.showMessageDialog(this, "Lỗi cập nhật đơn hàng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -1206,31 +1197,22 @@ public class SuaDonHangView extends JDialog {
         }
         
         int result = JOptionPane.showConfirmDialog(this, 
-            "Xác nhận thanh toán cho đơn hàng #" + currentOrder.getMaDon() + "?", 
+            "Xác nhận thanh toán cho đơn hàng #" + currentOrder.getMaDon() + "?\n\n" +
+            "Lưu ý: Nguyên liệu trong kho sẽ tự động được trừ sau khi thanh toán.", 
             "Xác nhận thanh toán", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection()) {
-                String sql = "UPDATE donhang SET TrangThai = ? WHERE MaDon = ?";
-                try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, "dathanhtoan");
-                    ps.setInt(2, currentOrder.getMaDon());
-                    ps.executeUpdate();
-                }
-                
+            DonHangDAO donHangDAO = new DonHangDAO();
+            if (donHangDAO.capNhatTrangThaiDonHang(currentOrder.getMaDon(), "dathanhtoan")) {
                 currentOrder.setTrangThai("dathanhtoan");
                 trangThaiLabel.setText("Đã thanh toán");
                 trangThaiLabel.setForeground(Color.GREEN);
                 
-                JOptionPane.showMessageDialog(this, "Thanh toán thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi thanh toán: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Thanh toán thành công!\nNguyên liệu trong kho đã được cập nhật.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Lỗi thanh toán! Vui lòng kiểm tra lại số lượng nguyên liệu trong kho.", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
-    }
-    
-    private void manageShipping() {
-        JOptionPane.showMessageDialog(this, "Chức năng quản lý ship đang được phát triển!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
     
     private void printInvoice() {
@@ -1273,100 +1255,5 @@ public class SuaDonHangView extends JDialog {
             return "Bị hủy";
         }
         return "Chưa thanh toán"; // Mặc định
-    }
-    
-    private void showAddCustomerDialog() {
-        JDialog dialog = new JDialog(this, "Thêm khách hàng mới", true);
-        dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(this);
-        
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
-        
-        JTextField tenField = new JTextField(20);
-        JTextField sdtField = new JTextField(15);
-        JTextField diaChiField = new JTextField(25);
-        // Tạo DateChooserComponent cho ngày sinh: ẩn nút "Hôm nay" và giới hạn tối đa là hôm nay
-        Date today = new Date();
-        DateChooserComponent ngaySinhPicker = new DateChooserComponent(false, today);
-        
-        gbc.gridx = 0; gbc.gridy = 0;
-        panel.add(new JLabel("Họ tên:"), gbc);
-        gbc.gridx = 1;
-        panel.add(tenField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 1;
-        panel.add(new JLabel("Số điện thoại:"), gbc);
-        gbc.gridx = 1;
-        panel.add(sdtField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 2;
-        panel.add(new JLabel("Địa chỉ:"), gbc);
-        gbc.gridx = 1;
-        panel.add(diaChiField, gbc);
-        
-        gbc.gridx = 0; gbc.gridy = 3;
-        panel.add(new JLabel("Ngày sinh:"), gbc);
-        gbc.gridx = 1;
-        panel.add(ngaySinhPicker, gbc);
-        
-        JButton saveButton = new JButton("Lưu");
-        JButton cancelButton = new JButton("Hủy");
-        
-        gbc.gridx = 0; gbc.gridy = 4;
-        panel.add(saveButton, gbc);
-        gbc.gridx = 1;
-        panel.add(cancelButton, gbc);
-        
-        saveButton.addActionListener(e -> {
-            String ten = tenField.getText().trim();
-            String sdt = sdtField.getText().trim();
-            String diaChi = diaChiField.getText().trim();
-            String ngaySinhStr = ngaySinhPicker.getSelectedDateString();
-            
-            if (ten.isEmpty() || sdt.isEmpty() || diaChi.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            // Validation số điện thoại
-            if (!sdt.matches("\\d+")) {
-                JOptionPane.showMessageDialog(dialog, "Số điện thoại chỉ được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            if (sdt.length() < 9 || sdt.length() > 11) {
-                JOptionPane.showMessageDialog(dialog, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            
-            try (Connection conn = DBUtil.getConnection()) {
-                PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO khachhang (SDT, HoTen, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)");
-                ps.setString(1, sdt);
-                ps.setString(2, ten);
-                ps.setString(3, diaChi);
-                
-                if (!ngaySinhStr.isEmpty()) {
-                    ps.setString(4, ngaySinhStr + " 10:00:00");
-                } else {
-                    ps.setNull(4, Types.TIMESTAMP);
-                }
-                
-                ps.executeUpdate();
-                JOptionPane.showMessageDialog(dialog, "Thêm khách hàng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                dialog.dispose();
-                loadKhachHang(); // Reload danh sách khách hàng
-            } catch (SQLException ex) {
-                JOptionPane.showMessageDialog(dialog, "Lỗi lưu khách hàng: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        
-        cancelButton.addActionListener(e -> dialog.dispose());
-        
-        dialog.add(panel);
-        dialog.setVisible(true);
     }
 }

@@ -96,7 +96,7 @@ public class BaoCaoView extends JPanel {
         JButton generateButton = new JButton("📊 Tạo báo cáo");
         generateButton.setFont(new Font("Arial", Font.BOLD, 12));
         generateButton.setBackground(new Color(34, 139, 34));
-        generateButton.setForeground(Color.WHITE);
+        generateButton.setForeground(Color.BLACK);
         generateButton.setFocusPainted(false);
         generateButton.addActionListener(e -> generateReport());
         controlPanel.add(generateButton);
@@ -112,21 +112,21 @@ public class BaoCaoView extends JPanel {
         JButton exportButton = new JButton("💾 Xuất file");
         exportButton.setFont(new Font("Arial", Font.BOLD, 12));
         exportButton.setBackground(new Color(255, 140, 0));
-        exportButton.setForeground(Color.WHITE);
+        exportButton.setForeground(Color.BLACK);
         exportButton.setFocusPainted(false);
         exportButton.addActionListener(e -> exportReport());
         
         JButton printButton = new JButton("🖨️ In báo cáo");
         printButton.setFont(new Font("Arial", Font.BOLD, 12));
         printButton.setBackground(new Color(70, 130, 180));
-        printButton.setForeground(Color.WHITE);
+        printButton.setForeground(Color.BLACK);
         printButton.setFocusPainted(false);
         printButton.addActionListener(e -> printReport());
         
         JButton refreshButton = new JButton("🔄 Làm mới");
         refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
         refreshButton.setBackground(new Color(34, 139, 34));
-        refreshButton.setForeground(Color.WHITE);
+        refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
         refreshButton.addActionListener(e -> generateReport());
         

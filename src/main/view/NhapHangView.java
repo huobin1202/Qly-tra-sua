@@ -889,7 +889,7 @@ public class NhapHangView extends JPanel {
             
             // Lấy chi tiết nguyên liệu
             try (Connection conn = DBUtil.getConnection()) {
-                String sql = "SELECT ct.*, nl.TenNL " +
+                String sql = "SELECT ct.*, nl.TenNL, nl.DonVi " +
                            "FROM chitietnhap_nl ct " +
                            "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
                            "WHERE ct.MaPN = ?";
@@ -1033,7 +1033,7 @@ public class NhapHangView extends JPanel {
                 
                 // Chi tiết
                 try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT ct.*, nl.TenNL " +
+                    String sql = "SELECT ct.*, nl.TenNL, nl.DonVi " +
                                "FROM chitietnhap_nl ct " +
                                "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
                                "WHERE ct.MaPN = ?";
@@ -1115,7 +1115,7 @@ public class NhapHangView extends JPanel {
                 
                 // Chi tiết
                 try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT ct.*, nl.TenNL " +
+                    String sql = "SELECT ct.*, nl.TenNL, nl.DonVi " +
                                "FROM chitietnhap_nl ct " +
                                "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
                                "WHERE ct.MaPN = ?";

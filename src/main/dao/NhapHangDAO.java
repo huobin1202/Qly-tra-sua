@@ -387,15 +387,14 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                 return false;
             }
             
-            // 3. Thêm chi tiết phiếu nhập
-            String sql = "INSERT INTO chitietnhap_nl (MaPN, MaNL, SoLuong, DonGia, DonVi) VALUES (?, ?, ?, ?, ?)";
+            // 3. Thêm chi tiết phiếu nhập (DonVi lấy từ nguyenlieu, không cần lưu trong chitietnhap_nl)
+            String sql = "INSERT INTO chitietnhap_nl (MaPN, MaNL, SoLuong, DonGia) VALUES (?, ?, ?, ?)";
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, maPN);
                 ps.setInt(2, maNL);
                 ps.setInt(3, soLuong);
                 ps.setLong(4, donGia);
-                ps.setString(5, donVi);
                 
                 int result = ps.executeUpdate();
                 
@@ -521,7 +520,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     @Override
     public List<ChiTietNhapHangDTO> layChiTietPhieuNhap(int maPN) {
         List<ChiTietNhapHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, ctn.DonVi " +
+        String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, nl.DonVi " +
                     "FROM chitietnhap_nl ctn " +
                     "JOIN nguyenlieu nl ON ctn.MaNL = nl.MaNL " +
                     "WHERE ctn.MaPN = ? " +
@@ -582,15 +581,14 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
                 }
             }
             
-            // 5. Cập nhật chi tiết phiếu nhập
-            String sql = "UPDATE chitietnhap_nl SET SoLuong = ?, DonGia = ?, DonVi = ? WHERE MaPN = ? AND MaNL = ?";
+            // 5. Cập nhật chi tiết phiếu nhập (DonVi lấy từ nguyenlieu, không cần cập nhật trong chitietnhap_nl)
+            String sql = "UPDATE chitietnhap_nl SET SoLuong = ?, DonGia = ? WHERE MaPN = ? AND MaNL = ?";
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, chiTiet.getSoLuong());
                 ps.setLong(2, chiTiet.getDonGia());
-                ps.setString(3, chiTiet.getDonVi());
-                ps.setInt(4, chiTiet.getMaPN());
-                ps.setInt(5, chiTiet.getMaNL());
+                ps.setInt(3, chiTiet.getMaPN());
+                ps.setInt(4, chiTiet.getMaNL());
                 
                 int result = ps.executeUpdate();
                 
@@ -670,7 +668,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     // Lấy chi tiết phiếu nhập theo mã phiếu và mã nguyên liệu
     @Override
     public ChiTietNhapHangDTO layChiTietPhieuNhapTheoMa(int maPN, int maNL) {
-        String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, ctn.DonVi " +
+        String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, nl.DonVi " +
                     "FROM chitietnhap_nl ctn " +
                     "JOIN nguyenlieu nl ON ctn.MaNL = nl.MaNL " +
                     "WHERE ctn.MaPN = ? AND ctn.MaNL = ?";

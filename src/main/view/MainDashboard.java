@@ -108,43 +108,29 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         menuPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         createHangHoaDropdown(menuPanel);
 
-        // Tạo các menu items với icon dựa trên chức vụ
-        String[][] menuItems;
-        
-        // Kiểm tra chức vụ để hiển thị menu phù hợp
-        if ("quanly".equals(currentUserRole)) {
-            // Quản lý có thể truy cập tất cả
-            menuItems = new String[][]{
-                {"Quản lý nhân viên", "👥"},
-                {"Quản lý nhà cung cấp", "🛒"},
-                {"Quản lý khách hàng", "👤"},
-                {"Quản lý phiếu nhập", "📋"},
-                {"Quản lý đơn hàng", "🛒"},
-                {"Kho hàng", "🏬"},
-                {"Thống kê", "📊"},
-                {"Thiết lập", "⚙️"}
-            };
-        } else {
-            // Nhân viên chỉ được truy cập một số chức năng
-            menuItems = new String[][]{
-                {"Quản lý khách hàng", "👤"},
-                {"Quản lý đơn hàng", "🛒"},
-                {"Giao hàng", "🚚"}
-            };
-        }
-        
-        for (String[] item : menuItems) {
-            JButton menuButton = createMenuButton(item[0], item[1]);
-            menuPanel.add(menuButton);
-            menuPanel.add(Box.createVerticalStrut(10));
-        }
-        
-        // Tạo dropdown menu cho Quản lý hàng hóa
-        
+        // Lấy menu từ nghiệp vụ Nhân viên hướng đối tượng
+        String[][] menuItems = database.Session.currentNhanVien != null ? database.Session.currentNhanVien.getMenuItems() : new String[0][0];
+        addMenuButtonsFromList(menuPanel, menuItems);
+
         leftSidebar.add(menuPanel, BorderLayout.CENTER);
         
         // Cập nhật thông tin user sau khi tạo các label
         updateUserInfo();
+    }
+    
+    /**
+     * Hàm thêm động các nút menu từ danh sách getMenuItems() vào menuPanel
+     */
+    private void addMenuButtonsFromList(JPanel menuPanel, String[][] menuItems) {
+        for (String[] item : menuItems) {
+            // Nếu là 3 menu "Quản lý món", "Quản lý loại món", "Quản lý nguyên liệu" thì bỏ qua, chỉ để chúng ở dropdown hàng hóa.
+            if ("Quản lý món".equals(item[0]) || "Quản lý loại món".equals(item[0]) || "Quản lý nguyên liệu".equals(item[0])) {
+                continue;
+            }
+            JButton menuButton = createMenuButton(item[0], item[1]);
+            menuPanel.add(menuButton);
+            menuPanel.add(Box.createVerticalStrut(10));
+        }
     }
     
     // Method cập nhật thông tin user
@@ -317,80 +303,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         return button;
     }
     
-    /*private void createTopBar() {
-        topBar = new JPanel(new BorderLayout());
-        topBar.setBackground(new Color(173, 216, 230));
-        topBar.setPreferredSize(new Dimension(0, 60));
-        
-        // Title
-        /*JLabel titleLabel = new JLabel("Trang quản lý");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(Color.BLACK);
-        topBar.add(titleLabel, BorderLayout.WEST);*/
-        
-        // Search panel
-        /*JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
-        searchPanel.setOpaque(false);
-        
-        JTextField searchField = new JTextField(20);
-        searchField.setFont(new Font("Arial", Font.PLAIN, 12));
-        
-        JComboBox<String> searchCombo = new JComboBox<>(new String[]{"ID", "Tên", "Mô tả"});
-        searchCombo.setFont(new Font("Arial", Font.PLAIN, 12));
-        
-        searchPanel.add(new JLabel("Search:"));
-        searchPanel.add(searchField);
-        searchPanel.add(searchCombo);
-        
-        topBar.add(searchPanel, BorderLayout.EAST);
-    }*/
-    
-    /*private void createRightSidebar() {
-        rightSidebar = new JPanel();
-        rightSidebar.setLayout(new BoxLayout(rightSidebar, BoxLayout.Y_AXIS));
-        rightSidebar.setBackground(new Color(173, 216, 230));
-        rightSidebar.setPreferredSize(new Dimension(120, 0));
-        rightSidebar.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-        
-        // Action buttons
-        String[][] actionButtons = {
-            {"Thêm", "➕"},
-            {"Sửa", "✏️"},
-            {"Xóa", "❌"},
-            {"Sync", "🔄"}
-        };
-        
-        for (String[] button : actionButtons) {
-            JButton actionBtn = createActionButton(button[0], button[1]);
-            rightSidebar.add(actionBtn);
-            rightSidebar.add(Box.createVerticalStrut(15));
-        }
-    }*/
-    
-    /*private JButton createActionButton(String text, String icon) {
-        JButton button = new JButton("<html><div style='text-align: center;'>" + 
-                                   "<div style='font-size: 20px;'>" + icon + "</div>" + 
-                                   "<div style='font-size: 12px; margin-top: 5px;'>" + text + "</div></div></html>");
-        button.setFont(new Font("Arial", Font.PLAIN, 12));
-        button.setPreferredSize(new Dimension(100, 80));
-        button.setMaximumSize(new Dimension(100, 80));
-        button.setBackground(Color.BLACK);
-        button.setForeground(Color.BLACK);
-        button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createRaisedBevelBorder());
-        
-        // Hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(200, 230, 255));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(Color.BLACK);
-            }
-        });
-        
-        return button;
-    }*/
+   
     
     private void createChildViews() {
         // Tạo các view con và thêm vào mainPanel
@@ -399,7 +312,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         mainPanel.add(new KhachHangView(this), "KHACH_HANG");
         mainPanel.add(new NhanVienView(this), "NHAN_VIEN");
         mainPanel.add(new DonHangView(this), "DON_HANG");
-        mainPanel.add(new GiaoHangView(), "GIAO_HANG");
         mainPanel.add(new KhoHangView(this), "KHO_HANG");
         mainPanel.add(new NhapHangView(this), "NHAP_HANG");
         mainPanel.add(new ThongKeView(), "THONG_KE");
@@ -605,20 +517,18 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     
     // Method kiểm tra quyền truy cập
     private boolean hasPermission(String menuText) {
-        // Quản lý có quyền truy cập tất cả
-        if ("quanly".equals(currentUserRole)) {
-            return true;
+        if (database.Session.currentNhanVien == null) return false;
+        String[][] allowedMenus = database.Session.currentNhanVien.getMenuItems();
+        for (String[] menu : allowedMenus) {
+            if (menu[0].equals(menuText)) return true;
         }
-        
-        // Nhân viên chỉ được truy cập một số chức năng
-        switch (menuText) {
-            case "Quản lý khách hàng":
-            case "Quản lý đơn hàng":
-            case "Giao hàng":
-                return true;
-            default:
-                return false;
+        // Trường hợp đặc biệt: các submenu của Quản lý hàng hóa
+        if (menuText.equals("Quản lý món") || menuText.equals("Quản lý loại món") || menuText.equals("Quản lý nguyên liệu")) {
+            for (String[] menu : allowedMenus) {
+                if (menu[0].equals("Quản lý món")) return true; // Nếu có menu 'Quản lý món' tức là nhóm này được quyền hàng hóa
+            }
         }
+        return false;
     }
     
     private void loadUserInfo() {
@@ -679,9 +589,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
                 break;
             case "Quản lý đơn hàng":
                 cardLayout.show(mainPanel, "DON_HANG");
-                break;
-            case "Giao hàng":
-                cardLayout.show(mainPanel, "GIAO_HANG");
                 break;
             case "Quản lý món":
                 cardLayout.show(mainPanel, "MON");

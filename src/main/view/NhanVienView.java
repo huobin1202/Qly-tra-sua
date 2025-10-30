@@ -26,7 +26,7 @@ public class NhanVienView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Tài khoản","Mật khẩu", "Họ tên", "Số điện thoại", "Ngày vào làm", "Chức vụ", "Lương"};
+        String[] columns = {"ID", "Tài khoản","Mật khẩu", "Họ tên", "Số điện thoại", "Ngày vào làm", "Chức vụ", "Lương", "Trạng thái"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -147,7 +147,8 @@ public class NhanVienView extends JPanel {
                     rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
-                    String.format("%,d", rs.getInt("Luong")) + " VNĐ"
+                    String.format("%,.2f", rs.getDouble("Luong")) + " VNĐ",
+                    convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
                 tableModel.addRow(row);
             }
@@ -197,7 +198,8 @@ public class NhanVienView extends JPanel {
                     rs.getString("SDT"),
                     rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
                     rs.getString("ChucVu"),
-                    String.format("%,d", rs.getInt("Luong")) + " VNĐ"
+                    String.format("%,.2f", rs.getDouble("Luong")) + " VNĐ",
+                    convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
                 tableModel.addRow(row);
             }
@@ -231,6 +233,7 @@ public class NhanVienView extends JPanel {
         String ngayVaoLamStr = (String) tableModel.getValueAt(selectedRow, 5);
         String chucVu = (String) tableModel.getValueAt(selectedRow, 6);
         String luongStr = (String) tableModel.getValueAt(selectedRow, 7);
+        String trangThai = (selectedRow < tableModel.getColumnCount()) ? (String) tableModel.getValueAt(selectedRow, 8) : "Đang làm";
         
         Timestamp ngayVaoLam = null;
         if (!ngayVaoLamStr.isEmpty()) {
@@ -242,16 +245,22 @@ public class NhanVienView extends JPanel {
             }
         }
         
-        int luong = 0;
+        double luong = 0;
         if (!luongStr.isEmpty()) {
             try {
-                luong = Integer.parseInt(luongStr.replaceAll("[^0-9]", ""));
+                luong = Double.parseDouble(luongStr.replaceAll("[^0-9\\.]", "")); // Cho phép số thực
             } catch (Exception e) {
                 // Ignore parsing error
             }
         }
         
-        NhanVienDTO nv = new NhanVienDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, chucVu, luong);
+        NhanVienDTO nv;
+        // Truyền ID và trạng thái vào constructor mới chuẩn hóa (các file DTO đã sửa nhận thêm trạng thái)
+        if (chucVu != null && chucVu.trim().equalsIgnoreCase("quanly")) {
+            nv = new dto.NhanVienQuanLyDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, luong, convertTrangThaiToDatabase(trangThai));
+        } else {
+            nv = new dto.NhanVienThuongDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, luong, convertTrangThaiToDatabase(trangThai));
+        }
         NhanVienDialog dialog = new NhanVienDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhân viên", nv);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
@@ -323,6 +332,7 @@ public class NhanVienView extends JPanel {
         private JTextField taiKhoanField, matKhauField, hoTenField, sdtField, luongField;
         private DateChooserComponent ngayVaoLamPicker;
         private JComboBox<String> chucVuCombo;
+        private JComboBox<String> trangThaiCombo; // Thêm trong NhanVienDialog
         private boolean dataChanged = false;
         private NhanVienDTO nv;
         
@@ -345,6 +355,7 @@ public class NhanVienView extends JPanel {
             ngayVaoLamPicker = new DateChooserComponent();
             chucVuCombo = new JComboBox<>(new String[]{"Nhân viên", "Quản lý"});
             luongField = new JTextField(20);
+            trangThaiCombo = new JComboBox<>(new String[]{"Đang làm", "Nghỉ việc"});
             
             if (nv != null) {
                 // Sửa nhân viên - hiển thị thông tin hiện tại
@@ -356,10 +367,13 @@ public class NhanVienView extends JPanel {
                     ngayVaoLamPicker.setDate(nv.getNgayVaoLam());
                 }
                 chucVuCombo.setSelectedItem(convertChucVuToUI(nv.getChucVu()));
-                luongField.setText(String.valueOf(nv.getLuong()));
+                luongField.setText(String.valueOf(nv.getLuong())); // đã trả về double
+                String trangThaiUi = convertTrangThaiToUI(nv.getTrangThai());
+                trangThaiCombo.setSelectedItem(trangThaiUi);
             } else {
                 // Thêm nhân viên mới - tự động set ngày hiện tại
                 ngayVaoLamPicker.setCurrentDate();
+                trangThaiCombo.setSelectedIndex(0);
             }
         }
         
@@ -414,8 +428,14 @@ public class NhanVienView extends JPanel {
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(luongField, gbc);
             
+            // Trạng thái
+            gbc.gridx = 0; gbc.gridy = 7; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Trạng thái:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(trangThaiCombo, gbc);
+            
             // Buttons
-            gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JPanel buttonPanel = new JPanel(new FlowLayout());
             
             JButton saveButton = new JButton("Lưu");
@@ -478,10 +498,10 @@ public class NhanVienView extends JPanel {
                 return;
             }
             
-            int luong;
+            double luong;
             long sdt;
             try {
-                luong = Integer.parseInt(luongStr);
+                luong = Double.parseDouble(luongStr);
             } catch (NumberFormatException e) {
                 JOptionPane.showMessageDialog(this, "Lương phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -509,7 +529,7 @@ public class NhanVienView extends JPanel {
                     }
                     
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO nhanvien (TaiKhoan, MatKhau, HoTen, SDT, NgayVaoLam, ChucVu, Luong) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                        "INSERT INTO nhanvien (TaiKhoan, MatKhau, HoTen, SDT, NgayVaoLam, ChucVu, Luong, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)" );
                     ps.setString(1, taiKhoan);
                     ps.setString(2, matKhau);
                     ps.setString(3, hoTen);
@@ -522,7 +542,8 @@ public class NhanVienView extends JPanel {
                     }
                     
                     ps.setString(6, convertChucVuToDatabase(chucVu));
-                    ps.setInt(7, luong);
+                    ps.setDouble(7, luong);
+                    ps.setString(8, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
@@ -530,7 +551,7 @@ public class NhanVienView extends JPanel {
                     PreparedStatement ps;
                     if (!matKhau.isEmpty()) {
                         ps = conn.prepareStatement(
-                            "UPDATE nhanvien SET TaiKhoan=?, MatKhau=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=? WHERE MaNV=?");
+                            "UPDATE nhanvien SET TaiKhoan=?, MatKhau=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=?, TrangThai=? WHERE MaNV=?");
                         ps.setString(1, taiKhoan);
                         ps.setString(2, matKhau);
                         ps.setString(3, hoTen);
@@ -543,11 +564,12 @@ public class NhanVienView extends JPanel {
                         }
                         
                         ps.setString(6, convertChucVuToDatabase(chucVu));
-                        ps.setInt(7, luong);
-                        ps.setInt(8, nv.getMaNV());
+                        ps.setDouble(7, luong);
+                        ps.setString(8, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
+                        ps.setInt(9, nv.getMaNV());
                     } else {
                         ps = conn.prepareStatement(
-                            "UPDATE nhanvien SET TaiKhoan=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=? WHERE MaNV=?");
+                            "UPDATE nhanvien SET TaiKhoan=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=?, TrangThai=? WHERE MaNV=?");
                         ps.setString(1, taiKhoan);
                         ps.setString(2, hoTen);
                         ps.setString(3, sdtStr);
@@ -559,8 +581,9 @@ public class NhanVienView extends JPanel {
                         }
                         
                         ps.setString(5, chucVu);
-                        ps.setInt(6, luong);
-                        ps.setInt(7, nv.getMaNV());
+                        ps.setDouble(6, luong);
+                        ps.setString(7, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
+                        ps.setInt(8, nv.getMaNV());
                     }
                     
                     ps.executeUpdate();
@@ -596,5 +619,15 @@ public class NhanVienView extends JPanel {
             }
             return "Nhân viên"; // Mặc định
         }
+    }
+
+    // Biện dịch trạng thái DB <=> UI
+    private String convertTrangThaiToUI(String trangThaiDb) {
+        if ("nghiviec".equalsIgnoreCase(trangThaiDb)) return "Nghỉ việc";
+        return "Đang làm";
+    }
+    private String convertTrangThaiToDatabase(String trangThaiUi) {
+        if ("Nghỉ việc".equals(trangThaiUi)) return "nghiviec";
+        return "danglam";
     }
 }

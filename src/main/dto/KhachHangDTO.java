@@ -1,22 +1,19 @@
 package dto;
-import java.sql.Timestamp;
 
 public class KhachHangDTO {
     private int maKH;
     private String soDienThoai;
     private String hoTen;
-    private String diaChi;
-    private Timestamp ngaySinh;
+    private int diemTichLuy;
 
     public KhachHangDTO() {
     }
 
-    public KhachHangDTO(int maKH, String soDienThoai, String hoTen, String diaChi, Timestamp ngaySinh) {
+    public KhachHangDTO(int maKH, String soDienThoai, String hoTen, int diemTichLuy) {
         this.maKH = maKH;
         this.soDienThoai = soDienThoai;
         this.hoTen = hoTen;
-        this.diaChi = diaChi;
-        this.ngaySinh = ngaySinh;
+        this.diemTichLuy = diemTichLuy;
     }
 
     public int getMaKH() {
@@ -43,19 +40,11 @@ public class KhachHangDTO {
         this.hoTen = hoTen;
     }
 
-    public String getDiaChi() {
-        return diaChi;
+    public int getDiemTichLuy() {
+        return diemTichLuy;
     }
 
-    public void setDiaChi(String diaChi) {
-        this.diaChi = diaChi;
-    }
-
-    public Timestamp getNgaySinh() {
-        return ngaySinh;
-    }
-
-    public void setNgaySinh(Timestamp ngaySinh) {
-        this.ngaySinh = ngaySinh;
+    public void setDiemTichLuy(int diemTichLuy) {
+        this.diemTichLuy = diemTichLuy;
     }
 }

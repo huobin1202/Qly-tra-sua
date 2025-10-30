@@ -18,15 +18,15 @@ public class DateChooserComponent extends JPanel {
     private Date maxDate; // Ngày tối đa có thể chọn
     
     public DateChooserComponent() {
-        this(new SimpleDateFormat("yyyy-MM-dd"), true, new Date()); // Mặc định giới hạn đến hôm nay
+        this(new SimpleDateFormat("yyyy-MM-dd"), false, new Date()); // Không còn mặc định nút hôm nay
     }
     
     public DateChooserComponent(SimpleDateFormat format) {
-        this(format, true, new Date()); // Mặc định giới hạn đến hôm nay
+        this(format, false, new Date()); // Không còn mặc định nút hôm nay
     }
     
     public DateChooserComponent(SimpleDateFormat format, boolean showTodayButton) {
-        this(format, showTodayButton, new Date()); // Mặc định giới hạn đến hôm nay
+        this(format, showTodayButton, new Date()); // Không còn mặc định nút hôm nay
     }
     
     public DateChooserComponent(SimpleDateFormat format, boolean showTodayButton, Date maxDate) {
@@ -80,16 +80,8 @@ public class DateChooserComponent extends JPanel {
         // Thiết lập kích thước
         dateSpinner.setPreferredSize(new Dimension(120, 25));
         
-        // Tạo nút "Hôm nay" chỉ khi showTodayButton = true
-        if (showTodayButton) {
-            todayButton = new JButton("Hôm nay");
-            todayButton.setFont(new Font("Arial", Font.PLAIN, 10));
-            todayButton.setPreferredSize(new Dimension(70, 25));
-            todayButton.setBackground(new Color(70, 130, 180));
-            todayButton.setForeground(Color.WHITE);
-            todayButton.setFocusPainted(false);
-            todayButton.addActionListener(e -> setCurrentDate());
-        }
+        // Không khởi tạo todayButton nữa
+        todayButton = null;
     }
     
     private void setupLayout() {
@@ -97,9 +89,7 @@ public class DateChooserComponent extends JPanel {
         setOpaque(false);
         
         add(dateSpinner);
-        if (showTodayButton && todayButton != null) {
-            add(todayButton);
-        }
+        // Không add todayButton nữa
     }
     
     /**

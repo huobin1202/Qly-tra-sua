@@ -31,7 +31,7 @@ public class DonHangView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Tên NV", "Mã KH", "Tên KH", "Loại", "Trạng thái", "Ngày đặt", "Tổng tiền", "Giảm giá"};
+        String[] columns = {"ID", "Tên NV", "Mã KH", "Tên KH", "Trạng thái", "Ngày đặt", "Tổng tiền", "Giảm giá"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -164,7 +164,6 @@ public class DonHangView extends JPanel {
                     donHang.getTenNV() != null ? donHang.getTenNV() : "N/A",
                     donHang.getMaKH() != null ? donHang.getMaKH() : "",
                     donHang.getTenKH() != null ? donHang.getTenKH() : "",
-                    donHang.getLoai(),
                     convertTrangThaiToUI(donHang.getTrangThai()),
                     donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
                     String.format("%,d", donHang.getTongTien()) + " VNĐ",
@@ -192,7 +191,6 @@ public class DonHangView extends JPanel {
                     donHang.getTenNV() != null ? donHang.getTenNV() : "N/A",
                     donHang.getMaKH() != null ? donHang.getMaKH() : "",
                     donHang.getTenKH() != null ? donHang.getTenKH() : "",
-                    donHang.getLoai(),
                     convertTrangThaiToUI(donHang.getTrangThai()),
                     donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
                     String.format("%,d", donHang.getTongTien()) + " VNĐ",
@@ -268,7 +266,7 @@ public class DonHangView extends JPanel {
             
             // Thông tin đơn hàng
             detail.append("║ Mã đơn hàng: ").append(String.format("%-20s", donHang.getMaDon())).append(" Ngày đặt: ").append(String.format("%-20s", donHang.getNgayDat())).append(" ║\n");
-            detail.append("║ Nhân viên: ").append(String.format("%-20s", donHang.getTenNV() != null ? donHang.getTenNV() : "N/A")).append(" Loại: ").append(String.format("%-20s", donHang.getLoai())).append(" ║\n");
+            detail.append("║ Nhân viên: ").append(String.format("%-20s", donHang.getTenNV() != null ? donHang.getTenNV() : "N/A")).append(" ║\n");
             if (donHang.getTenKH() != null && !donHang.getTenKH().isEmpty()) {
                 detail.append("║ Khách hàng: ").append(String.format("%-20s", donHang.getTenKH())).append(" Mã KH: ").append(String.format("%-20s", donHang.getMaKH())).append(" ║\n");
             }
@@ -386,7 +384,7 @@ public class DonHangView extends JPanel {
     
     // Inner class for Add/Edit dialog
     private class DonHangDialog extends JDialog {
-        private JTextField maNVField, loaiField, tongTienField, giamGiaField;
+        private JTextField maNVField, tongTienField, giamGiaField;
         private JComboBox<String> trangThaiCombo;
         private DateChooserComponent ngayDatPicker;
         private JComboBox<String> hourCombo, minuteCombo;
@@ -406,7 +404,6 @@ public class DonHangView extends JPanel {
             setLocationRelativeTo(getParent());
             
             maNVField = new JTextField(20);
-            loaiField = new JTextField(20);
             tongTienField = new JTextField(20);
             giamGiaField = new JTextField(20);
             ngayDatPicker = new DateChooserComponent();
@@ -426,7 +423,6 @@ public class DonHangView extends JPanel {
             
             if (dh != null) {
                 maNVField.setText(String.valueOf(dh.getMaNV()));
-                loaiField.setText(dh.getLoai());
                 trangThaiCombo.setSelectedItem(convertTrangThaiToUI(dh.getTrangThai()));
                 tongTienField.setText(String.valueOf(dh.getTongTien()));
                 giamGiaField.setText(String.valueOf(dh.getGiamGia()));
@@ -465,20 +461,14 @@ public class DonHangView extends JPanel {
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(maNVField, gbc);
             
-            // Loại
-            gbc.gridx = 0; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Loại:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(loaiField, gbc);
-            
             // Trạng thái
-            gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Trạng thái:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(trangThaiCombo, gbc);
             
             // Ngày đặt
-            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
             mainPanel.add(new JLabel("Ngày đặt:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(ngayDatPicker, gbc);
@@ -558,7 +548,6 @@ public class DonHangView extends JPanel {
         
         private void saveData() {
             String maNVStr = maNVField.getText().trim();
-            String loai = loaiField.getText().trim();
             String trangThai = (String) trangThaiCombo.getSelectedItem();
             String ngayDatStr = ngayDatPicker.getSelectedDateString();
             String hourStr = (String) hourCombo.getSelectedItem();
@@ -569,7 +558,7 @@ public class DonHangView extends JPanel {
             // Tạo chuỗi ngày giờ đầy đủ
             String fullDateTimeStr = ngayDatStr + " " + hourStr + ":" + minuteStr + ":00";
             
-            if (maNVStr.isEmpty() || loai.isEmpty() || tongTienStr.isEmpty() || giamGiaStr.isEmpty()) {
+            if (maNVStr.isEmpty() || tongTienStr.isEmpty() || giamGiaStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -589,26 +578,24 @@ public class DonHangView extends JPanel {
                 if (dh == null) {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO donhang (MaNV, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)");
+                        "INSERT INTO donhang (MaNV, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?)");
                     ps.setInt(1, maNV);
-                    ps.setString(2, loai);
-                    ps.setString(3, convertTrangThaiToDatabase(trangThai));
-                    ps.setString(4, fullDateTimeStr);
-                    ps.setLong(5, tongTien);
-                    ps.setInt(6, giamGia);
+                    ps.setString(2, convertTrangThaiToDatabase(trangThai));
+                    ps.setString(3, fullDateTimeStr);
+                    ps.setLong(4, tongTien);
+                    ps.setInt(5, giamGia);
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     // Sửa
                     PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE donhang SET MaNV=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?");
+                        "UPDATE donhang SET MaNV=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?");
                     ps.setInt(1, maNV);
-                    ps.setString(2, loai);
-                    ps.setString(3, convertTrangThaiToDatabase(trangThai));
-                    ps.setString(4, fullDateTimeStr);
-                    ps.setLong(5, tongTien);
-                    ps.setInt(6, giamGia);
-                    ps.setInt(7, dh.getMaDon());
+                    ps.setString(2, convertTrangThaiToDatabase(trangThai));
+                    ps.setString(3, fullDateTimeStr);
+                    ps.setLong(4, tongTien);
+                    ps.setInt(5, giamGia);
+                    ps.setInt(6, dh.getMaDon());
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }

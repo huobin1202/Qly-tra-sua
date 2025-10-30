@@ -344,7 +344,7 @@ public class ThemNhapHangView extends JPanel {
         selectedProducts.clear();
         
         try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT ctnh.*, nl.TenNL " +
+            String sql = "SELECT ctnh.*, nl.TenNL, nl.DonVi " +
                         "FROM chitietnhap_nl ctnh " +
                         "JOIN nguyenlieu nl ON ctnh.MaNL = nl.MaNL " +
                         "WHERE ctnh.MaPN = ?";
@@ -753,14 +753,13 @@ public class ThemNhapHangView extends JPanel {
             }
             
             // 4. Thêm chi tiết mới
-            String insertDetail = "INSERT INTO chitietnhap_nl (MaPN, MaNL, SoLuong, DonGia, DonVi) VALUES (?, ?, ?, ?, ?)";
+            String insertDetail = "INSERT INTO chitietnhap_nl (MaPN, MaNL, SoLuong, DonGia) VALUES (?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertDetail)) {
                 for (SanPhamChonNhapDTO product : selectedProducts) {
                     ps.setInt(1, editModeMaPN);
                     ps.setInt(2, product.getMaNL());
                     ps.setInt(3, product.getSoLuong());
                     ps.setLong(4, product.getDonGia());
-                    ps.setString(5, product.getDonVi());
                     ps.executeUpdate();
                 }
             }
@@ -865,7 +864,7 @@ public class ThemNhapHangView extends JPanel {
                         int receiptId = rs.getInt(1);
                         
                         // 2. Create receipt details
-                        String insertDetail = "INSERT INTO chitietnhap_nl (MaPN, MaNL, SoLuong, DonGia, DonVi) VALUES (?, ?, ?, ?, ?)";
+                        String insertDetail = "INSERT INTO chitietnhap_nl (MaPN, MaNL, SoLuong, DonGia) VALUES (?, ?, ?, ?)";
                         
                         try (PreparedStatement psDetail = conn.prepareStatement(insertDetail)) {
                             for (SanPhamChonNhapDTO product : selectedProducts) {
@@ -873,7 +872,6 @@ public class ThemNhapHangView extends JPanel {
                                 psDetail.setInt(2, product.getMaNL());
                                 psDetail.setInt(3, product.getSoLuong());
                                 psDetail.setLong(4, product.getDonGia());
-                                psDetail.setString(5, product.getDonVi());
                                 
                                 psDetail.executeUpdate();
                                 

@@ -13,7 +13,6 @@ import utils.DateChooserComponent;
 public class ThongKeView extends JPanel {
     private JTabbedPane tabbedPane;
     private final ThongKeDAO thongKeDAO;
-    private JComboBox<String> yearCombo;
     private DateChooserComponent fromDatePicker;
     private DateChooserComponent toDatePicker;
     
@@ -82,36 +81,32 @@ public class ThongKeView extends JPanel {
         toDatePicker.setFont(new Font("Arial", Font.PLAIN, 12));
         controlPanel.add(toDatePicker);
         
-        // Năm
-        controlPanel.add(new JLabel("Năm:"));
-        yearCombo = new JComboBox<>();
-        yearCombo.setFont(new Font("Arial", Font.PLAIN, 12));
-        populateYearCombo();
-        controlPanel.add(yearCombo);
-        
-        // Nút làm mới
-        JButton refreshButton = new JButton("🔄 Làm mới");
+        // Nút tìm kiếm
+        JButton searchButton = new JButton("\uD83D\uDD0D Tìm");
+        searchButton.setFont(new Font("Arial", Font.BOLD, 12));
+        searchButton.setBackground(new Color(70, 130, 180));
+        searchButton.setForeground(Color.BLACK);
+        searchButton.setFocusPainted(false);
+        // Khi bấm, chỉ filter theo from-to và năm hiện chọn, không reset về mặc định
+        searchButton.addActionListener(e -> refreshAllTabs());
+        controlPanel.add(searchButton);
+
+        // Nút làm mới (hiển thị tất cả)
+        JButton refreshButton = new JButton("\u21BB Làm mới");
         refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
         refreshButton.setBackground(new Color(34, 139, 34));
         refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
-        refreshButton.addActionListener(e -> refreshAllTabs());
+        refreshButton.addActionListener(e -> {
+            setDefaultDates();
+            refreshAllTabs();
+        });
         controlPanel.add(refreshButton);
         
         // Set default dates
         setDefaultDates();
         
         return controlPanel;
-    }
-    
-    private void populateYearCombo() {
-        Calendar cal = Calendar.getInstance();
-        int currentYear = cal.get(Calendar.YEAR);
-        
-        for (int i = currentYear - 5; i <= currentYear + 1; i++) {
-            yearCombo.addItem(String.valueOf(i));
-        }
-        yearCombo.setSelectedItem(String.valueOf(currentYear));
     }
     
     private void setDefaultDates() {
@@ -282,29 +277,7 @@ public class ThongKeView extends JPanel {
         JScrollPane dailyScrollPane = new JScrollPane(dailyTable);
         dailyPanel.add(dailyScrollPane, BorderLayout.CENTER);
         
-        // Bảng doanh thu theo tháng
-        JPanel monthlyPanel = new JPanel(new BorderLayout());
-        monthlyPanel.setBackground(Color.WHITE);
-        monthlyPanel.setBorder(BorderFactory.createTitledBorder("Doanh thu theo tháng"));
-        
-        String[] monthlyColumns = {"Tháng", "Doanh thu"};
-        DefaultTableModel monthlyModel = new DefaultTableModel(monthlyColumns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        JTable monthlyTable = new JTable(monthlyModel);
-        monthlyTable.setFont(new Font("Arial", Font.PLAIN, 12));
-        monthlyTable.setRowHeight(25);
-        monthlyTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        
-        JScrollPane monthlyScrollPane = new JScrollPane(monthlyTable);
-        monthlyPanel.add(monthlyScrollPane, BorderLayout.CENTER);
-        
         contentPanel.add(dailyPanel);
-        contentPanel.add(monthlyPanel);
         
         doanhThuPanel.add(contentPanel, BorderLayout.CENTER);
         
@@ -341,7 +314,7 @@ public class ThongKeView extends JPanel {
         table.setRowHeight(25);
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.getTableHeader().setBackground(new Color(70, 130, 180));
-        table.getTableHeader().setForeground(Color.WHITE);
+        table.getTableHeader().setForeground(Color.BLACK);
         
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -372,27 +345,6 @@ public class ThongKeView extends JPanel {
         contentPanel.setBackground(new Color(240, 248, 255));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Bảng khách hàng mới theo tháng
-        JPanel newCustomerPanel = new JPanel(new BorderLayout());
-        newCustomerPanel.setBackground(Color.WHITE);
-        newCustomerPanel.setBorder(BorderFactory.createTitledBorder("Khách hàng mới theo tháng"));
-        
-        String[] newCustomerColumns = {"Tháng", "Số khách hàng"};
-        DefaultTableModel newCustomerModel = new DefaultTableModel(newCustomerColumns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        JTable newCustomerTable = new JTable(newCustomerModel);
-        newCustomerTable.setFont(new Font("Arial", Font.PLAIN, 12));
-        newCustomerTable.setRowHeight(25);
-        newCustomerTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        
-        JScrollPane newCustomerScrollPane = new JScrollPane(newCustomerTable);
-        newCustomerPanel.add(newCustomerScrollPane, BorderLayout.CENTER);
-        
         // Bảng đơn hàng theo trạng thái
         JPanel orderStatusPanel = new JPanel(new BorderLayout());
         orderStatusPanel.setBackground(Color.WHITE);
@@ -414,7 +366,6 @@ public class ThongKeView extends JPanel {
         JScrollPane orderStatusScrollPane = new JScrollPane(orderStatusTable);
         orderStatusPanel.add(orderStatusScrollPane, BorderLayout.CENTER);
         
-        contentPanel.add(newCustomerPanel);
         contentPanel.add(orderStatusPanel);
         
         khachHangPanel.add(contentPanel, BorderLayout.CENTER);
@@ -434,7 +385,6 @@ public class ThongKeView extends JPanel {
     private void refreshAllTabs() {
         String fromDate = fromDatePicker.getSelectedDateString();
         String toDate = toDatePicker.getSelectedDateString();
-        String year = (String) yearCombo.getSelectedItem();
         
         // Validate dates
         if (fromDate == null || fromDate.isEmpty() || toDate == null || toDate.isEmpty()) {
@@ -454,9 +404,9 @@ public class ThongKeView extends JPanel {
         try {
             loadTongQuanData();
             loadMonBanChayData(fromDate, toDate);
-            loadDoanhThuData(fromDate, toDate, year);
+            loadDoanhThuData(fromDate, toDate);
             loadNhanVienData(fromDate, toDate);
-            loadKhachHangData(year);
+            loadKhachHangData(fromDate, toDate);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, 
                 "Lỗi khi tải dữ liệu thống kê: " + e.getMessage(), 
@@ -518,7 +468,7 @@ public class ThongKeView extends JPanel {
         }
     }
     
-    private void loadDoanhThuData(String fromDate, String toDate, String year) {
+    private void loadDoanhThuData(String fromDate, String toDate) {
         // Load daily revenue
         List<ThongKeDTO> dailyData = thongKeDAO.thongKeDoanhThuTheoNgay(fromDate, toDate);
         
@@ -536,23 +486,6 @@ public class ThongKeView extends JPanel {
                 String.format("%,d VNĐ", item.getDoanhThu())
             };
             dailyModel.addRow(row);
-        }
-        
-        // Load monthly revenue
-        List<ThongKeDTO> monthlyData = thongKeDAO.thongKeDoanhThuTheoThang(year);
-        
-        JPanel monthlyPanel = (JPanel) contentPanel.getComponent(1);
-        JScrollPane monthlyScrollPane = (JScrollPane) monthlyPanel.getComponent(0);
-        JTable monthlyTable = (JTable) monthlyScrollPane.getViewport().getView();
-        DefaultTableModel monthlyModel = (DefaultTableModel) monthlyTable.getModel();
-        
-        monthlyModel.setRowCount(0);
-        for (ThongKeDTO item : monthlyData) {
-            Object[] row = {
-                item.getThang(),
-                String.format("%,d VNĐ", item.getDoanhThu())
-            };
-            monthlyModel.addRow(row);
         }
     }
     
@@ -578,30 +511,13 @@ public class ThongKeView extends JPanel {
         }
     }
     
-    private void loadKhachHangData(String year) {
-        // Load new customers by month
-        List<ThongKeDTO> newCustomerData = thongKeDAO.thongKeKhachHangMoiTheoThang(year);
-        
-        JPanel khachHangPanel = (JPanel) tabbedPane.getComponentAt(4);
-        JPanel contentPanel = (JPanel) khachHangPanel.getComponent(1);
-        JPanel newCustomerPanel = (JPanel) contentPanel.getComponent(0);
-        JScrollPane newCustomerScrollPane = (JScrollPane) newCustomerPanel.getComponent(0);
-        JTable newCustomerTable = (JTable) newCustomerScrollPane.getViewport().getView();
-        DefaultTableModel newCustomerModel = (DefaultTableModel) newCustomerTable.getModel();
-        
-        newCustomerModel.setRowCount(0);
-        for (ThongKeDTO item : newCustomerData) {
-            Object[] row = {
-                item.getThang(),
-                item.getSoKhachHang()
-            };
-            newCustomerModel.addRow(row);
-        }
-        
+    private void loadKhachHangData(String fromDate, String toDate) {
         // Load order status
         List<ThongKeDTO> orderStatusData = thongKeDAO.thongKeDonHangTheoTrangThai();
         
-        JPanel orderStatusPanel = (JPanel) contentPanel.getComponent(1);
+        JPanel khachHangPanel = (JPanel) tabbedPane.getComponentAt(4);
+        JPanel contentPanel = (JPanel) khachHangPanel.getComponent(1);
+        JPanel orderStatusPanel = (JPanel) contentPanel.getComponent(0);
         JScrollPane orderStatusScrollPane = (JScrollPane) orderStatusPanel.getComponent(0);
         JTable orderStatusTable = (JTable) orderStatusScrollPane.getViewport().getView();
         DefaultTableModel orderStatusModel = (DefaultTableModel) orderStatusTable.getModel();

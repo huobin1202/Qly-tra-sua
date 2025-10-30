@@ -4,11 +4,8 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import database.DBUtil;
 import dto.KhachHangDTO;
-import utils.DateChooserComponent;
 
 public class KhachHangView extends JPanel {
     private JTable table;
@@ -27,7 +24,7 @@ public class KhachHangView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Số điện thoại", "Họ tên", "Địa chỉ", "Ngày sinh"};
+        String[] columns = {"ID", "Số điện thoại", "Họ tên", "Điểm tích lũy"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -149,14 +146,12 @@ public class KhachHangView extends JPanel {
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT * FROM khachhang ORDER BY MaKH")) {
             
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaKH"),
                     rs.getString("SDT"),
                     rs.getString("HoTen"),
-                    rs.getString("DiaChi"),
-                    rs.getTimestamp("NgaySinh") != null ? dateFormat.format(rs.getTimestamp("NgaySinh")) : ""
+                    rs.getInt("DiemTichLuy")
                 };
                 tableModel.addRow(row);
             }
@@ -192,14 +187,12 @@ public class KhachHangView extends JPanel {
             }
             
             ResultSet rs = ps.executeQuery();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaKH"),
                     rs.getString("SDT"),
                     rs.getString("HoTen"),
-                    rs.getString("DiaChi"),
-                    rs.getTimestamp("NgaySinh") != null ? dateFormat.format(rs.getTimestamp("NgaySinh")) : ""
+                    rs.getInt("DiemTichLuy")
                 };
                 tableModel.addRow(row);
             }
@@ -228,20 +221,9 @@ public class KhachHangView extends JPanel {
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String sdt = (String) tableModel.getValueAt(selectedRow, 1);
         String hoTen = (String) tableModel.getValueAt(selectedRow, 2);
-        String diaChi = (String) tableModel.getValueAt(selectedRow, 3);
-        String ngaySinhStr = (String) tableModel.getValueAt(selectedRow, 4);
+        int diemTichLuy = (Integer) tableModel.getValueAt(selectedRow, 3);
         
-        Timestamp ngaySinh = null;
-        if (!ngaySinhStr.isEmpty()) {
-            try {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                ngaySinh = new Timestamp(dateFormat.parse(ngaySinhStr).getTime());
-            } catch (Exception e) {
-                // Ignore parsing error
-            }
-        }
-        
-        KhachHangDTO kh = new KhachHangDTO(id, sdt, hoTen, diaChi, ngaySinh);
+        KhachHangDTO kh = new KhachHangDTO(id, sdt, hoTen, diemTichLuy);
         KhachHangDialog dialog = new KhachHangDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin khách hàng", kh);
         dialog.setVisible(true);
         if (dialog.isDataChanged()) {
@@ -278,8 +260,7 @@ public class KhachHangView extends JPanel {
     
     // Inner class for Add/Edit dialog
     private class KhachHangDialog extends JDialog {
-        private JTextField sdtField, hoTenField, diaChiField;
-        private DateChooserComponent ngaySinhPicker;
+        private JTextField sdtField, hoTenField, diemTichLuyField;
         private JButton saveButton, cancelButton;
         private boolean dataChanged = false;
         private KhachHangDTO kh;
@@ -293,23 +274,19 @@ public class KhachHangView extends JPanel {
         }
         
         private void initializeComponents() {
-            setSize(400, 350);
+            setSize(400, 280);
             setLocationRelativeTo(getParent());
             
             sdtField = new JTextField(20);
             hoTenField = new JTextField(20);
-            diaChiField = new JTextField(20);
-            // Tạo DateChooserComponent cho ngày sinh: ẩn nút "Hôm nay" và giới hạn tối đa là hôm nay
-            Date today = new Date();
-            ngaySinhPicker = new DateChooserComponent(false, today);
+            diemTichLuyField = new JTextField(20);
             
             if (kh != null) {
                 sdtField.setText(String.valueOf(kh.getSoDienThoai()));
                 hoTenField.setText(kh.getHoTen());
-                diaChiField.setText(kh.getDiaChi());
-                if (kh.getNgaySinh() != null) {
-                    ngaySinhPicker.setDate(kh.getNgaySinh());
-                }
+                diemTichLuyField.setText(String.valueOf(kh.getDiemTichLuy()));
+            } else {
+                diemTichLuyField.setText("0");
             }
         }
         
@@ -334,20 +311,14 @@ public class KhachHangView extends JPanel {
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(hoTenField, gbc);
             
-            // Địa chỉ
+            // Điểm tích lũy
             gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Địa chỉ:"), gbc);
+            mainPanel.add(new JLabel("Điểm tích lũy:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(diaChiField, gbc);
-            
-            // Ngày sinh
-            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
-            mainPanel.add(new JLabel("Ngày sinh:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            mainPanel.add(ngaySinhPicker, gbc);
+            mainPanel.add(diemTichLuyField, gbc);
             
             // Buttons
-            gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+            gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JPanel buttonPanel = new JPanel(new FlowLayout());
             
             saveButton = new JButton("Lưu");
@@ -375,24 +346,34 @@ public class KhachHangView extends JPanel {
         private void saveData() {
             String sdtStr = sdtField.getText().trim();
             String hoTen = hoTenField.getText().trim();
-            String diaChi = diaChiField.getText().trim();
-            String ngaySinhStr = ngaySinhPicker.getSelectedDateString();
+            String diemTichLuyStr = diemTichLuyField.getText().trim();
             
-            if (sdtStr.isEmpty() || hoTen.isEmpty() || diaChi.isEmpty()) {
+            if (sdtStr.isEmpty() || hoTen.isEmpty() || diemTichLuyStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             // Validation số điện thoại
-            // Kiểm tra chỉ chứa số
             if (!sdtStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Số điện thoại chỉ được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Kiểm tra độ dài
             if (sdtStr.length() < 9 || sdtStr.length() > 11) {
                 JOptionPane.showMessageDialog(this, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validation điểm tích lũy
+            int diemTichLuy;
+            try {
+                diemTichLuy = Integer.parseInt(diemTichLuyStr);
+                if (diemTichLuy < 0) {
+                    JOptionPane.showMessageDialog(this, "Điểm tích lũy phải là số dương!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Điểm tích lũy phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
@@ -400,34 +381,22 @@ public class KhachHangView extends JPanel {
                 if (kh == null) {
                     // Thêm mới
                     PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO khachhang (SDT, HoTen, DiaChi, NgaySinh) VALUES (?, ?, ?, ?)");
+                        "INSERT INTO khachhang (SDT, HoTen, DiemTichLuy) VALUES (?, ?, ?)");
                     ps.setString(1, sdtStr);
                     ps.setString(2, hoTen);
-                    ps.setString(3, diaChi);
-                    
-                    if (!ngaySinhStr.isEmpty()) {
-                        ps.setString(4, ngaySinhStr + " 10:00:00");
-                    } else {
-                        ps.setNull(4, Types.TIMESTAMP);
-                    }
+                    ps.setInt(3, diemTichLuy);
                     
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     // Sửa
                     PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE khachhang SET SDT=?, HoTen=?, DiaChi=?, NgaySinh=? WHERE MaKH=?");
+                        "UPDATE khachhang SET SDT=?, HoTen=?, DiemTichLuy=? WHERE MaKH=?");
                     ps.setString(1, sdtStr);
                     ps.setString(2, hoTen);
-                    ps.setString(3, diaChi);
+                    ps.setInt(3, diemTichLuy);
+                    ps.setInt(4, kh.getMaKH());
                     
-                    if (!ngaySinhStr.isEmpty()) {
-                        ps.setString(4, ngaySinhStr + " 10:00:00");
-                    } else {
-                        ps.setNull(4, Types.TIMESTAMP);
-                    }
-                    
-                    ps.setInt(5, kh.getMaKH());
                     ps.executeUpdate();
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }

@@ -5,6 +5,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.*;
+import dto.NhanVienDTO;
+import dto.NhanVienQuanLyDTO;
+import dto.NhanVienThuongDTO;
 
 public class LoginDialog extends JDialog {
     private JTextField usernameField;
@@ -214,7 +217,40 @@ public class LoginDialog extends JDialog {
                 database.Session.currentMaNV = rs.getInt("MaNV");
                 database.Session.currentTaiKhoan = rs.getString("TaiKhoan");
                 database.Session.currentChucVu = rs.getString("ChucVu");
-                
+
+                // Lưu object nhân viên thực tế vào Session
+                String trangThai = rs.getString("TrangThai");
+                if (trangThai != null && trangThai.equalsIgnoreCase("nghiviec")) {
+                    JOptionPane.showMessageDialog(this, "Tài khoản này đã nghỉ việc, không thể đăng nhập!", "Bị từ chối", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                String chucVuDB = rs.getString("ChucVu");
+                NhanVienDTO nhanVienObj;
+                if (chucVuDB != null && chucVuDB.trim().equalsIgnoreCase("quanly")) {
+                    nhanVienObj = new NhanVienQuanLyDTO(
+                        rs.getInt("MaNV"),
+                        rs.getString("TaiKhoan"),
+                        rs.getString("MatKhau"),
+                        rs.getString("HoTen"),
+                        rs.getString("SDT"),
+                        rs.getTimestamp("NgayVaoLam"),
+                        rs.getDouble("Luong"),
+                        trangThai
+                    );
+                } else {
+                    nhanVienObj = new NhanVienThuongDTO(
+                        rs.getInt("MaNV"),
+                        rs.getString("TaiKhoan"),
+                        rs.getString("MatKhau"),
+                        rs.getString("HoTen"),
+                        rs.getString("SDT"),
+                        rs.getTimestamp("NgayVaoLam"),
+                        rs.getDouble("Luong"),
+                        trangThai
+                    );
+                }
+                database.Session.currentNhanVien = nhanVienObj;
+
                 // Debug: In ra thông tin để kiểm tra
                 loginSuccessful = true;
                 JOptionPane.showMessageDialog(this, "Đăng nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);

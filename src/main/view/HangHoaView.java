@@ -5,10 +5,14 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import database.DBUtil;
 import dto.MonDTO;
 import dto.NguyenLieuDTO;
 import dto.LoaiMonDTO;
+import dto.MonNguyenLieuDTO;
+import dao.HangHoaDAO;
 
 public class HangHoaView extends JPanel {
     private JTable table;
@@ -17,10 +21,15 @@ public class HangHoaView extends JPanel {
     private JComboBox<String> searchCombo, categoryCombo;
     private MainFrameInterface parent;
     private String currentView = "MON"; // MON, LOAIMON, or NGUYENLIEU
+    private JComboBox<String> loaiMonFilterCombo;
     
     public void setCurrentView(String view) {
         this.currentView = view;
         updateTableHeaders();
+        // Hiện/ẩn loại filter
+        if (loaiMonFilterCombo != null) {
+            loaiMonFilterCombo.setVisible(view.equals("MON"));
+        }
         loadData();
     }
     
@@ -39,7 +48,7 @@ public class HangHoaView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Tên", "Mô tả", "Giá", "Trạng thái", "Loại"};
+        String[] columns = {"ID", "Tên", "Giá", "Trạng thái", "Loại"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -58,6 +67,18 @@ public class HangHoaView extends JPanel {
         searchField = new JTextField(20);
         categoryCombo = new JComboBox<>(new String[]{"Món", "Loại món", "Nguyên liệu"});
         
+        loaiMonFilterCombo = new JComboBox<>();
+        loaiMonFilterCombo.addItem("Tất cả loại");
+        // Tải loại món từ DB để đưa vào filter
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT TenLoai FROM loaimon ORDER BY MaLoai")) {
+            while (rs.next()) {
+                loaiMonFilterCombo.addItem(rs.getString("TenLoai"));
+            }
+        } catch (SQLException e) {
+            // Nếu lỗi thôi không thêm gì
+        }
     }
     
     private void setupLayout() {
@@ -75,6 +96,12 @@ public class HangHoaView extends JPanel {
         JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         controlPanel.setBackground(new Color(240, 248, 255));
         controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        controlPanel.add(searchCombo);
+        controlPanel.add(searchField);
+        controlPanel.add(categoryCombo);
+        controlPanel.add(loaiMonFilterCombo); // Đảm bảo luôn add vào layout
+        loaiMonFilterCombo.setVisible(currentView.equals("MON"));
+        
         // Top panel - chứa search và buttons trong cùng một hàng
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(240, 248, 255));
@@ -150,6 +177,7 @@ public class HangHoaView extends JPanel {
         addButton.addActionListener(e -> showAddDialog());
         editButton.addActionListener(e -> showEditDialog());
         deleteButton.addActionListener(e -> performDelete());
+        loaiMonFilterCombo.addActionListener(e -> loadData());
     }
     
     private void setupEventHandlers() {
@@ -182,7 +210,7 @@ public class HangHoaView extends JPanel {
     
     private void updateTableHeaders() {
         if (currentView.equals("MON")) {
-            tableModel.setColumnIdentifiers(new String[]{"ID", "Tên món", "Mô tả", "Giá", "Trạng thái", "Loại", "Ảnh"});
+            tableModel.setColumnIdentifiers(new String[]{"ID", "Tên món", "Giá", "Trạng thái", "Loại", "Ảnh"});
         } else if (currentView.equals("LOAIMON")) {
             tableModel.setColumnIdentifiers(new String[]{"ID", "Tên loại"});
         } else {
@@ -191,8 +219,8 @@ public class HangHoaView extends JPanel {
         
         // Set custom renderer for image column after table is updated
         SwingUtilities.invokeLater(() -> {
-            if (currentView.equals("MON") && table.getColumnCount() > 6) {
-                table.getColumnModel().getColumn(6).setCellRenderer(new ImageCellRenderer());
+            if (currentView.equals("MON") && table.getColumnCount() > 5) {
+                table.getColumnModel().getColumn(5).setCellRenderer(new ImageCellRenderer());
             }
         });
     }
@@ -212,28 +240,33 @@ public class HangHoaView extends JPanel {
         }
         
         // Set renderer after data is loaded
-        if (currentView.equals("MON") && table.getColumnCount() > 6) {
-            table.getColumnModel().getColumn(6).setCellRenderer(new ImageCellRenderer());
+        if (currentView.equals("MON") && table.getColumnCount() > 5) {
+            table.getColumnModel().getColumn(5).setCellRenderer(new ImageCellRenderer());
         }
     }
     
     private void loadMonData(Connection conn) throws SQLException {
-        String sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                Object[] row = {
-                    rs.getInt("MaMon"),
-                    rs.getString("TenMon"),
-                    rs.getString("MoTa"),
-                    String.format("%,d", rs.getLong("Gia")) + " VNĐ",
-                    convertTinhTrangToUI(rs.getString("TinhTrang")), // Chuyển đổi trạng thái sang tiếng Việt
-                    rs.getString("TenLoai"),
-                    rs.getString("Anh")
-                };
-                tableModel.addRow(row);
-            }
+        String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai";
+        String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
+        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
+            sql += " WHERE l.TenLoai = ?";
+        }
+        sql += " ORDER BY m.MaMon";
+        PreparedStatement ps = conn.prepareStatement(sql);
+        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
+            ps.setString(1, tenLoaiSelected);
+        }
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Object[] row = {
+                rs.getInt("MaMon"),
+                rs.getString("TenMon"),
+                String.format("%,d", rs.getLong("Gia")) + " VNĐ",
+                convertTinhTrangToUI(rs.getString("TinhTrang")),
+                rs.getString("TenLoai"),
+                rs.getString("Anh")
+            };
+            tableModel.addRow(row);
         }
     }
     
@@ -292,11 +325,11 @@ public class HangHoaView extends JPanel {
     }
     
     private void searchMonData(Connection conn, String searchText, String searchType) throws SQLException {
-        String sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
+        String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
         PreparedStatement ps;
         
         if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-            sql = "SELECT m.MaMon, m.TenMon, m.MoTa, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
+            sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai ORDER BY m.MaMon";
             ps = conn.prepareStatement(sql);
         } else if (searchType.equals("ID")) {
             sql += "m.MaMon = ? ORDER BY m.MaMon";
@@ -325,7 +358,6 @@ public class HangHoaView extends JPanel {
             Object[] row = {
                 rs.getInt("MaMon"),
                 rs.getString("TenMon"),
-                rs.getString("MoTa"),
                 String.format("%,d", rs.getLong("Gia")) + " VNĐ",
                 convertTinhTrangToUI(rs.getString("TinhTrang")), // Chuyển đổi trạng thái sang tiếng Việt
                 rs.getString("TenLoai"),
@@ -396,11 +428,10 @@ public class HangHoaView extends JPanel {
         if (currentView.equals("MON")) {
             int id = (Integer) tableModel.getValueAt(selectedRow, 0);
             String ten = (String) tableModel.getValueAt(selectedRow, 1);
-            String moTa = (String) tableModel.getValueAt(selectedRow, 2);
-            String giaStr = (String) tableModel.getValueAt(selectedRow, 3);
-            String tinhTrangUI = (String) tableModel.getValueAt(selectedRow, 4); // Trạng thái hiển thị (ví dụ: "Đang bán")
-            String loai = (String) tableModel.getValueAt(selectedRow, 5);
-            String anh = (String) tableModel.getValueAt(selectedRow, 6);
+            String giaStr = (String) tableModel.getValueAt(selectedRow, 2);
+            String tinhTrangUI = (String) tableModel.getValueAt(selectedRow, 3); // Trạng thái hiển thị (ví dụ: "Đang bán")
+            String loai = (String) tableModel.getValueAt(selectedRow, 4);
+            String anh = (String) tableModel.getValueAt(selectedRow, 5);
             
             // Chuyển đổi trạng thái từ UI về database
             String tinhTrang = convertTinhTrangToDatabase(tinhTrangUI);
@@ -428,7 +459,7 @@ public class HangHoaView extends JPanel {
                 // Use default value
             }
             
-            MonDTO mon = new MonDTO(id, ten, moTa, gia, tinhTrang, maLoai, anh);
+            MonDTO mon = new MonDTO(id, ten, gia, tinhTrang, maLoai, anh);
             MonDialog dialog = new MonDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin món", mon);
             dialog.setVisible(true);
             if (dialog.isDataChanged()) {
@@ -596,12 +627,20 @@ public class HangHoaView extends JPanel {
     
     // Inner class for Mon Add/Edit dialog
     private class MonDialog extends JDialog {
-        private JTextField tenField, moTaField, giaField, anhField;
-        private JComboBox<String> tinhTrangCombo, loaiCombo;
+        private JTextField tenField, giaField, anhField;
+        private JComboBox<String> loaiCombo;
         private JButton chooseImageButton;
         private JLabel imagePreviewLabel;
         private boolean dataChanged = false;
         private MonDTO mon;
+        
+        // Ingredients management
+        private JComboBox<NguyenLieuDTO> nguyenLieuCombo;
+        private JTextField soLuongNLField, donViNLField;
+        private JTable ingredientsTable;
+        private DefaultTableModel ingredientsTableModel;
+        private List<MonNguyenLieuDTO> ingredientsList = new ArrayList<>();
+        private HangHoaDAO hangHoaDAO = new HangHoaDAO();
         
         public MonDialog(Window parent, String title, MonDTO mon) {
             super(parent, title, ModalityType.APPLICATION_MODAL);
@@ -612,58 +651,89 @@ public class HangHoaView extends JPanel {
         }
         
         private void initializeComponents() {
-            setSize(500, 500);
+            setSize(900, 700);
             setLocationRelativeTo(getParent());
             
-            tenField = new JTextField(25);
-            moTaField = new JTextField(25);
-            giaField = new JTextField(25);
-            anhField = new JTextField(25);
+            // Product fields
+            tenField = new JTextField(20);
+            giaField = new JTextField(15);
+            anhField = new JTextField(20);
             anhField.setEditable(false);
-            tinhTrangCombo = new JComboBox<>(new String[]{"Đang bán", "Tạm ngừng"});
             loaiCombo = new JComboBox<>();
             
-            chooseImageButton = new JButton("Chọn ảnh");
-            chooseImageButton.setBackground(new Color(70, 130, 180));
+            // Image button
+            chooseImageButton = new JButton("Thêm ảnh");
+            chooseImageButton.setBackground(new Color(139, 90, 0)); // Brown color
             chooseImageButton.setForeground(Color.BLACK);
             chooseImageButton.setFocusPainted(false);
             chooseImageButton.addActionListener(e -> chooseImage());
             
+            // Image preview
             imagePreviewLabel = new JLabel("Chưa chọn ảnh", JLabel.CENTER);
             imagePreviewLabel.setBorder(BorderFactory.createEtchedBorder());
-            imagePreviewLabel.setPreferredSize(new Dimension(150, 150));
+            imagePreviewLabel.setPreferredSize(new Dimension(200, 200));
+            imagePreviewLabel.setMinimumSize(new Dimension(200, 200));
+            imagePreviewLabel.setMaximumSize(new Dimension(200, 200));
+            imagePreviewLabel.setHorizontalAlignment(JLabel.CENTER);
+            imagePreviewLabel.setVerticalAlignment(JLabel.CENTER);
             
-            // Load loại món
+            // Ingredients fields
+            nguyenLieuCombo = new JComboBox<>();
+            soLuongNLField = new JTextField(10);
+            soLuongNLField.setText("0");
+            donViNLField = new JTextField(10);
+            donViNLField.setEditable(false);
+            
+            // Ingredients table
+            String[] columns = {"Tên nguyên liệu", "Số lượng", "Đơn vị"};
+            ingredientsTableModel = new DefaultTableModel(columns, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+            ingredientsTable = new JTable(ingredientsTableModel);
+            ingredientsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+            ingredientsTable.setRowHeight(25);
+            
+            // Load data
             loadLoaiMon();
+            loadNguyenLieu();
             
             if (mon != null) {
+                setTitle("CHỈNH SỬA SẢN PHẨM");
                 tenField.setText(mon.getTenMon());
-                moTaField.setText(mon.getMoTa());
                 giaField.setText(String.valueOf(mon.getGia()));
-                tinhTrangCombo.setSelectedItem(convertTinhTrangToUI(mon.getTinhTrang()));
                 anhField.setText(mon.getAnh() != null ? mon.getAnh() : "");
                 
-                // Load existing image if available
-                if (mon.getAnh() != null && !mon.getAnh().trim().isEmpty()) {
-                    loadImagePreview(mon.getAnh());
-                } else {
-                    imagePreviewLabel.setText("Chưa có ảnh");
-                    imagePreviewLabel.setIcon(null);
-                }
-                
-                // Set loại món safely
+                // Set loại món
                 try {
                     if (mon.getMaLoai() > 0 && mon.getMaLoai() <= loaiCombo.getItemCount()) {
                         loaiCombo.setSelectedIndex(mon.getMaLoai() - 1);
                     }
                 } catch (Exception e) {
-                    // Ignore error, keep default selection
                 }
+                
+                // Load image if available
+                if (mon.getAnh() != null && !mon.getAnh().trim().isEmpty()) {
+                    loadImagePreview(mon.getAnh());
+                }
+                
+                // Load ingredients
+                loadIngredients();
             } else {
-                // For new items, show default state
+                setTitle("THÊM SẢN PHẨM MỚI");
                 imagePreviewLabel.setText("Chưa chọn ảnh");
                 imagePreviewLabel.setIcon(null);
             }
+            
+            // Update don vi when ingredient is selected
+            nguyenLieuCombo.addActionListener(e -> {
+                NguyenLieuDTO selected = (NguyenLieuDTO) nguyenLieuCombo.getSelectedItem();
+                if (selected != null) {
+                    donViNLField.setText(selected.getDonVi());
+                }
+            });
         }
         
         private void loadLoaiMon() {
@@ -680,128 +750,254 @@ public class HangHoaView extends JPanel {
         }
         
         private void setupLayout() {
-            setLayout(new BorderLayout());
+            // Set orange background
+            Color orangeBg = new Color(255, 200, 100);
+            setBackground(orangeBg);
             
-            JPanel mainPanel = new JPanel(new GridBagLayout());
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.setBackground(orangeBg);
             mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
             
+            // Top panel: Left (form) and Right (image)
+            JPanel topPanel = new JPanel(new BorderLayout(15, 0));
+            topPanel.setBackground(orangeBg);
+            
+            // Left panel: Product info form
+            JPanel leftPanel = new JPanel(new GridBagLayout());
+            leftPanel.setBackground(orangeBg);
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(10, 10, 10, 10);
-            gbc.fill = GridBagConstraints.HORIZONTAL; // Fill horizontally
+            gbc.anchor = GridBagConstraints.WEST;
             
-            // Tên món
-            gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0; // Label doesn't expand
-            mainPanel.add(new JLabel("Tên món:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1; // Text field expands
-            mainPanel.add(tenField, gbc);
+            // Tên sản phẩm
+            gbc.gridx = 0; gbc.gridy = 0;
+            leftPanel.add(new JLabel("TÊN SẢN PHẨM:"), gbc);
+            gbc.gridx = 1;
+            tenField.setPreferredSize(new Dimension(250, 25));
+            leftPanel.add(tenField, gbc);
             
-            // Mô tả
-            gbc.gridx = 0; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0;
-            mainPanel.add(new JLabel("Mô tả:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1;
-            mainPanel.add(moTaField, gbc);
+            // Category
+            gbc.gridx = 0; gbc.gridy = 1;
+            leftPanel.add(new JLabel("LOẠI:"), gbc);
+            gbc.gridx = 1;
+            loaiCombo.setPreferredSize(new Dimension(250, 25));
+            leftPanel.add(loaiCombo, gbc);
             
-            // Giá
-            gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0;
-            mainPanel.add(new JLabel("Giá (VNĐ):"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1;
-            mainPanel.add(giaField, gbc);
+            // Giá bán
+            gbc.gridx = 0; gbc.gridy = 2;
+            leftPanel.add(new JLabel("GIÁ BÁN:"), gbc);
+            gbc.gridx = 1;
+            giaField.setPreferredSize(new Dimension(250, 25));
+            leftPanel.add(giaField, gbc);
             
-            // Trạng thái
-            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0;
-            mainPanel.add(new JLabel("Trạng thái:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1;
-            mainPanel.add(tinhTrangCombo, gbc);
+            topPanel.add(leftPanel, BorderLayout.WEST);
             
-            // Loại
-            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0;
-            mainPanel.add(new JLabel("Loại:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1;
-            mainPanel.add(loaiCombo, gbc);
+            // Right panel: Image
+            JPanel rightPanel = new JPanel(new BorderLayout(0, 10));
+            rightPanel.setBackground(orangeBg);
+            rightPanel.setPreferredSize(new Dimension(250, 300));
             
-            // Ảnh
-            gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
-            gbc.weightx = 0;
-            mainPanel.add(new JLabel("Ảnh:"), gbc);
-            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
-            gbc.weightx = 1;
-            JPanel imagePanel = new JPanel(new BorderLayout());
-            imagePanel.add(anhField, BorderLayout.CENTER);
-            imagePanel.add(chooseImageButton, BorderLayout.EAST);
-            mainPanel.add(imagePanel, gbc);
+            // Button panel
+            JPanel imageButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            imageButtonPanel.setBackground(orangeBg);
+            imageButtonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
+            imageButtonPanel.add(chooseImageButton);
+            rightPanel.add(imageButtonPanel, BorderLayout.NORTH);
             
-            // Image preview
-            gbc.gridx = 0; gbc.gridy = 6; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-            gbc.weightx = 0; gbc.fill = GridBagConstraints.NONE;
-            mainPanel.add(imagePreviewLabel, gbc);
+            // Image preview panel - use GridBagLayout for better control
+            JPanel imagePreviewPanel = new JPanel(new GridBagLayout());
+            imagePreviewPanel.setBackground(orangeBg);
+            GridBagConstraints imgGbc = new GridBagConstraints();
+            imgGbc.gridx = 0;
+            imgGbc.gridy = 0;
+            imgGbc.anchor = GridBagConstraints.CENTER;
+            imagePreviewPanel.add(imagePreviewLabel, imgGbc);
+            rightPanel.add(imagePreviewPanel, BorderLayout.CENTER);
             
-            // Buttons
-            gbc.gridx = 0; gbc.gridy = 7; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-            gbc.weightx = 0;
+            topPanel.add(rightPanel, BorderLayout.EAST);
+            
+            mainPanel.add(topPanel, BorderLayout.NORTH);
+            
+            // Bottom panel: Ingredients management
+            JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
+            bottomPanel.setBackground(orangeBg);
+            bottomPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createEtchedBorder(), "DANH SÁCH NGUYÊN LIỆU"));
+            
+            // Add ingredient form
+            JPanel addIngredientPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 5));
+            addIngredientPanel.setBackground(orangeBg);
+            
+            addIngredientPanel.add(new JLabel("TÊN NGUYÊN LIỆU:"));
+            nguyenLieuCombo.setPreferredSize(new Dimension(200, 25));
+            addIngredientPanel.add(nguyenLieuCombo);
+            
+            addIngredientPanel.add(new JLabel("SỐ LƯỢNG:"));
+            soLuongNLField.setPreferredSize(new Dimension(80, 25));
+            addIngredientPanel.add(soLuongNLField);
+            
+            addIngredientPanel.add(new JLabel("ĐƠN VỊ:"));
+            donViNLField.setPreferredSize(new Dimension(80, 25));
+            addIngredientPanel.add(donViNLField);
+            
+            JButton addIngredientButton = new JButton("Thêm");
+            addIngredientButton.setBackground(new Color(139, 90, 0));
+            addIngredientButton.setForeground(Color.BLACK);
+            addIngredientButton.setFocusPainted(false);
+            addIngredientButton.addActionListener(e -> addIngredient());
+            addIngredientPanel.add(addIngredientButton);
+            
+            bottomPanel.add(addIngredientPanel, BorderLayout.NORTH);
+            
+            // Ingredients table
+            JScrollPane tableScroll = new JScrollPane(ingredientsTable);
+            tableScroll.setPreferredSize(new Dimension(0, 200));
+            tableScroll.setBackground(orangeBg);
+            bottomPanel.add(tableScroll, BorderLayout.CENTER);
+            
+            mainPanel.add(bottomPanel, BorderLayout.CENTER);
+            
+            // Buttons panel
             JPanel buttonPanel = new JPanel(new FlowLayout());
+            buttonPanel.setBackground(orangeBg);
             
             JButton saveButton = new JButton("Lưu");
-            saveButton.setBackground(new Color(34, 139, 34));
+            saveButton.setBackground(new Color(139, 90, 0));
             saveButton.setForeground(Color.BLACK);
             saveButton.setFocusPainted(false);
+            saveButton.setPreferredSize(new Dimension(100, 30));
             saveButton.addActionListener(e -> saveData());
             
             JButton cancelButton = new JButton("Hủy");
-            cancelButton.setBackground(new Color(220, 220, 220));
+            cancelButton.setBackground(new Color(200, 200, 200));
             cancelButton.setFocusPainted(false);
+            cancelButton.setPreferredSize(new Dimension(100, 30));
             cancelButton.addActionListener(e -> dispose());
             
             buttonPanel.add(saveButton);
             buttonPanel.add(cancelButton);
-            mainPanel.add(buttonPanel, gbc);
+            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
             
-            add(mainPanel, BorderLayout.CENTER);
+            add(mainPanel);
         }
         
         private void setupEventHandlers() {
-            // Event handlers are already set in setupLayout()
-        }
-        
-        private JButton findButton(String text) {
-            for (Component comp : getComponents()) {
-                if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
-        }
-        
-        private JButton findButtonInPanel(JPanel panel, String text) {
-            for (Component comp : panel.getComponents()) {
-                if (comp instanceof JButton) {
-                    JButton button = (JButton) comp;
-                    if (button.getText().equals(text)) {
-                        return button;
+            // Double click to delete ingredient
+            ingredientsTable.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    if (evt.getClickCount() == 2 && ingredientsTable.getSelectedRow() >= 0) {
+                        deleteIngredient();
                     }
-                } else if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
+                }
+            });
+        }
+        
+        private void loadNguyenLieu() {
+            nguyenLieuCombo.removeAllItems();
+            try {
+                List<NguyenLieuDTO> list = hangHoaDAO.layTatCaNguyenLieu();
+                for (NguyenLieuDTO nl : list) {
+                    nguyenLieuCombo.addItem(nl);
+                }
+                // Set renderer to show name
+                nguyenLieuCombo.setRenderer(new DefaultListCellRenderer() {
+                    @Override
+                    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                            boolean isSelected, boolean cellHasFocus) {
+                        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                        if (value instanceof NguyenLieuDTO) {
+                            setText(((NguyenLieuDTO) value).getTenNL());
+                        }
+                        return this;
+                    }
+                });
+            } catch (Exception e) {
+            }
+        }
+        
+        private void loadIngredients() {
+            if (mon == null) return;
+            
+            ingredientsList = hangHoaDAO.layNguyenLieuCuaMon(mon.getMaMon());
+            refreshIngredientsTable();
+        }
+        
+        private void refreshIngredientsTable() {
+            ingredientsTableModel.setRowCount(0);
+            for (MonNguyenLieuDTO dto : ingredientsList) {
+                ingredientsTableModel.addRow(new Object[]{
+                    dto.getTenNL(),
+                    dto.getSoLuong(),
+                    dto.getDonVi()
+                });
+            }
+        }
+        
+        private void addIngredient() {
+            NguyenLieuDTO selected = (NguyenLieuDTO) nguyenLieuCombo.getSelectedItem();
+            if (selected == null) {
+                JOptionPane.showMessageDialog(this, "Vui lòng chọn nguyên liệu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            int soLuong;
+            try {
+                soLuong = Integer.parseInt(soLuongNLField.getText().trim());
+                if (soLuong <= 0) {
+                    JOptionPane.showMessageDialog(this, "Số lượng phải lớn hơn 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Số lượng phải là số hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Check if ingredient already exists
+            for (MonNguyenLieuDTO dto : ingredientsList) {
+                if (dto.getMaNL() == selected.getMaNL()) {
+                    dto.setSoLuong(dto.getSoLuong() + soLuong);
+                    refreshIngredientsTable();
+                    soLuongNLField.setText("0");
+                    return;
                 }
             }
-            return null;
+            
+            // Add new ingredient
+            MonNguyenLieuDTO newIngredient = new MonNguyenLieuDTO();
+            newIngredient.setMaNL(selected.getMaNL());
+            newIngredient.setTenNL(selected.getTenNL());
+            newIngredient.setSoLuong(soLuong);
+            newIngredient.setDonVi(selected.getDonVi());
+            
+            if (mon != null) {
+                newIngredient.setMaMon(mon.getMaMon());
+            }
+            
+            ingredientsList.add(newIngredient);
+            refreshIngredientsTable();
+            soLuongNLField.setText("0");
+        }
+        
+        private void deleteIngredient() {
+            int selectedRow = ingredientsTable.getSelectedRow();
+            if (selectedRow < 0 || selectedRow >= ingredientsList.size()) {
+                return;
+            }
+            
+            int confirm = JOptionPane.showConfirmDialog(this, 
+                "Bạn có chắc muốn xóa nguyên liệu này?", 
+                "Xác nhận", 
+                JOptionPane.YES_NO_OPTION);
+            
+            if (confirm == JOptionPane.YES_OPTION) {
+                ingredientsList.remove(selectedRow);
+                refreshIngredientsTable();
+            }
         }
         
         private void saveData() {
             String ten = tenField.getText().trim();
-            String moTa = moTaField.getText().trim();
             String giaStr = giaField.getText().trim();
-            String tinhTrang = (String) tinhTrangCombo.getSelectedItem();
             String loai = (String) loaiCombo.getSelectedItem();
             
             if (ten.isEmpty() || giaStr.isEmpty()) {
@@ -818,6 +1014,8 @@ public class HangHoaView extends JPanel {
             }
             
             try (Connection conn = DBUtil.getConnection()) {
+                conn.setAutoCommit(false);
+                
                 // Get MaLoai from TenLoai
                 int maLoai = 1;
                 try (PreparedStatement ps = conn.prepareStatement("SELECT MaLoai FROM loaimon WHERE TenLoai = ?")) {
@@ -832,33 +1030,55 @@ public class HangHoaView extends JPanel {
                 }
                 
                 String anh = anhField.getText().trim();
+                int maMon;
                 
                 if (mon == null) {
                     // Thêm mới
-                    PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO mon (TenMon, MoTa, Gia, TinhTrang, MaLoai, Anh) VALUES (?, ?, ?, ?, ?, ?)");
-                    ps.setString(1, ten);
-                    ps.setString(2, moTa);
-                    ps.setLong(3, gia);
-                    ps.setString(4, convertTinhTrangToDatabase(tinhTrang));
-                    ps.setInt(5, maLoai);
-                    ps.setString(6, anh);
-                    ps.executeUpdate();
+                    try (PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO mon (TenMon, Gia, TinhTrang, MaLoai, Anh) VALUES (?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS)) {
+                        ps.setString(1, ten);
+                        ps.setLong(2, gia);
+                        ps.setString(3, "dangban");
+                        ps.setInt(4, maLoai);
+                        ps.setString(5, anh);
+                        ps.executeUpdate();
+                        
+                        ResultSet rs = ps.getGeneratedKeys();
+                        if (rs.next()) {
+                            maMon = rs.getInt(1);
+                        } else {
+                            conn.rollback();
+                            JOptionPane.showMessageDialog(this, "Lỗi khi lấy mã món!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     // Sửa
-                    PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE mon SET TenMon=?, MoTa=?, Gia=?, TinhTrang=?, MaLoai=?, Anh=? WHERE MaMon=?");
-                    ps.setString(1, ten);
-                    ps.setString(2, moTa);
-                    ps.setLong(3, gia);
-                    ps.setString(4, convertTinhTrangToDatabase(tinhTrang));
-                    ps.setInt(5, maLoai);
-                    ps.setString(6, anh);
-                    ps.setInt(7, mon.getMaMon());
-                    ps.executeUpdate();
+                    maMon = mon.getMaMon();
+                    try (PreparedStatement ps = conn.prepareStatement(
+                        "UPDATE mon SET TenMon=?, Gia=?, MaLoai=?, Anh=? WHERE MaMon=?")) {
+                        ps.setString(1, ten);
+                        ps.setLong(2, gia);
+                        ps.setInt(3, maLoai);
+                        ps.setString(4, anh);
+                        ps.setInt(5, maMon);
+                        ps.executeUpdate();
+                    }
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
+                
+                // Save ingredients
+                if (mon != null) {
+                    hangHoaDAO.xoaTatCaNguyenLieuCuaMon(maMon);
+                }
+                for (MonNguyenLieuDTO dto : ingredientsList) {
+                    dto.setMaMon(maMon);
+                    hangHoaDAO.themNguyenLieuVaoMon(dto.getMaMon(), dto.getMaNL(), dto.getSoLuong());
+                }
+                
+                conn.commit();
                 dataChanged = true;
                 dispose();
             } catch (SQLException e) {
@@ -922,21 +1142,28 @@ public class HangHoaView extends JPanel {
                     ImageIcon icon = new ImageIcon(fullPath);
                     Image image = icon.getImage();
                     
-                    // Scale image to fit in preview
-                    int maxWidth = 140;
-                    int maxHeight = 140;
+                    // Scale image to fit in preview (200x200 label)
+                    int maxWidth = 190;
+                    int maxHeight = 190;
                     int width = image.getWidth(null);
                     int height = image.getHeight(null);
                     
-                    double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
-                    int newWidth = (int) (width * scale);
-                    int newHeight = (int) (height * scale);
-                    
-                    Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-                    ImageIcon scaledIcon = new ImageIcon(scaledImage);
-                    
-                    imagePreviewLabel.setText("");
-                    imagePreviewLabel.setIcon(scaledIcon);
+                    if (width > 0 && height > 0) {
+                        double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
+                        int newWidth = (int) (width * scale);
+                        int newHeight = (int) (height * scale);
+                        
+                        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                        ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                        
+                        imagePreviewLabel.setText("");
+                        imagePreviewLabel.setIcon(scaledIcon);
+                        imagePreviewLabel.setHorizontalAlignment(JLabel.CENTER);
+                        imagePreviewLabel.setVerticalAlignment(JLabel.CENTER);
+                    } else {
+                        imagePreviewLabel.setText("Lỗi kích thước ảnh");
+                        imagePreviewLabel.setIcon(null);
+                    }
                 } else {
                     imagePreviewLabel.setText("Không tìm thấy ảnh");
                     imagePreviewLabel.setIcon(null);

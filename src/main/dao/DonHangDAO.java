@@ -6,6 +6,7 @@ import java.util.List;
 import database.DBUtil;
 import dto.DonHangDTO;
 import dto.ChiTietDonHangDTO;
+import dto.MonNguyenLieuDTO;
 
 public class DonHangDAO {
     
@@ -29,7 +30,6 @@ public class DonHangDAO {
                 // MaKH có thể NULL
                 int maKH = rs.getInt("MaKH");
                 donHang.setMaKH(rs.wasNull() ? null : maKH);
-                donHang.setLoai(rs.getString("Loai"));
                 donHang.setTrangThai(rs.getString("TrangThai"));
                 donHang.setNgayDat(rs.getTimestamp("NgayDat"));
                 donHang.setTongTien(rs.getLong("TongTien"));
@@ -65,10 +65,6 @@ public class DonHangDAO {
                 sql += "nv.HoTen LIKE ? ORDER BY dh.MaDon";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
-            } else if (searchType.equals("Loại")) {
-                sql += "dh.Loai LIKE ? ORDER BY dh.MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
             } else {
                 sql += "dh.TrangThai LIKE ? ORDER BY dh.MaDon";
                 ps = conn.prepareStatement(sql);
@@ -83,7 +79,6 @@ public class DonHangDAO {
                     // MaKH có thể NULL
                     int maKH = rs.getInt("MaKH");
                     donHang.setMaKH(rs.wasNull() ? null : maKH);
-                    donHang.setLoai(rs.getString("Loai"));
                     donHang.setTrangThai(rs.getString("TrangThai"));
                     donHang.setNgayDat(rs.getTimestamp("NgayDat"));
                     donHang.setTongTien(rs.getLong("TongTien"));
@@ -115,7 +110,6 @@ public class DonHangDAO {
                     // MaKH có thể NULL
                     int maKH = rs.getInt("MaKH");
                     donHang.setMaKH(rs.wasNull() ? null : maKH);
-                    donHang.setLoai(rs.getString("Loai"));
                     donHang.setTrangThai(rs.getString("TrangThai"));
                     donHang.setNgayDat(rs.getTimestamp("NgayDat"));
                     donHang.setTongTien(rs.getLong("TongTien"));
@@ -130,7 +124,7 @@ public class DonHangDAO {
     
     // Thêm đơn hàng mới
     public boolean themDonHang(DonHangDTO donHang) {
-        String sql = "INSERT INTO donhang (MaNV, MaKH, Loai, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO donhang (MaNV, MaKH, TrangThai, NgayDat, TongTien, GiamGia) VALUES (?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -141,11 +135,10 @@ public class DonHangDAO {
             } else {
                 ps.setNull(2, java.sql.Types.INTEGER);
             }
-            ps.setString(3, donHang.getLoai());
-            ps.setString(4, donHang.getTrangThai());
-            ps.setTimestamp(5, donHang.getNgayDat());
-            ps.setLong(6, donHang.getTongTien());
-            ps.setInt(7, donHang.getGiamGia());
+            ps.setString(3, donHang.getTrangThai());
+            ps.setTimestamp(4, donHang.getNgayDat());
+            ps.setLong(5, donHang.getTongTien());
+            ps.setInt(6, donHang.getGiamGia());
             
             int result = ps.executeUpdate();
             
@@ -164,7 +157,7 @@ public class DonHangDAO {
     
     // Cập nhật đơn hàng
     public boolean capNhatDonHang(DonHangDTO donHang) {
-        String sql = "UPDATE donhang SET MaNV=?, MaKH=?, Loai=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
+        String sql = "UPDATE donhang SET MaNV=?, MaKH=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -175,12 +168,11 @@ public class DonHangDAO {
             } else {
                 ps.setNull(2, java.sql.Types.INTEGER);
             }
-            ps.setString(3, donHang.getLoai());
-            ps.setString(4, donHang.getTrangThai());
-            ps.setTimestamp(5, donHang.getNgayDat());
-            ps.setLong(6, donHang.getTongTien());
-            ps.setInt(7, donHang.getGiamGia());
-            ps.setInt(8, donHang.getMaDon());
+            ps.setString(3, donHang.getTrangThai());
+            ps.setTimestamp(4, donHang.getNgayDat());
+            ps.setLong(5, donHang.getTongTien());
+            ps.setInt(6, donHang.getGiamGia());
+            ps.setInt(7, donHang.getMaDon());
             
             int result = ps.executeUpdate();
             return result > 0;
@@ -221,19 +213,180 @@ public class DonHangDAO {
     
     // Cập nhật trạng thái đơn hàng
     public boolean capNhatTrangThaiDonHang(int maDon, String trangThai) {
-        String sql = "UPDATE donhang SET TrangThai = ? WHERE MaDon = ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DBUtil.getConnection()) {
+            conn.setAutoCommit(false);
             
-            ps.setString(1, trangThai);
-            ps.setInt(2, maDon);
+            // Kiểm tra trạng thái hiện tại của đơn hàng
+            DonHangDTO donHangHienTai = layDonHangTheoMa(maDon);
+            if (donHangHienTai == null) {
+                return false;
+            }
             
-            int result = ps.executeUpdate();
-            return result > 0;
+            String trangThaiHienTai = donHangHienTai.getTrangThai();
+            
+            // Cập nhật trạng thái
+            String sql = "UPDATE donhang SET TrangThai = ? WHERE MaDon = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, trangThai);
+                ps.setInt(2, maDon);
+                
+                int result = ps.executeUpdate();
+                if (result <= 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+            
+            // Nếu chuyển sang trạng thái "dathanhtoan" và trước đó chưa thanh toán
+            if ("dathanhtoan".equals(trangThai) && !"dathanhtoan".equals(trangThaiHienTai)) {
+                if (!truNguyenLieuKhiThanhToan(conn, maDon)) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+            
+            // Nếu chuyển từ "dathanhtoan" sang trạng thái khác, cần hoàn lại nguyên liệu
+            if ("dathanhtoan".equals(trangThaiHienTai) && !"dathanhtoan".equals(trangThai)) {
+                if (!hoanLaiNguyenLieu(conn, maDon)) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+            
+            conn.commit();
+            return true;
         } catch (SQLException e) {
         }
         return false;
+    }
+    
+    // Trừ nguyên liệu khi thanh toán đơn hàng
+    private boolean truNguyenLieuKhiThanhToan(Connection conn, int maDon) throws SQLException {
+        // Lấy chi tiết đơn hàng
+        List<ChiTietDonHangDTO> chiTietList = layChiTietDonHang(conn, maDon);
+        
+        // Map để tổng hợp nguyên liệu cần trừ (MaNL -> tổng số lượng cần trừ)
+        java.util.Map<Integer, Integer> nguyenLieuCanTru = new java.util.HashMap<>();
+        
+        // Duyệt qua từng món trong đơn hàng
+        for (ChiTietDonHangDTO chiTiet : chiTietList) {
+            int maMon = chiTiet.getMaMon();
+            int soLuongMon = chiTiet.getSoLuong();
+            
+            // Lấy danh sách nguyên liệu của món
+            List<MonNguyenLieuDTO> nguyenLieuList = layNguyenLieuCuaMon(conn, maMon);
+            
+            // Tính tổng nguyên liệu cần trừ (nhân với số lượng món)
+            for (MonNguyenLieuDTO nl : nguyenLieuList) {
+                int maNL = nl.getMaNL();
+                int soLuongNL = nl.getSoLuong() * soLuongMon;
+                
+                // Cộng dồn vào map
+                nguyenLieuCanTru.put(maNL, 
+                    nguyenLieuCanTru.getOrDefault(maNL, 0) + soLuongNL);
+            }
+        }
+        
+        // Trừ nguyên liệu trong kho
+        for (java.util.Map.Entry<Integer, Integer> entry : nguyenLieuCanTru.entrySet()) {
+            int maNL = entry.getKey();
+            int soLuongCanTru = entry.getValue();
+            
+            // Kiểm tra tồn kho
+            String checkSql = "SELECT SoLuong FROM khohang WHERE MaNL = ?";
+            try (PreparedStatement ps = conn.prepareStatement(checkSql)) {
+                ps.setInt(1, maNL);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        int tonKho = rs.getInt("SoLuong");
+                        if (tonKho < soLuongCanTru) {
+                            throw new SQLException("Không đủ nguyên liệu! Nguyên liệu mã " + maNL + 
+                                " chỉ còn " + tonKho + " nhưng cần " + soLuongCanTru);
+                        }
+                    } else {
+                        throw new SQLException("Không tìm thấy nguyên liệu mã " + maNL + " trong kho");
+                    }
+                }
+            }
+            
+            // Trừ số lượng
+            String updateSql = "UPDATE khohang SET SoLuong = SoLuong - ? WHERE MaNL = ?";
+            try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+                ps.setInt(1, soLuongCanTru);
+                ps.setInt(2, maNL);
+                int result = ps.executeUpdate();
+                if (result <= 0) {
+                    throw new SQLException("Lỗi khi trừ nguyên liệu mã " + maNL);
+                }
+            }
+        }
+        
+        return true;
+    }
+    
+    // Hoàn lại nguyên liệu khi hủy/hoàn đơn đã thanh toán
+    private boolean hoanLaiNguyenLieu(Connection conn, int maDon) throws SQLException {
+        // Logic tương tự nhưng cộng thêm vào kho
+        List<ChiTietDonHangDTO> chiTietList = layChiTietDonHang(conn, maDon);
+        
+        java.util.Map<Integer, Integer> nguyenLieuCanHoan = new java.util.HashMap<>();
+        
+        for (ChiTietDonHangDTO chiTiet : chiTietList) {
+            int maMon = chiTiet.getMaMon();
+            int soLuongMon = chiTiet.getSoLuong();
+            
+            List<MonNguyenLieuDTO> nguyenLieuList = layNguyenLieuCuaMon(conn, maMon);
+            
+            for (MonNguyenLieuDTO nl : nguyenLieuList) {
+                int maNL = nl.getMaNL();
+                int soLuongNL = nl.getSoLuong() * soLuongMon;
+                
+                nguyenLieuCanHoan.put(maNL, 
+                    nguyenLieuCanHoan.getOrDefault(maNL, 0) + soLuongNL);
+            }
+        }
+        
+        // Hoàn lại nguyên liệu vào kho
+        for (java.util.Map.Entry<Integer, Integer> entry : nguyenLieuCanHoan.entrySet()) {
+            int maNL = entry.getKey();
+            int soLuongCanHoan = entry.getValue();
+            
+            String updateSql = "UPDATE khohang SET SoLuong = SoLuong + ? WHERE MaNL = ?";
+            try (PreparedStatement ps = conn.prepareStatement(updateSql)) {
+                ps.setInt(1, soLuongCanHoan);
+                ps.setInt(2, maNL);
+                ps.executeUpdate();
+            }
+        }
+        
+        return true;
+    }
+    
+    // Lấy nguyên liệu của món (helper method)
+    private List<MonNguyenLieuDTO> layNguyenLieuCuaMon(Connection conn, int maMon) throws SQLException {
+        List<MonNguyenLieuDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT mnl.*, nl.TenNL, nl.DonVi " +
+                    "FROM mon_nguyenlieu mnl " +
+                    "JOIN nguyenlieu nl ON mnl.MaNL = nl.MaNL " +
+                    "WHERE mnl.MaMon = ? " +
+                    "ORDER BY nl.TenNL";
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, maMon);
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MonNguyenLieuDTO dto = new MonNguyenLieuDTO();
+                    dto.setMaMon(rs.getInt("MaMon"));
+                    dto.setMaNL(rs.getInt("MaNL"));
+                    dto.setTenNL(rs.getString("TenNL"));
+                    dto.setSoLuong(rs.getInt("SoLuong"));
+                    dto.setDonVi(rs.getString("DonVi"));
+                    danhSach.add(dto);
+                }
+            }
+        }
+        return danhSach;
     }
     
     // Cập nhật trạng thái đơn hàng với enum
@@ -242,6 +395,15 @@ public class DonHangDAO {
     
     // Lấy chi tiết đơn hàng
     public List<ChiTietDonHangDTO> layChiTietDonHang(int maDon) {
+        try (Connection conn = DBUtil.getConnection()) {
+            return layChiTietDonHang(conn, maDon);
+        } catch (SQLException e) {
+            return new ArrayList<>();
+        }
+    }
+    
+    // Lấy chi tiết đơn hàng (với Connection để dùng trong transaction)
+    private List<ChiTietDonHangDTO> layChiTietDonHang(Connection conn, int maDon) throws SQLException {
         List<ChiTietDonHangDTO> danhSach = new ArrayList<>();
         String sql = "SELECT ctdh.*, m1.TenMon AS TenMon, m2.TenMon AS TenTopping " +
                     "FROM chitietdonhang ctdh " +
@@ -249,9 +411,7 @@ public class DonHangDAO {
                     "LEFT JOIN mon m2 ON ctdh.MaTopping = m2.MaMon " +
                     "WHERE ctdh.MaDon = ?";
         
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, maDon);
             
             try (ResultSet rs = ps.executeQuery()) {
@@ -269,7 +429,6 @@ public class DonHangDAO {
                     danhSach.add(chiTiet);
                 }
             }
-        } catch (SQLException e) {
         }
         return danhSach;
     }
@@ -332,7 +491,6 @@ public class DonHangDAO {
                     // MaKH có thể NULL
                     int maKH = rs.getInt("MaKH");
                     donHang.setMaKH(rs.wasNull() ? null : maKH);
-                    donHang.setLoai(rs.getString("Loai"));
                     donHang.setTrangThai(rs.getString("TrangThai"));
                     donHang.setNgayDat(rs.getTimestamp("NgayDat"));
                     donHang.setTongTien(rs.getLong("TongTien"));

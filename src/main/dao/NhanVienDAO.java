@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import database.DBUtil;
 import dto.NhanVienDTO;
+import dto.NhanVienThuongDTO;
+import dto.NhanVienQuanLyDTO;
 
 public class NhanVienDAO {
     
@@ -18,15 +20,31 @@ public class NhanVienDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
-                NhanVienDTO nhanVien = new NhanVienDTO();
-                nhanVien.setMaNV(rs.getInt("MaNV"));
-                nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
-                nhanVien.setMatKhau(rs.getString("MatKhau"));
-                nhanVien.setHoTen(rs.getString("HoTen"));
-                nhanVien.setSoDienThoai(rs.getString("SDT"));
-                nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
-                nhanVien.setChucVu(rs.getString("ChucVu"));
-                nhanVien.setLuong(rs.getInt("Luong"));
+                String chucVuDB = rs.getString("ChucVu");
+                NhanVienDTO nhanVien;
+                if (chucVuDB != null && chucVuDB.trim().equalsIgnoreCase("quanly")) {
+                    nhanVien = new dto.NhanVienQuanLyDTO(
+                        rs.getInt("MaNV"),
+                        rs.getString("TaiKhoan"),
+                        rs.getString("MatKhau"),
+                        rs.getString("HoTen"),
+                        rs.getString("SDT"),
+                        rs.getTimestamp("NgayVaoLam"),
+                        rs.getDouble("Luong"),
+                        rs.getString("TrangThai")
+                    );
+                } else {
+                    nhanVien = new dto.NhanVienThuongDTO(
+                        rs.getInt("MaNV"),
+                        rs.getString("TaiKhoan"),
+                        rs.getString("MatKhau"),
+                        rs.getString("HoTen"),
+                        rs.getString("SDT"),
+                        rs.getTimestamp("NgayVaoLam"),
+                        rs.getDouble("Luong"),
+                        rs.getString("TrangThai")
+                    );
+                }
                 danhSach.add(nhanVien);
             }
         } catch (SQLException e) {
@@ -64,15 +82,31 @@ public class NhanVienDAO {
             
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    NhanVienDTO nhanVien = new NhanVienDTO();
-                    nhanVien.setMaNV(rs.getInt("MaNV"));
-                    nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
-                    nhanVien.setMatKhau(rs.getString("MatKhau"));
-                    nhanVien.setHoTen(rs.getString("HoTen"));
-                    nhanVien.setSoDienThoai(rs.getString("SDT"));
-                    nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
-                    nhanVien.setChucVu(rs.getString("ChucVu"));
-                    nhanVien.setLuong(rs.getInt("Luong"));
+                    String chucVuDB = rs.getString("ChucVu");
+                    NhanVienDTO nhanVien;
+                    if (chucVuDB != null && chucVuDB.trim().equalsIgnoreCase("quanly")) {
+                        nhanVien = new dto.NhanVienQuanLyDTO(
+                            rs.getInt("MaNV"),
+                            rs.getString("TaiKhoan"),
+                            rs.getString("MatKhau"),
+                            rs.getString("HoTen"),
+                            rs.getString("SDT"),
+                            rs.getTimestamp("NgayVaoLam"),
+                            rs.getDouble("Luong"),
+                            rs.getString("TrangThai")
+                        );
+                    } else {
+                        nhanVien = new dto.NhanVienThuongDTO(
+                            rs.getInt("MaNV"),
+                            rs.getString("TaiKhoan"),
+                            rs.getString("MatKhau"),
+                            rs.getString("HoTen"),
+                            rs.getString("SDT"),
+                            rs.getTimestamp("NgayVaoLam"),
+                            rs.getDouble("Luong"),
+                            rs.getString("TrangThai")
+                        );
+                    }
                     danhSach.add(nhanVien);
                 }
             }
@@ -92,15 +126,31 @@ public class NhanVienDAO {
             
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    NhanVienDTO nhanVien = new NhanVienDTO();
-                    nhanVien.setMaNV(rs.getInt("MaNV"));
-                    nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
-                    nhanVien.setMatKhau(rs.getString("MatKhau"));
-                    nhanVien.setHoTen(rs.getString("HoTen"));
-                    nhanVien.setSoDienThoai(rs.getString("SDT"));
-                    nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
-                    nhanVien.setChucVu(rs.getString("ChucVu"));
-                    nhanVien.setLuong(rs.getInt("Luong"));
+                    String chucVuDB = rs.getString("ChucVu");
+                    NhanVienDTO nhanVien;
+                    if (chucVuDB != null && chucVuDB.trim().equalsIgnoreCase("quanly")) {
+                        nhanVien = new dto.NhanVienQuanLyDTO(
+                            rs.getInt("MaNV"),
+                            rs.getString("TaiKhoan"),
+                            rs.getString("MatKhau"),
+                            rs.getString("HoTen"),
+                            rs.getString("SDT"),
+                            rs.getTimestamp("NgayVaoLam"),
+                            rs.getDouble("Luong"),
+                            rs.getString("TrangThai")
+                        );
+                    } else {
+                        nhanVien = new dto.NhanVienThuongDTO(
+                            rs.getInt("MaNV"),
+                            rs.getString("TaiKhoan"),
+                            rs.getString("MatKhau"),
+                            rs.getString("HoTen"),
+                            rs.getString("SDT"),
+                            rs.getTimestamp("NgayVaoLam"),
+                            rs.getDouble("Luong"),
+                            rs.getString("TrangThai")
+                        );
+                    }
                     return nhanVien;
                 }
             }
@@ -121,15 +171,31 @@ public class NhanVienDAO {
             
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    NhanVienDTO nhanVien = new NhanVienDTO();
-                    nhanVien.setMaNV(rs.getInt("MaNV"));
-                    nhanVien.setTaiKhoan(rs.getString("TaiKhoan"));
-                    nhanVien.setMatKhau(rs.getString("MatKhau"));
-                    nhanVien.setHoTen(rs.getString("HoTen"));
-                    nhanVien.setSoDienThoai(rs.getString("SDT"));
-                    nhanVien.setNgayVaoLam(rs.getTimestamp("NgayVaoLam"));
-                    nhanVien.setChucVu(rs.getString("ChucVu"));
-                    nhanVien.setLuong(rs.getInt("Luong"));
+                    String chucVuDB = rs.getString("ChucVu");
+                    NhanVienDTO nhanVien;
+                    if (chucVuDB != null && chucVuDB.trim().equalsIgnoreCase("quanly")) {
+                        nhanVien = new dto.NhanVienQuanLyDTO(
+                            rs.getInt("MaNV"),
+                            rs.getString("TaiKhoan"),
+                            rs.getString("MatKhau"),
+                            rs.getString("HoTen"),
+                            rs.getString("SDT"),
+                            rs.getTimestamp("NgayVaoLam"),
+                            rs.getDouble("Luong"),
+                            rs.getString("TrangThai")
+                        );
+                    } else {
+                        nhanVien = new dto.NhanVienThuongDTO(
+                            rs.getInt("MaNV"),
+                            rs.getString("TaiKhoan"),
+                            rs.getString("MatKhau"),
+                            rs.getString("HoTen"),
+                            rs.getString("SDT"),
+                            rs.getTimestamp("NgayVaoLam"),
+                            rs.getDouble("Luong"),
+                            rs.getString("TrangThai")
+                        );
+                    }
                     return nhanVien;
                 }
             }
@@ -151,7 +217,7 @@ public class NhanVienDAO {
                     ps.setString(4, nhanVien.getSoDienThoai());
             ps.setTimestamp(5, nhanVien.getNgayVaoLam());
             ps.setString(6, nhanVien.getChucVu());
-            ps.setInt(7, nhanVien.getLuong());
+            ps.setDouble(7, nhanVien.getLuong());
             
             int result = ps.executeUpdate();
             
@@ -181,7 +247,7 @@ public class NhanVienDAO {
                     ps.setString(4, nhanVien.getSoDienThoai());
             ps.setTimestamp(5, nhanVien.getNgayVaoLam());
             ps.setString(6, nhanVien.getChucVu());
-            ps.setInt(7, nhanVien.getLuong());
+            ps.setDouble(7, nhanVien.getLuong());
             ps.setInt(8, nhanVien.getMaNV());
             
             int result = ps.executeUpdate();
@@ -235,9 +301,16 @@ public class NhanVienDAO {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
-                NhanVienDTO nhanVien = new NhanVienDTO();
-                nhanVien.setMaNV(rs.getInt("MaNV"));
-                nhanVien.setHoTen(rs.getString("HoTen"));
+                NhanVienDTO nhanVien = new NhanVienThuongDTO(
+                    rs.getInt("MaNV"),
+                    "", // taiKhoan để trống
+                    "", // matKhau để trống
+                    rs.getString("HoTen"),
+                    "", // sdt để trống
+                    null, // ngayvaoLam null
+                    0, // lương=0
+                    "danglam" // trạng thái mặc định
+                );
                 danhSach.add(nhanVien);
             }
         } catch (SQLException e) {

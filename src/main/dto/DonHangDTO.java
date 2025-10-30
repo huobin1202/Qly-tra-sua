@@ -5,7 +5,6 @@ public class DonHangDTO {
     private int maDon;
     private int maNV;
     private Integer maKH; // nullable - có thể không có khách hàng (đơn tại quán)
-    private String loai;
     private String trangThai;
     private Timestamp ngayDat;
     private long tongTien;
@@ -16,11 +15,10 @@ public class DonHangDTO {
     // Constructor mặc định
     public DonHangDTO() {}
 
-    public DonHangDTO(int maDon, int maNV, String loai, String trangThai, 
+    public DonHangDTO(int maDon, int maNV, String trangThai, 
                          Timestamp ngayDat, long tongTien, int giamGia) {
         this.maDon = maDon;
         this.maNV = maNV;
-        this.loai = loai;
         this.trangThai = trangThai;
         this.ngayDat = ngayDat;
         this.tongTien = tongTien;
@@ -34,8 +32,6 @@ public class DonHangDTO {
     public void setMaNV(int maNV) { this.maNV = maNV; }
     public Integer getMaKH() { return maKH; }
     public void setMaKH(Integer maKH) { this.maKH = maKH; }
-    public String getLoai() { return loai; }
-    public void setLoai(String loai) { this.loai = loai; }
     public String getTrangThai() { return trangThai; }
     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
     public Timestamp getNgayDat() { return ngayDat; }
