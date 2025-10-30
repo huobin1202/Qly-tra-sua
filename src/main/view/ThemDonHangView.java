@@ -94,7 +94,7 @@ public class ThemDonHangView extends JDialog {
         khachHangTenField.setEditable(true);
         khachHangSDTField = new JTextField(15);
         khachHangSDTField.setEditable(true);
-        timKiemKhachHangButton = new JButton("🔍 Tìm");
+        timKiemKhachHangButton = new JButton("🔍");
         timKiemKhachHangButton.setPreferredSize(new Dimension(60, 25));
         khachHangDiemTichLuyField = new JTextField(15);
         khachHangDiemTichLuyField.setEditable(false); // Không cho phép chỉnh sửa điểm tích lũy
@@ -965,7 +965,29 @@ public class ThemDonHangView extends JDialog {
             tongTien += (item.getGiaMon() + item.getGiaTopping()) * item.getSoLuong();
         }
         
+        // Tự động tính giảm giá theo điểm tích lũy hiện có của khách hàng
         int giamGia = (Integer) giamGiaSpinner.getValue();
+        try {
+            int availablePoints = 0;
+            if (khachHangDiemTichLuyField != null && !khachHangDiemTichLuyField.getText().trim().isEmpty()) {
+                availablePoints = Integer.parseInt(khachHangDiemTichLuyField.getText().trim());
+            }
+            int autoDiscount = 0;
+            if (availablePoints >= 500) {
+                autoDiscount = 20;
+            } else if (availablePoints >= 200) {
+                autoDiscount = 10;
+            } else if (availablePoints >= 100) {
+                autoDiscount = 5;
+            }
+            if (autoDiscount != giamGia) {
+                giamGia = autoDiscount;
+                giamGiaSpinner.setValue(giamGia);
+            }
+        } catch (NumberFormatException ignore) {
+            // Không làm gì nếu không parse được điểm
+        }
+        
         long giamGiaAmount = tongTien * giamGia / 100;
         long phaiTra = tongTien - giamGiaAmount;
         
@@ -1167,7 +1189,44 @@ public class ThemDonHangView extends JDialog {
                 currentOrder.setTrangThai("dathanhtoan");
                 trangThaiLabel.setText("Đã thanh toán");
                 trangThaiLabel.setForeground(Color.GREEN);
-                
+
+                // Cập nhật điểm tích lũy của khách hàng (nếu có)
+                try (Connection conn = DBUtil.getConnection()) {
+                    Integer maKH = currentOrder.getMaKH();
+                    if (maKH != null && maKH > 0) {
+                        // Tính toán số điểm dùng và điểm nhận được
+                        long tongTien = currentOrder.getTongTien();
+                        int giamGia = currentOrder.getGiamGia();
+                        long phaiTra = tongTien - (tongTien * giamGia / 100);
+
+                        int pointsUsed = 0;
+                        if (giamGia >= 20) pointsUsed = 500;
+                        else if (giamGia >= 10) pointsUsed = 200;
+                        else if (giamGia >= 5) pointsUsed = 100;
+
+                        int earnedPoints = (int)(phaiTra / 10000);
+
+                        int currentPoints = 0;
+                        try (PreparedStatement ps = conn.prepareStatement("SELECT DiemTichLuy FROM khachhang WHERE MaKH=?")) {
+                            ps.setInt(1, maKH);
+                            try (ResultSet rs = ps.executeQuery()) {
+                                if (rs.next()) currentPoints = rs.getInt(1);
+                            }
+                        }
+
+                        int newPoints = Math.max(0, currentPoints - pointsUsed) + earnedPoints;
+                        try (PreparedStatement ps = conn.prepareStatement("UPDATE khachhang SET DiemTichLuy=? WHERE MaKH=?")) {
+                            ps.setInt(1, newPoints);
+                            ps.setInt(2, maKH);
+                            ps.executeUpdate();
+                        }
+
+                        // Cập nhật UI điểm
+                        khachHangDiemTichLuyField.setText(String.valueOf(newPoints));
+                    }
+                } catch (SQLException ignore) {
+                }
+
                 JOptionPane.showMessageDialog(this, "Thanh toán thành công!\nNguyên liệu trong kho đã được cập nhật.", "Thành công", JOptionPane.INFORMATION_MESSAGE);
             } else {
                 JOptionPane.showMessageDialog(this, "Lỗi thanh toán! Vui lòng kiểm tra lại số lượng nguyên liệu trong kho.", "Lỗi", JOptionPane.ERROR_MESSAGE);

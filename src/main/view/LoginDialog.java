@@ -234,7 +234,7 @@ public class LoginDialog extends JDialog {
                         rs.getString("HoTen"),
                         rs.getString("SDT"),
                         rs.getTimestamp("NgayVaoLam"),
-                        rs.getDouble("Luong"),
+                        rs.getLong("Luong"),
                         trangThai
                     );
                 } else {
@@ -245,7 +245,7 @@ public class LoginDialog extends JDialog {
                         rs.getString("HoTen"),
                         rs.getString("SDT"),
                         rs.getTimestamp("NgayVaoLam"),
-                        rs.getDouble("Luong"),
+                        rs.getLong("Luong"),
                         trangThai
                     );
                 }
