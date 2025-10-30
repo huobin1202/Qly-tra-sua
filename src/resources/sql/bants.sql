@@ -33,7 +33,7 @@ CREATE TABLE `chitietdonhang` (
   `MaTopping` int(11) NOT NULL DEFAULT 0,
   `SoLuong` int(11) NOT NULL DEFAULT 1,
   `GiaMon` bigint(20) NOT NULL DEFAULT 0,
-  `GiaTopping` bigint(20) NOT NULL DEFAULT 0,
+  `GiaTopping` bigint(20) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
