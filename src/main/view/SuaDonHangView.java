@@ -762,7 +762,6 @@ public class SuaDonHangView extends JDialog {
                 newItem.setSoLuong(result.soLuong);
                 newItem.setGiaMon(result.giaMon);
                 newItem.setGiaTopping(result.giaTopping);
-                newItem.setGhiChu("");
                 
                 // Tìm mã topping
                 int maTopping = findToppingId(result.tenTopping);
@@ -819,7 +818,6 @@ public class SuaDonHangView extends JDialog {
                     item.setSoLuong(rs.getInt("SoLuong"));
                     item.setGiaMon(rs.getLong("GiaMon"));
                     item.setGiaTopping(rs.getLong("GiaTopping"));
-                    item.setGhiChu(rs.getString("GhiChu"));
                     
                     // Lưu tên sản phẩm, ảnh và topping để hiển thị
                     item.setTenMon(rs.getString("TenMon"));
@@ -1156,7 +1154,7 @@ public class SuaDonHangView extends JDialog {
             }
             
             // Thêm chi tiết mới
-            String insertDetailSql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String insertDetailSql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping) VALUES (?, ?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertDetailSql)) {
                 for (ChiTietDonHangDTO item : orderedItems) {
                     ps.setInt(1, item.getMaDon());
@@ -1165,7 +1163,6 @@ public class SuaDonHangView extends JDialog {
                     ps.setInt(4, item.getSoLuong());
                     ps.setLong(5, item.getGiaMon());
                     ps.setLong(6, item.getGiaTopping());
-                    ps.setString(7, item.getGhiChu());
                     ps.executeUpdate();
                 }
             }

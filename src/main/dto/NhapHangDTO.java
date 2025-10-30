@@ -5,7 +5,6 @@ public class NhapHangDTO {
     private int maNV;
     private int maNCC;
     private String ngay; // iso string for simplicity
-    private String ghiChu;
     private long thanhTien;
     private String trangThai;
 
@@ -15,12 +14,11 @@ public class NhapHangDTO {
     }
 
     // Constructor đầy đủ
-    public NhapHangDTO(int maPN, int maNV, int maNCC, String ngay, String ghiChu, long thanhTien, String trangThai) {
+    public NhapHangDTO(int maPN, int maNV, int maNCC, String ngay, long thanhTien, String trangThai) {
         this.maPN = maPN;
         this.maNV = maNV;
         this.maNCC = maNCC;
         this.ngay = ngay;
-        this.ghiChu = ghiChu;
         this.thanhTien = thanhTien;
         this.trangThai = trangThai;
     }
@@ -39,8 +37,6 @@ public class NhapHangDTO {
     public String getNgay() { return ngay; }
     public void setNgay(String ngay) { this.ngay = ngay; }
 
-    public String getGhiChu() { return ghiChu; }
-    public void setGhiChu(String ghiChu) { this.ghiChu = ghiChu; }
 
     public long getThanhTien() { return thanhTien; }
     public void setThanhTien(long thanhTien) { this.thanhTien = thanhTien; }
@@ -69,7 +65,6 @@ public class NhapHangDTO {
                 ", maNV=" + maNV +
                 ", maNCC=" + maNCC +
                 ", ngay='" + ngay + '\'' +
-                ", ghiChu='" + ghiChu + '\'' +
                 ", thanhTien=" + thanhTien +
                 ", trangThai=" + trangThai +
                 '}';

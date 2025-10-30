@@ -755,7 +755,6 @@ public class ThemDonHangView extends JDialog {
                 newItem.setSoLuong(result.soLuong);
                 newItem.setGiaMon(result.giaMon);
                 newItem.setGiaTopping(result.giaTopping);
-                newItem.setGhiChu("");
                 
                 // Tìm mã topping
                 int maTopping = findToppingId(result.tenTopping);
@@ -1112,7 +1111,7 @@ public class ThemDonHangView extends JDialog {
             }
             
             // Thêm chi tiết mới
-            String insertDetailSql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String insertDetailSql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping) VALUES (?, ?, ?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertDetailSql)) {
                 for (ChiTietDonHangDTO item : orderedItems) {
                     ps.setInt(1, item.getMaDon());
@@ -1121,7 +1120,6 @@ public class ThemDonHangView extends JDialog {
                     ps.setInt(4, item.getSoLuong());
                     ps.setLong(5, item.getGiaMon());
                     ps.setLong(6, item.getGiaTopping());
-                    ps.setString(7, item.getGhiChu());
                     ps.executeUpdate();
                 }
             }

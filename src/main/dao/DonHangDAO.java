@@ -423,7 +423,6 @@ public class DonHangDAO {
                     chiTiet.setSoLuong(rs.getInt("SoLuong"));
                     chiTiet.setGiaMon(rs.getLong("GiaMon"));
                     chiTiet.setGiaTopping(rs.getLong("GiaTopping"));
-                    chiTiet.setGhiChu(rs.getString("GhiChu"));
                     chiTiet.setTenMon(rs.getString("TenMon"));
                     chiTiet.setTenTopping(rs.getString("TenTopping"));
                     danhSach.add(chiTiet);
@@ -435,7 +434,7 @@ public class DonHangDAO {
     
     // Thêm chi tiết đơn hàng
     public boolean themChiTietDonHang(ChiTietDonHangDTO chiTiet) {
-        String sql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping, GhiChu) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping) VALUES (?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -446,7 +445,6 @@ public class DonHangDAO {
             ps.setInt(4, chiTiet.getSoLuong());
             ps.setLong(5, chiTiet.getGiaMon());
             ps.setLong(6, chiTiet.getGiaTopping());
-            ps.setString(7, chiTiet.getGhiChu());
             
             int result = ps.executeUpdate();
             return result > 0;
