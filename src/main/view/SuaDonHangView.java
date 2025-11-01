@@ -11,6 +11,9 @@ import dto.ChiTietDonHangDTO;
 import dto.MonDTO;
 import dto.LoaiMonDTO;
 import dao.DonHangDAO;
+import dao.HangHoaDAO;
+import dao.KhoHangDAO;
+import dto.MonNguyenLieuDTO;
 
 public class SuaDonHangView extends JDialog {
     // Thông tin hóa đơn
@@ -740,18 +743,36 @@ public class SuaDonHangView extends JDialog {
         if (result != null) {
             // Kiểm tra xem sản phẩm với topping tương tự đã có chưa
             boolean found = false;
+            int soLuongCu = 0;
             for (ChiTietDonHangDTO item : orderedItems) {
                 if (item.getMaMon() == result.maMon && 
                     item.getTenTopping() != null && 
                     item.getTenTopping().equals(result.tenTopping)) {
-                    // Tăng số lượng
-                    item.setSoLuong(item.getSoLuong() + result.soLuong);
+                    soLuongCu = item.getSoLuong();
                     found = true;
                     break;
                 }
             }
             
-            if (!found) {
+            // Kiểm tra nguyên liệu trước khi thêm
+            int soLuongMoi = found ? (soLuongCu + result.soLuong) : result.soLuong;
+            String errorMessage = kiemTraNguyenLieu(result.maMon, soLuongMoi, result.maMon, result.tenTopping);
+            if (errorMessage != null) {
+                JOptionPane.showMessageDialog(this, errorMessage, "Không đủ nguyên liệu", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            if (found) {
+                // Tăng số lượng cho món đã có
+                for (ChiTietDonHangDTO item : orderedItems) {
+                    if (item.getMaMon() == result.maMon && 
+                        item.getTenTopping() != null && 
+                        item.getTenTopping().equals(result.tenTopping)) {
+                        item.setSoLuong(soLuongMoi);
+                        break;
+                    }
+                }
+            } else {
                 // Thêm sản phẩm mới
                 ChiTietDonHangDTO newItem = new ChiTietDonHangDTO();
                 newItem.setMaDon(currentOrder.getMaDon());
@@ -773,6 +794,118 @@ public class SuaDonHangView extends JDialog {
             updateOrderedItemsTable();
             updateOrderSummary();
         }
+    }
+    
+    // Kiểm tra xem có đủ nguyên liệu cho món với số lượng cho trước không
+    private String kiemTraNguyenLieu(int maMon, int soLuong, int maMonCheck, String tenTopping) {
+        HangHoaDAO hangHoaDAO = new HangHoaDAO();
+        KhoHangDAO khoHangDAO = new KhoHangDAO();
+        
+        // Lấy danh sách nguyên liệu cần cho món
+        List<MonNguyenLieuDTO> nguyenLieuList = hangHoaDAO.layNguyenLieuCuaMon(maMon);
+        
+        if (nguyenLieuList == null || nguyenLieuList.isEmpty()) {
+            // Món không có nguyên liệu định nghĩa, cho phép thêm
+            return null;
+        }
+        
+        // Tính tổng nguyên liệu cần cho tất cả món trong đơn hàng (bao gồm món mới)
+        java.util.Map<Integer, Integer> tongNguyenLieuCan = new java.util.HashMap<>();
+        
+        // Đếm nguyên liệu từ các món đã có trong đơn hàng
+        for (ChiTietDonHangDTO item : orderedItems) {
+            if (item.getMaMon() == maMonCheck && 
+                item.getTenTopping() != null && 
+                item.getTenTopping().equals(tenTopping)) {
+                // Bỏ qua món này vì sẽ được thay thế bằng số lượng mới
+                continue;
+            }
+            
+            List<MonNguyenLieuDTO> nguyenLieuItem = hangHoaDAO.layNguyenLieuCuaMon(item.getMaMon());
+            if (nguyenLieuItem != null) {
+                for (MonNguyenLieuDTO nl : nguyenLieuItem) {
+                    int tongSoLuong = nl.getSoLuong() * item.getSoLuong();
+                    tongNguyenLieuCan.put(nl.getMaNL(), 
+                        tongNguyenLieuCan.getOrDefault(nl.getMaNL(), 0) + tongSoLuong);
+                }
+            }
+        }
+        
+        // Cộng thêm nguyên liệu của món mới
+        for (MonNguyenLieuDTO nl : nguyenLieuList) {
+            int tongSoLuong = nl.getSoLuong() * soLuong;
+            tongNguyenLieuCan.put(nl.getMaNL(), 
+                tongNguyenLieuCan.getOrDefault(nl.getMaNL(), 0) + tongSoLuong);
+        }
+        
+        // Kiểm tra từng nguyên liệu có đủ trong kho không
+        for (java.util.Map.Entry<Integer, Integer> entry : tongNguyenLieuCan.entrySet()) {
+            int maNL = entry.getKey();
+            int soLuongCan = entry.getValue();
+            
+            // Lấy tồn kho hiện tại
+            dto.KhoHangDTO tonKho = khoHangDAO.layTonKhoTheoMaNL(maNL);
+            if (tonKho == null || tonKho.getSoLuong() < soLuongCan) {
+                // Tìm tên nguyên liệu để hiển thị thông báo
+                String tenNL = "";
+                for (MonNguyenLieuDTO nl : nguyenLieuList) {
+                    if (nl.getMaNL() == maNL) {
+                        tenNL = nl.getTenNL();
+                        break;
+                    }
+                }
+                if (tenNL.isEmpty()) {
+                    // Tìm trong các nguyên liệu khác
+                    for (ChiTietDonHangDTO item : orderedItems) {
+                        List<MonNguyenLieuDTO> nlList = hangHoaDAO.layNguyenLieuCuaMon(item.getMaMon());
+                        if (nlList != null) {
+                            for (MonNguyenLieuDTO nl : nlList) {
+                                if (nl.getMaNL() == maNL) {
+                                    tenNL = nl.getTenNL();
+                                    break;
+                                }
+                            }
+                            if (!tenNL.isEmpty()) break;
+                        }
+                    }
+                }
+                
+                int tonKhoHienTai = (tonKho != null) ? tonKho.getSoLuong() : 0;
+                return "Không đủ nguyên liệu!\n" +
+                       "Nguyên liệu: " + tenNL + "\n" +
+                       "Cần: " + soLuongCan + " " + (tonKho != null ? tonKho.getTenDonVi() : "") + "\n" +
+                       "Hiện có trong kho: " + tonKhoHienTai + " " + (tonKho != null ? tonKho.getTenDonVi() : "");
+            }
+        }
+        
+        return null; // Đủ nguyên liệu
+    }
+    
+    // Kiểm tra các món trong đơn hàng có bị tạm ngưng không
+    private List<String> kiemTraMonTamNgung() {
+        List<String> danhSachMonTamNgung = new ArrayList<>();
+        
+        try (Connection conn = DBUtil.getConnection()) {
+            for (ChiTietDonHangDTO item : orderedItems) {
+                String sql = "SELECT TenMon, TinhTrang FROM mon WHERE MaMon = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, item.getMaMon());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            String tinhTrang = rs.getString("TinhTrang");
+                            if ("ngungban".equals(tinhTrang)) {
+                                String tenMon = rs.getString("TenMon");
+                                danhSachMonTamNgung.add(tenMon);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            // Ignore error, return empty list
+        }
+        
+        return danhSachMonTamNgung;
     }
     
     private int findToppingId(String tenTopping) {
@@ -1213,6 +1346,27 @@ public class SuaDonHangView extends JDialog {
         if (orderedItems.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Không thể thanh toán đơn hàng trống! Vui lòng thêm sản phẩm vào đơn hàng.", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
+        }
+        
+        // Kiểm tra món tạm ngưng
+        List<String> monTamNgung = kiemTraMonTamNgung();
+        if (!monTamNgung.isEmpty()) {
+            StringBuilder message = new StringBuilder();
+            message.append("⚠️ Các món sau đang tạm ngưng phục vụ:\n\n");
+            for (String tenMon : monTamNgung) {
+                message.append("• ").append(tenMon).append("\n");
+            }
+            message.append("\nBạn có muốn tiếp tục thanh toán không?");
+            
+            int confirmTamNgung = JOptionPane.showConfirmDialog(this, 
+                message.toString(), 
+                "Cảnh báo món tạm ngưng", 
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+            
+            if (confirmTamNgung != JOptionPane.YES_OPTION) {
+                return; // Người dùng không muốn tiếp tục
+            }
         }
         
         int result = JOptionPane.showConfirmDialog(this, 

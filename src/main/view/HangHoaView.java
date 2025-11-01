@@ -22,6 +22,7 @@ public class HangHoaView extends JPanel {
     private MainFrameInterface parent;
     private String currentView = "MON"; // MON, LOAIMON, or NGUYENLIEU
     private JComboBox<String> loaiMonFilterCombo;
+    private JComboBox<String> tinhTrangFilterCombo;
     // Thêm biến toàn cục cho searchPanel
     private JPanel searchPanel;
     
@@ -79,6 +80,12 @@ public class HangHoaView extends JPanel {
         } catch (SQLException e) {
             // Nếu lỗi thôi không thêm gì
         }
+        
+        // Combo box lọc theo tình trạng
+        tinhTrangFilterCombo = new JComboBox<>();
+        tinhTrangFilterCombo.addItem("Tất cả tình trạng");
+        tinhTrangFilterCombo.addItem("Đang bán");
+        tinhTrangFilterCombo.addItem("Tạm ngừng");
     }
     
     private void setupLayout() {
@@ -173,6 +180,19 @@ public class HangHoaView extends JPanel {
         
         // Enter key in search field
         searchField.addActionListener(e -> performSearch());
+        
+        // Tự động load khi chọn loại hoặc tình trạng (chỉ khi view là MON)
+        loaiMonFilterCombo.addActionListener(e -> {
+            if (currentView != null && currentView.equals("MON")) {
+                loadData();
+            }
+        });
+        
+        tinhTrangFilterCombo.addActionListener(e -> {
+            if (currentView != null && currentView.equals("MON")) {
+                loadData();
+            }
+        });
     }
     
     // Bỏ hoàn toàn switchView(), categoryCombo không tồn tại nữa nên không dùng mỗi khi đổi view
@@ -216,15 +236,32 @@ public class HangHoaView extends JPanel {
     
     private void loadMonData(Connection conn) throws SQLException {
         String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai";
+        List<String> whereConditions = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        
         String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
         if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
-            sql += " WHERE l.TenLoai = ?";
+            whereConditions.add("l.TenLoai = ?");
+            params.add(tenLoaiSelected);
+        }
+        
+        String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
+        if (tinhTrangSelected != null && !tinhTrangSelected.equals("Tất cả tình trạng")) {
+            String tinhTrangDB = convertTinhTrangToDatabase(tinhTrangSelected);
+            whereConditions.add("m.TinhTrang = ?");
+            params.add(tinhTrangDB);
+        }
+        
+        if (!whereConditions.isEmpty()) {
+            sql += " WHERE " + String.join(" AND ", whereConditions);
         }
         sql += " ORDER BY m.MaMon";
+        
         PreparedStatement ps = conn.prepareStatement(sql);
-        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
-            ps.setString(1, tenLoaiSelected);
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
         }
+        
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
             Object[] row = {
@@ -278,6 +315,8 @@ public class HangHoaView extends JPanel {
         try (Connection conn = DBUtil.getConnection()) {
             if (currentView.equals("MON")) {
                 searchMonData(conn, searchText, searchType);
+            } else if (currentView.equals("LOAIMON")) {
+                searchLoaiMonData(conn, searchText, searchType);
             } else {
                 searchNguyenLieuData(conn, searchText, searchType);
             }
@@ -293,18 +332,43 @@ public class HangHoaView extends JPanel {
         }
     }
     
-    private void searchMonData(Connection conn, String searchText, String searchType) throws SQLException {
-        String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
+    private void searchLoaiMonData(Connection conn, String searchText, String searchType) throws SQLException {
+        String sql = "SELECT MaLoai, TenLoai FROM loaimon WHERE ";
         PreparedStatement ps;
         
         if (searchType.equals("ID")) {
-            sql += "m.MaMon = ? ORDER BY m.MaMon";
+            sql += "MaLoai = ? ORDER BY MaLoai";
             ps = conn.prepareStatement(sql);
             ps.setInt(1, Integer.parseInt(searchText));
-        } else if (searchType.equals("Tên")) {
-            sql += "m.TenMon LIKE ? ORDER BY m.MaMon";
+        } else {
+            sql += "TenLoai LIKE ? ORDER BY MaLoai";
             ps = conn.prepareStatement(sql);
             ps.setString(1, "%" + searchText + "%");
+        }
+        
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Object[] row = {
+                rs.getInt("MaLoai"),
+                rs.getString("TenLoai")
+            };
+            tableModel.addRow(row);
+        }
+    }
+    
+    private void searchMonData(Connection conn, String searchText, String searchType) throws SQLException {
+        String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
+        List<String> whereConditions = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        PreparedStatement ps;
+        
+        // Thêm điều kiện search
+        if (searchType.equals("ID")) {
+            whereConditions.add("m.MaMon = ?");
+            params.add(Integer.parseInt(searchText));
+        } else if (searchType.equals("Tên")) {
+            whereConditions.add("m.TenMon LIKE ?");
+            params.add("%" + searchText + "%");
         } else {
             // Tìm kiếm theo trạng thái: chuyển đổi từ UI sang database nếu cần
             String tinhTrangSearch = searchText;
@@ -314,9 +378,31 @@ public class HangHoaView extends JPanel {
             } else if ("Tạm ngừng".equals(searchText) || searchText.contains("Tạm ngừng")) {
                 tinhTrangSearch = "ngungban";
             }
-            sql += "m.TinhTrang LIKE ? ORDER BY m.MaMon";
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, "%" + tinhTrangSearch + "%");
+            whereConditions.add("m.TinhTrang LIKE ?");
+            params.add("%" + tinhTrangSearch + "%");
+        }
+        
+        // Thêm điều kiện filter từ combo (nếu có)
+        String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
+        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
+            whereConditions.add("l.TenLoai = ?");
+            params.add(tenLoaiSelected);
+        }
+        
+        String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
+        if (tinhTrangSelected != null && !tinhTrangSelected.equals("Tất cả tình trạng")) {
+            String tinhTrangDB = convertTinhTrangToDatabase(tinhTrangSelected);
+            whereConditions.add("m.TinhTrang = ?");
+            params.add(tinhTrangDB);
+        }
+        
+        // Xây dựng SQL với tất cả điều kiện
+        sql += String.join(" AND ", whereConditions);
+        sql += " ORDER BY m.MaMon";
+        
+        ps = conn.prepareStatement(sql);
+        for (int i = 0; i < params.size(); i++) {
+            ps.setObject(i + 1, params.get(i));
         }
         
         ResultSet rs = ps.executeQuery();
@@ -598,6 +684,7 @@ public class HangHoaView extends JPanel {
     private class MonDialog extends JDialog {
         private JTextField tenField, giaField, anhField;
         private JComboBox<String> loaiCombo;
+        private JComboBox<String> tinhTrangCombo;
         private JButton chooseImageButton;
         private JLabel imagePreviewLabel;
         private boolean dataChanged = false;
@@ -629,6 +716,9 @@ public class HangHoaView extends JPanel {
             anhField = new JTextField(20);
             anhField.setEditable(false);
             loaiCombo = new JComboBox<>();
+            tinhTrangCombo = new JComboBox<>();
+            tinhTrangCombo.addItem("Đang bán");
+            tinhTrangCombo.addItem("Tạm ngừng");
             
             // Image button
             chooseImageButton = new JButton("Thêm ảnh");
@@ -681,6 +771,14 @@ public class HangHoaView extends JPanel {
                         loaiCombo.setSelectedIndex(mon.getMaLoai() - 1);
                     }
                 } catch (Exception e) {
+                }
+                
+                // Set tình trạng
+                String tinhTrangUI = convertTinhTrangToUI(mon.getTinhTrang());
+                if ("Đang bán".equals(tinhTrangUI)) {
+                    tinhTrangCombo.setSelectedIndex(0);
+                } else if ("Tạm ngừng".equals(tinhTrangUI)) {
+                    tinhTrangCombo.setSelectedIndex(1);
                 }
                 
                 // Load image if available
@@ -758,6 +856,13 @@ public class HangHoaView extends JPanel {
             gbc.gridx = 1;
             giaField.setPreferredSize(new Dimension(250, 25));
             leftPanel.add(giaField, gbc);
+            
+            // Tình trạng
+            gbc.gridx = 0; gbc.gridy = 3;
+            leftPanel.add(new JLabel("TÌNH TRẠNG:"), gbc);
+            gbc.gridx = 1;
+            tinhTrangCombo.setPreferredSize(new Dimension(250, 25));
+            leftPanel.add(tinhTrangCombo, gbc);
             
             topPanel.add(leftPanel, BorderLayout.WEST);
             
@@ -968,6 +1073,8 @@ public class HangHoaView extends JPanel {
             String ten = tenField.getText().trim();
             String giaStr = giaField.getText().trim();
             String loai = (String) loaiCombo.getSelectedItem();
+            String tinhTrangUI = (String) tinhTrangCombo.getSelectedItem();
+            String tinhTrang = convertTinhTrangToDatabase(tinhTrangUI);
             
             if (ten.isEmpty() || giaStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
@@ -982,7 +1089,9 @@ public class HangHoaView extends JPanel {
                 return;
             }
             
-            try (Connection conn = DBUtil.getConnection()) {
+            Connection conn = null;
+            try {
+                conn = DBUtil.getConnection();
                 conn.setAutoCommit(false);
                 
                 // Get MaLoai from TenLoai
@@ -993,6 +1102,7 @@ public class HangHoaView extends JPanel {
                     if (rs.next()) {
                         maLoai = rs.getInt("MaLoai");
                     } else {
+                        if (conn != null) conn.rollback();
                         JOptionPane.showMessageDialog(this, "Không tìm thấy loại món: " + loai, "Lỗi", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
@@ -1008,7 +1118,7 @@ public class HangHoaView extends JPanel {
                         Statement.RETURN_GENERATED_KEYS)) {
                         ps.setString(1, ten);
                         ps.setLong(2, gia);
-                        ps.setString(3, "dangban");
+                        ps.setString(3, tinhTrang);
                         ps.setInt(4, maLoai);
                         ps.setString(5, anh);
                         ps.executeUpdate();
@@ -1017,7 +1127,7 @@ public class HangHoaView extends JPanel {
                         if (rs.next()) {
                             maMon = rs.getInt(1);
                         } else {
-                            conn.rollback();
+                            if (conn != null) conn.rollback();
                             JOptionPane.showMessageDialog(this, "Lỗi khi lấy mã món!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                             return;
                         }
@@ -1027,31 +1137,51 @@ public class HangHoaView extends JPanel {
                     // Sửa
                     maMon = mon.getMaMon();
                     try (PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE mon SET TenMon=?, Gia=?, MaLoai=?, Anh=? WHERE MaMon=?")) {
+                        "UPDATE mon SET TenMon=?, Gia=?, TinhTrang=?, MaLoai=?, Anh=? WHERE MaMon=?")) {
                         ps.setString(1, ten);
                         ps.setLong(2, gia);
-                        ps.setInt(3, maLoai);
-                        ps.setString(4, anh);
-                        ps.setInt(5, maMon);
+                        ps.setString(3, tinhTrang);
+                        ps.setInt(4, maLoai);
+                        ps.setString(5, anh);
+                        ps.setInt(6, maMon);
                         ps.executeUpdate();
                     }
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
                 
-                // Save ingredients
+                // Save ingredients - sử dụng batch insert để tối ưu hiệu suất
                 if (mon != null) {
-                    hangHoaDAO.xoaTatCaNguyenLieuCuaMon(maMon);
+                    // Xóa tất cả nguyên liệu cũ (sử dụng connection hiện tại)
+                    try (PreparedStatement ps = conn.prepareStatement("DELETE FROM mon_nguyenlieu WHERE MaMon = ?")) {
+                        ps.setInt(1, maMon);
+                        ps.executeUpdate();
+                    }
                 }
-                for (MonNguyenLieuDTO dto : ingredientsList) {
-                    dto.setMaMon(maMon);
-                    hangHoaDAO.themNguyenLieuVaoMon(dto.getMaMon(), dto.getMaNL(), dto.getSoLuong());
+                if (!ingredientsList.isEmpty()) {
+                    hangHoaDAO.themNhieuNguyenLieuVaoMon(conn, maMon, ingredientsList);
                 }
                 
                 conn.commit();
                 dataChanged = true;
                 dispose();
             } catch (SQLException e) {
+                if (conn != null) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException rollbackEx) {
+                        // Ignore rollback errors
+                    }
+                }
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } finally {
+                if (conn != null) {
+                    try {
+                        conn.setAutoCommit(true);
+                        conn.close();
+                    } catch (SQLException e) {
+                        // Ignore close errors
+                    }
+                }
             }
         }
         
@@ -1512,8 +1642,14 @@ public class HangHoaView extends JPanel {
             searchPanel.add(lblLoai);
             searchPanel.add(loaiMonFilterCombo);
             loaiMonFilterCombo.setVisible(true);
+            
+            JLabel lblTinhTrang = new JLabel("Tình trạng:");
+            searchPanel.add(lblTinhTrang);
+            searchPanel.add(tinhTrangFilterCombo);
+            tinhTrangFilterCombo.setVisible(true);
         } else {
             loaiMonFilterCombo.setVisible(false);
+            tinhTrangFilterCombo.setVisible(false);
         }
         JButton searchButton = new JButton("🔍 Tìm");
         searchButton.setBackground(new Color(70, 130, 180));
@@ -1525,7 +1661,16 @@ public class HangHoaView extends JPanel {
         refreshButton.setBackground(new Color(34, 139, 34));
         refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
-        refreshButton.addActionListener(e -> loadData());
+        refreshButton.addActionListener(e -> {
+            // Reset search field
+            searchField.setText("");
+            // Reset combo filter về "Tất cả" (nếu đang ở view MON)
+            if (currentView != null && currentView.equals("MON")) {
+                loaiMonFilterCombo.setSelectedIndex(0);
+                tinhTrangFilterCombo.setSelectedIndex(0);
+            }
+            loadData();
+        });
         searchPanel.add(refreshButton);
         searchPanel.revalidate();
         searchPanel.repaint();

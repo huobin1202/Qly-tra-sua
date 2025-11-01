@@ -538,6 +538,34 @@ public class HangHoaDAO {
         return false;
     }
     
+    // Thêm nhiều nguyên liệu vào món cùng lúc (tối ưu hiệu suất)
+    public boolean themNhieuNguyenLieuVaoMon(Connection conn, int maMon, List<MonNguyenLieuDTO> ingredientsList) throws SQLException {
+        String sql = "INSERT INTO mon_nguyenlieu (MaMon, MaNL, SoLuong) VALUES (?, ?, ?) " +
+                    "ON DUPLICATE KEY UPDATE SoLuong = ?";
+        
+        // Đảm bảo bảng tồn tại
+        createMonNguyenLieuTableIfNotExists(conn);
+        
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (MonNguyenLieuDTO dto : ingredientsList) {
+                ps.setInt(1, maMon);
+                ps.setInt(2, dto.getMaNL());
+                ps.setInt(3, dto.getSoLuong());
+                ps.setInt(4, dto.getSoLuong());
+                ps.addBatch();
+            }
+            
+            int[] results = ps.executeBatch();
+            // Kiểm tra xem tất cả các lệnh có thành công không
+            for (int result : results) {
+                if (result < 0 && result != Statement.SUCCESS_NO_INFO) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    
     // Xóa nguyên liệu khỏi món
     public boolean xoaNguyenLieuKhoiMon(int maMon, int maNL) {
         String sql = "DELETE FROM mon_nguyenlieu WHERE MaMon = ? AND MaNL = ?";

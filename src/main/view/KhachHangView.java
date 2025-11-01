@@ -380,6 +380,19 @@ public class KhachHangView extends JPanel {
             try (Connection conn = DBUtil.getConnection()) {
                 if (kh == null) {
                     // Thêm mới
+                    // Kiểm tra số điện thoại trùng
+                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM khachhang WHERE SDT = ?")) {
+                        checkPs.setString(1, sdtStr);
+                        try (ResultSet rs = checkPs.executeQuery()) {
+                            if (rs.next() && rs.getInt(1) > 0) {
+                                JOptionPane.showMessageDialog(this, 
+                                    "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+                        }
+                    }
+                    
                     PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO khachhang (SDT, HoTen, DiemTichLuy) VALUES (?, ?, ?)");
                     ps.setString(1, sdtStr);
@@ -390,6 +403,22 @@ public class KhachHangView extends JPanel {
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     // Sửa
+                    // Kiểm tra số điện thoại trùng (nếu đổi số điện thoại)
+                    if (!sdtStr.equals(kh.getSoDienThoai())) {
+                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM khachhang WHERE SDT = ? AND MaKH != ?")) {
+                            checkPs.setString(1, sdtStr);
+                            checkPs.setInt(2, kh.getMaKH());
+                            try (ResultSet rs = checkPs.executeQuery()) {
+                                if (rs.next() && rs.getInt(1) > 0) {
+                                    JOptionPane.showMessageDialog(this, 
+                                        "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    
                     PreparedStatement ps = conn.prepareStatement(
                         "UPDATE khachhang SET SDT=?, HoTen=?, DiemTichLuy=? WHERE MaKH=?");
                     ps.setString(1, sdtStr);
