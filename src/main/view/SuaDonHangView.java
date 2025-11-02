@@ -364,7 +364,8 @@ public class SuaDonHangView extends JDialog {
         List<LoaiMonDTO> categories = new ArrayList<>();
         
         try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT * FROM loaimon ORDER BY MaLoai";
+            // Loại trừ danh mục topping (MaLoai = 4)
+            String sql = "SELECT * FROM loaimon WHERE MaLoai != 4 ORDER BY MaLoai";
             
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ResultSet rs = ps.executeQuery();

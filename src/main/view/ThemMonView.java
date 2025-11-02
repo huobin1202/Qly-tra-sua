@@ -3,10 +3,10 @@ package view;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 import database.DBUtil;
 import dto.MonDTO;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ThemMonView extends JDialog {
     private final MonDTO selectedProduct;
@@ -14,6 +14,7 @@ public class ThemMonView extends JDialog {
     private JSpinner soLuongSpinner;
     private JTextField giaMonField;
     private JComboBox<String> toppingCombo;
+    private JLabel toppingLabel;
     private JLabel tongTienLabel;
     private JButton themButton;
     private JButton huyButton;
@@ -22,20 +23,26 @@ public class ThemMonView extends JDialog {
     private long giaMon = 0;
     private long giaTopping = 0;
     private List<MonDTO> toppings;
+    private boolean isTraSua = false; // Kiểm tra có phải Trà Sữa không
     
     public ThemMonView(Window parent, MonDTO product) {
         super(parent, "Hóa đơn - Thêm món", ModalityType.APPLICATION_MODAL);
         this.selectedProduct = product;
         
+        // Kiểm tra xem có phải Trà Sữa (MaLoai = 2) không
+        isTraSua = (selectedProduct.getMaLoai() == 2);
+        
         initializeComponents();
         setupLayout();
         setupEventHandlers();
-        loadToppings();
+        if (isTraSua) {
+            loadToppings();
+        }
         updateTotal();
     }
     
     private void initializeComponents() {
-        setSize(400, 350);
+        setSize(400, isTraSua ? 350 : 300);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
@@ -53,9 +60,11 @@ public class ThemMonView extends JDialog {
         giaMonField.setEditable(false);
         giaMonField.setForeground(Color.BLACK);
         
-        // Topping combo
+        // Topping combo (chỉ hiển thị cho Trà Sữa)
         toppingCombo = new JComboBox<>();
         toppingCombo.setPreferredSize(new Dimension(150, 25));
+        
+        toppingLabel = new JLabel("Topping:");
         
         // Tổng tiền
         tongTienLabel = new JLabel("0 VND");
@@ -146,14 +155,18 @@ public class ThemMonView extends JDialog {
         
         mainPanel.add(pricePanel, gbc);
         
-        // Topping
-        gbc.gridx = 0; gbc.gridy = 3;
-        mainPanel.add(new JLabel("Topping:"), gbc);
-        gbc.gridx = 1;
-        mainPanel.add(toppingCombo, gbc);
+        // Topping (chỉ hiển thị cho Trà Sữa)
+        int nextGridY = 3;
+        if (isTraSua) {
+            gbc.gridx = 0; gbc.gridy = nextGridY;
+            mainPanel.add(toppingLabel, gbc);
+            gbc.gridx = 1;
+            mainPanel.add(toppingCombo, gbc);
+            nextGridY = 4;
+        }
         
         // Tổng tiền
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0; gbc.gridy = nextGridY;
         mainPanel.add(new JLabel("Tổng Tiền:"), gbc);
         gbc.gridx = 1;
         mainPanel.add(tongTienLabel, gbc);
@@ -161,7 +174,7 @@ public class ThemMonView extends JDialog {
         mainPanel.add(new JLabel("VND"), gbc);
         
         // Buttons
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 3; gbc.anchor = GridBagConstraints.CENTER;
+        gbc.gridx = 0; gbc.gridy = nextGridY + 1; gbc.gridwidth = 3; gbc.anchor = GridBagConstraints.CENTER;
         JPanel buttonPanel = new JPanel(new FlowLayout());
         buttonPanel.setBackground(new Color(240, 248, 255));
         buttonPanel.add(themButton);
@@ -175,8 +188,10 @@ public class ThemMonView extends JDialog {
         // Spinner change event
         soLuongSpinner.addChangeListener(e -> updateTotal());
         
-        // Topping selection change
-        toppingCombo.addActionListener(e -> updateTotal());
+        // Topping selection change (chỉ cho Trà Sữa)
+        if (isTraSua) {
+            toppingCombo.addActionListener(e -> updateTotal());
+        }
         
         // Buttons
         themButton.addActionListener(e -> addItem());
@@ -212,12 +227,16 @@ public class ThemMonView extends JDialog {
         soLuong = (Integer) soLuongSpinner.getValue();
         giaMon = selectedProduct.getGia();
         
-        // Lấy giá topping
-        int selectedIndex = toppingCombo.getSelectedIndex();
-        if (selectedIndex == 0) {
-            giaTopping = 0; // No Topping
-        } else if (selectedIndex > 0 && selectedIndex <= toppings.size()) {
-            giaTopping = toppings.get(selectedIndex - 1).getGia();
+        // Lấy giá topping nếu là Trà Sữa
+        if (isTraSua) {
+            int selectedIndex = toppingCombo.getSelectedIndex();
+            if (selectedIndex == 0) {
+                giaTopping = 0; // No Topping
+            } else if (selectedIndex > 0 && selectedIndex <= toppings.size()) {
+                giaTopping = toppings.get(selectedIndex - 1).getGia();
+            }
+        } else {
+            giaTopping = 0; // Không có topping cho món khác
         }
         
         long tongTien = (giaMon + giaTopping) * soLuong;
@@ -231,8 +250,15 @@ public class ThemMonView extends JDialog {
         result.tenMon = selectedProduct.getTenMon();
         result.soLuong = soLuong;
         result.giaMon = giaMon;
-        result.giaTopping = giaTopping;
-        result.tenTopping = getSelectedToppingName();
+        
+        // Lấy topping nếu là Trà Sữa
+        if (isTraSua) {
+            result.giaTopping = giaTopping;
+            result.tenTopping = getSelectedToppingName();
+        } else {
+            result.giaTopping = 0;
+            result.tenTopping = "No Topping";
+        }
         
         // Lưu kết quả vào dialog
         this.result = result;
@@ -240,6 +266,10 @@ public class ThemMonView extends JDialog {
     }
     
     private String getSelectedToppingName() {
+        if (!isTraSua) {
+            return "No Topping";
+        }
+        
         int selectedIndex = toppingCombo.getSelectedIndex();
         if (selectedIndex == 0) {
             return "No Topping";
