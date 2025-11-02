@@ -355,8 +355,10 @@ public class ThemNhapHangView extends JPanel {
                 
                 long totalAmount = 0;
                 
+                int stt = 1;
                 while (rs.next()) {
                     SanPhamChonNhapDTO product = new SanPhamChonNhapDTO();
+                    product.setStt(stt);
                     product.setMaNL(rs.getInt("MaNL"));
                     product.setTenNL(rs.getString("TenNL"));
                     product.setSoLuong(rs.getInt("SoLuong"));
@@ -368,6 +370,7 @@ public class ThemNhapHangView extends JPanel {
                     totalAmount += product.getThanhTien();
                     
                     Object[] row = {
+                        product.getStt(),
                         product.getMaNL(),
                         product.getTenNL(),
                         product.getDonVi(),
@@ -375,6 +378,7 @@ public class ThemNhapHangView extends JPanel {
                         String.format("%,d", product.getDonGia()) + " VNĐ"
                     };
                     selectedProductsTableModel.addRow(row);
+                    stt++;
                 }
                 
                 totalAmountLabel.setText("Tổng tiền: " + String.format("%,d", totalAmount) + " VNĐ");

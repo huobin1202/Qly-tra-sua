@@ -72,6 +72,10 @@ public class SuaDonHangView extends JDialog {
         if (categoryButtons != null) {
             updateCategoryButtons();
         }
+        // Cập nhật lại UI state sau khi đã load xong products và items để vô hiệu hóa buttons
+        if (currentOrder.getTrangThai() != null) {
+            updateUIStateByStatus(currentOrder.getTrangThai());
+        }
     }
     
     private void initializeComponents() {
@@ -516,10 +520,92 @@ public class SuaDonHangView extends JDialog {
                         trangThaiLabel.setText("Chưa thanh toán");
                         trangThaiLabel.setForeground(Color.ORANGE);
                     }
+                    
+                    // Cập nhật trạng thái UI dựa trên trạng thái đơn hàng
+                    updateUIStateByStatus(trangThai);
                 }
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải thông tin đơn hàng: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void updateUIStateByStatus(String trangThai) {
+        // Kiểm tra nếu trạng thái là "đã thanh toán" hoặc "bị hủy"
+        boolean isReadOnly = "dathanhtoan".equals(trangThai) || "bihuy".equals(trangThai);
+        
+        // Vô hiệu hóa các field chỉnh sửa
+        giamGiaSpinner.setEnabled(!isReadOnly);
+        khachHangTenField.setEditable(!isReadOnly);
+        khachHangSDTField.setEditable(!isReadOnly);
+        timKiemKhachHangButton.setEnabled(!isReadOnly);
+        
+        // Vô hiệu hóa các nút sửa/cập nhật
+        capNhatButton.setEnabled(!isReadOnly);
+        thanhToanButton.setEnabled(!isReadOnly && !"dathanhtoan".equals(trangThai));
+        huyHoaDonButton.setEnabled(!isReadOnly && !"bihuy".equals(trangThai));
+        
+        // Vô hiệu hóa khả năng thêm/sửa/xóa sản phẩm (buttons trong product panels)
+        if (productGridPanel != null) {
+            Component[] components = productGridPanel.getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JPanel) {
+                    disableProductButtons((JPanel) comp, isReadOnly);
+                }
+            }
+        }
+        
+        // Vô hiệu hóa buttons trong danh sách món đã đặt
+        if (itemsPanel != null) {
+            Component[] components = itemsPanel.getComponents();
+            for (Component comp : components) {
+                if (comp instanceof JPanel) {
+                    disableItemButtons((JPanel) comp, isReadOnly);
+                }
+            }
+        }
+        
+        // Vô hiệu hóa buttons danh mục
+        if (categoryButtons != null) {
+            for (JButton btn : categoryButtons) {
+                if (btn != null) {
+                    btn.setEnabled(!isReadOnly);
+                }
+            }
+        }
+        
+        // Hiển thị tooltip nếu ở chế độ read-only
+        if (isReadOnly) {
+            String message = "Đơn hàng đã thanh toán hoặc bị hủy. Chỉ có thể xem chi tiết, không thể chỉnh sửa.";
+            capNhatButton.setToolTipText(message);
+            thanhToanButton.setToolTipText(message);
+            huyHoaDonButton.setToolTipText(message);
+        } else {
+            capNhatButton.setToolTipText(null);
+            thanhToanButton.setToolTipText(null);
+            huyHoaDonButton.setToolTipText(null);
+        }
+    }
+    
+    private void disableProductButtons(JPanel panel, boolean disable) {
+        Component[] components = panel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JButton) {
+                comp.setEnabled(!disable);
+            } else if (comp instanceof JPanel) {
+                disableProductButtons((JPanel) comp, disable);
+            }
+        }
+    }
+    
+    private void disableItemButtons(JPanel panel, boolean disable) {
+        Component[] components = panel.getComponents();
+        for (Component comp : components) {
+            if (comp instanceof JButton) {
+                comp.setEnabled(!disable);
+            } else if (comp instanceof JPanel) {
+                disableItemButtons((JPanel) comp, disable);
+            }
         }
     }
     

@@ -17,6 +17,7 @@ public class DonHangView extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
+    private JButton editButton; // Chuyển thành field để có thể vô hiệu hóa
     private MainFrameInterface parent;
     private DonHangDAO donHangDAO;
     
@@ -72,7 +73,7 @@ public class DonHangView extends JPanel {
         addButton.setForeground(Color.BLACK);
         addButton.setFocusPainted(false);
         
-        JButton editButton = new JButton("✏️ Sửa");
+        editButton = new JButton("✏️ Sửa");
         editButton.setBackground(new Color(255, 140, 0));
         editButton.setForeground(Color.BLACK);
         editButton.setFocusPainted(false);
@@ -138,13 +139,30 @@ public class DonHangView extends JPanel {
     }
     
     private void setupEventHandlers() {
-        // Double click to edit
+        // Double click to edit (hoặc xem chi tiết nếu đã thanh toán/bị hủy)
         table.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 if (evt.getClickCount() == 2) {
-                    showEditDialog();
+                    // Kiểm tra trạng thái trước khi sửa
+                    int selectedRow = table.getSelectedRow();
+                    if (selectedRow != -1) {
+                        String trangThai = (String) tableModel.getValueAt(selectedRow, 4); // Cột trạng thái
+                        if ("Đã thanh toán".equals(trangThai) || "Bị hủy".equals(trangThai)) {
+                            // Chỉ xem chi tiết, không sửa
+                            showDetailDialog();
+                        } else {
+                            showEditDialog();
+                        }
+                    }
                 }
+            }
+        });
+        
+        // Cập nhật trạng thái nút sửa khi selection thay đổi
+        table.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                updateEditButtonState();
             }
         });
         
@@ -171,6 +189,9 @@ public class DonHangView extends JPanel {
                 };
                 tableModel.addRow(row);
             }
+            
+            // Cập nhật trạng thái nút sửa sau khi load dữ liệu
+            updateEditButtonState();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
@@ -198,8 +219,29 @@ public class DonHangView extends JPanel {
                 };
                 tableModel.addRow(row);
             }
+            
+            // Cập nhật trạng thái nút sửa sau khi tìm kiếm
+            updateEditButtonState();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void updateEditButtonState() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            // Không có hàng nào được chọn
+            editButton.setEnabled(true);
+            return;
+        }
+        
+        String trangThai = (String) tableModel.getValueAt(selectedRow, 4); // Cột trạng thái (index 4)
+        if ("Đã thanh toán".equals(trangThai) || "Bị hủy".equals(trangThai)) {
+            editButton.setEnabled(false);
+            editButton.setToolTipText("Đơn hàng đã thanh toán hoặc bị hủy, không thể sửa. Chỉ có thể xem chi tiết.");
+        } else {
+            editButton.setEnabled(true);
+            editButton.setToolTipText(null);
         }
     }
     
@@ -218,13 +260,15 @@ public class DonHangView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String trangThai = (String) tableModel.getValueAt(selectedRow, 3);
+        String trangThai = (String) tableModel.getValueAt(selectedRow, 4); // Cột trạng thái (index 4)
         
         // Kiểm tra trạng thái thanh toán
         if ("Đã thanh toán".equals(trangThai) || "Bị hủy".equals(trangThai)) {
             JOptionPane.showMessageDialog(this, 
-                "Đơn hàng đã thanh toán, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
+                "Đơn hàng đã thanh toán hoặc bị hủy, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
                 "Thông báo", JOptionPane.WARNING_MESSAGE);
+            // Tự động mở dialog chi tiết
+            showDetailDialog();
             return;
         }
         
