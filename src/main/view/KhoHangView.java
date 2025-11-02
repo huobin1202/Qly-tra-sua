@@ -275,7 +275,7 @@ public class KhoHangView extends JPanel {
         }
         
         private void initializeComponents() {
-            setSize(350, 200);
+            setSize(350, 250);
             setLocationRelativeTo(getParent());
             soLuongField = new JTextField(20);
             soLuongField.setText(String.valueOf(soLuongHienTai));
@@ -294,7 +294,7 @@ public class KhoHangView extends JPanel {
             gbc.gridx = 0; gbc.gridy = 1; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
             JLabel currentLabel = new JLabel("Số lượng hiện tại: " + soLuongHienTai);
             mainPanel.add(currentLabel, gbc);
-            gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
+            gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(new JLabel("Số lượng mới:"), gbc);
             gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
             mainPanel.add(soLuongField, gbc);

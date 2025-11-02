@@ -386,10 +386,157 @@ public class NhapHangView extends JPanel {
     }
     
     private void showDetailsDialog(int id) {
-        ChiTietPhieuNhapDialog dialog = new ChiTietPhieuNhapDialog(SwingUtilities.getWindowAncestor(this), "Chi tiết phiếu nhập #" + id, id);
-        dialog.setVisible(true);
-        if (dialog.isDataChanged()) {
-            loadData();
+        try {
+            // Lấy thông tin phiếu nhập với tên nhân viên và nhà cung cấp
+            String tenNV = "N/A";
+            String tenNCC = "N/A";
+            String ngayNhap = "";
+            String trangThai = "Chưa xác nhận";
+            
+            try (Connection conn = DBUtil.getConnection()) {
+                String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
+                           "FROM phieunhap p " +
+                           "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
+                           "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
+                           "WHERE p.MaPN = ?";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            tenNV = rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A";
+                            tenNCC = rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A";
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                            if (rs.getDate("Ngay") != null) {
+                                ngayNhap = dateFormat.format(rs.getDate("Ngay"));
+                            }
+                            trangThai = convertTrangThaiToUI(rs.getString("TrangThai"));
+                        } else {
+                            JOptionPane.showMessageDialog(this, "Không tìm thấy phiếu nhập!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // Lấy chi tiết phiếu nhập
+            List<ChiTietNhapHangDTO> chiTietList = nhapHangDAO.layChiTietPhieuNhap(id);
+            
+            StringBuilder detail = new StringBuilder();
+            
+            // Header
+            detail.append("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
+            detail.append("║                                    PHIẾU NHẬP HÀNG                                    ║\n");
+            detail.append("║                                        #").append(String.format("%-6d", id)).append("                                        ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            
+            // Thông tin phiếu nhập
+            detail.append("║ Mã phiếu nhập: ").append(String.format("%-20s", id)).append(" Ngày nhập: ").append(String.format("%-20s", ngayNhap)).append(" ║\n");
+            detail.append("║ Nhân viên: ").append(String.format("%-20s", tenNV)).append(" ║\n");
+            detail.append("║ Nhà cung cấp: ").append(String.format("%-20s", tenNCC)).append(" Trạng thái: ").append(String.format("%-20s", trangThai)).append(" ║\n");
+            
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            detail.append("║                                    CHI TIẾT NGUYÊN LIỆU                              ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            detail.append("║ STT │ Mã NL │ Tên nguyên liệu        │ Số lượng │ Đơn giá      │ Đơn vị │ Thành tiền    ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            
+            // Chi tiết nguyên liệu
+            if (chiTietList.isEmpty()) {
+                detail.append("║ ").append("                                ").append("Không có chi tiết nguyên liệu").append("                                ").append(" ║\n");
+            } else {
+                int stt = 1;
+                long tongTien = 0;
+                for (ChiTietNhapHangDTO chiTiet : chiTietList) {
+                    long thanhTien = chiTiet.getThanhTien();
+                    tongTien += thanhTien;
+                    
+                    String tenNL = chiTiet.getTenNL();
+                    if (tenNL.length() > 20) {
+                        tenNL = tenNL.substring(0, 17) + "...";
+                    }
+                    
+                    detail.append(String.format("║ %-3d │ %-5d │ %-22s │ %-8d │ %-12s │ %-6s │ %-13s ║\n",
+                        stt++,
+                        chiTiet.getMaNL(),
+                        tenNL,
+                        chiTiet.getSoLuong(),
+                        String.format("%,d VNĐ", chiTiet.getDonGia()),
+                        chiTiet.getDonVi(),
+                        String.format("%,d VNĐ", thanhTien)
+                    ));
+                }
+                
+                detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                detail.append("║ ").append("                                ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                                ").append(" ║\n");
+            }
+            
+            detail.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
+            
+            JTextArea textArea = new JTextArea(detail.toString());
+            textArea.setEditable(false);
+            textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            
+            JScrollPane scrollPane = new JScrollPane(textArea);
+            scrollPane.setPreferredSize(new Dimension(500, 400));
+            
+            // Tạo panel chứa text area và buttons
+            JPanel mainPanel = new JPanel(new BorderLayout());
+            mainPanel.add(scrollPane, BorderLayout.CENTER);
+            
+            // Panel chứa các nút
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+            
+            JButton printButton = new JButton("🖨️ In phiếu nhập");
+            printButton.setBackground(new Color(70, 130, 180));
+            printButton.setForeground(Color.BLACK);
+            printButton.setFocusPainted(false);
+            printButton.addActionListener(e -> printPhieuNhap(detail.toString(), id));
+            
+            JButton exportButton = new JButton("💾 Xuất file");
+            exportButton.setBackground(new Color(34, 139, 34));
+            exportButton.setForeground(Color.BLACK);
+            exportButton.setFocusPainted(false);
+            exportButton.addActionListener(e -> exportPhieuNhap(detail.toString(), id));
+            
+            buttonPanel.add(printButton);
+            buttonPanel.add(exportButton);
+            
+            mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+            
+            JOptionPane.showMessageDialog(this, mainPanel, "Chi tiết phiếu nhập", JOptionPane.INFORMATION_MESSAGE);
+            
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tải chi tiết: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void printPhieuNhap(String content, int maPN) {
+        try {
+            // Tạo một JTextArea để in
+            JTextArea printArea = new JTextArea(content);
+            printArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            printArea.print();
+            
+            JOptionPane.showMessageDialog(this, "In phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi in phiếu nhập: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void exportPhieuNhap(String content, int maPN) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Xuất phiếu nhập");
+        fileChooser.setSelectedFile(new java.io.File("PhieuNhap_" + maPN + "_" + 
+            new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".txt"));
+        
+        int result = fileChooser.showSaveDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            try (java.io.FileWriter writer = new java.io.FileWriter(fileChooser.getSelectedFile())) {
+                writer.write(content);
+                JOptionPane.showMessageDialog(this, "Xuất phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } catch (java.io.IOException e) {
+                JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
     

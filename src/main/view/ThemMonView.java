@@ -35,7 +35,7 @@ public class ThemMonView extends JDialog {
     }
     
     private void initializeComponents() {
-        setSize(400, 300);
+        setSize(400, 350);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         

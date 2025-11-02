@@ -77,6 +77,7 @@ public class DonHangView extends JPanel {
         editButton.setBackground(new Color(255, 140, 0));
         editButton.setForeground(Color.BLACK);
         editButton.setFocusPainted(false);
+        editButton.setEnabled(false); // Mặc định tắt khi chưa có hàng được chọn
         
         JButton deleteButton = new JButton("🗑️ Xóa");
         deleteButton.setBackground(new Color(220, 20, 60));
@@ -231,15 +232,29 @@ public class DonHangView extends JPanel {
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
             // Không có hàng nào được chọn
-            editButton.setEnabled(true);
+            editButton.setEnabled(false);
+            editButton.setToolTipText("Vui lòng chọn đơn hàng cần sửa");
             return;
         }
         
-        String trangThai = (String) tableModel.getValueAt(selectedRow, 4); // Cột trạng thái (index 4)
-        if ("Đã thanh toán".equals(trangThai) || "Bị hủy".equals(trangThai)) {
-            editButton.setEnabled(false);
-            editButton.setToolTipText("Đơn hàng đã thanh toán hoặc bị hủy, không thể sửa. Chỉ có thể xem chi tiết.");
-        } else {
+        try {
+            String trangThai = (String) tableModel.getValueAt(selectedRow, 4); // Cột trạng thái (index 4)
+            if (trangThai == null) {
+                editButton.setEnabled(true);
+                editButton.setToolTipText(null);
+                return;
+            }
+            
+            trangThai = trangThai.trim(); // Loại bỏ khoảng trắng
+            if ("Đã thanh toán".equals(trangThai) || "Bị hủy".equals(trangThai)) {
+                editButton.setEnabled(false);
+                editButton.setToolTipText("Đơn hàng đã thanh toán hoặc bị hủy, không thể sửa. Chỉ có thể xem chi tiết.");
+            } else {
+                editButton.setEnabled(true);
+                editButton.setToolTipText(null);
+            }
+        } catch (Exception e) {
+            // Nếu có lỗi, mặc định cho phép sửa
             editButton.setEnabled(true);
             editButton.setToolTipText(null);
         }

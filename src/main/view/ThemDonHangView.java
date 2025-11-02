@@ -158,7 +158,7 @@ public class ThemDonHangView extends JDialog {
         }
     }
     private void initializeComponents() {
-        setSize(1300, 800);
+        setSize(1350, 800);
         setLocationRelativeTo(getParent());
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         
@@ -238,10 +238,10 @@ public class ThemDonHangView extends JDialog {
         
         // Tạo 3 cột chính
         JSplitPane mainSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        mainSplitPane.setDividerLocation(300);
+        mainSplitPane.setDividerLocation(350);
         mainSplitPane.setDividerSize(5);
         mainSplitPane.setResizeWeight(0.25); // Cột trái chiếm 25% không gian
-        mainSplitPane.setEnabled(false); // Vô hiệu hóa khả năng kéo divider
+        mainSplitPane.setEnabled(true); // Vô hiệu hóa khả năng kéo divider
         
         // Cột trái - Thông tin hóa đơn
         JPanel leftPanel = createLeftPanel();
@@ -249,10 +249,10 @@ public class ThemDonHangView extends JDialog {
         
         // Cột giữa và phải
         JSplitPane rightSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        rightSplitPane.setDividerLocation(550);
+        rightSplitPane.setDividerLocation(600);
         rightSplitPane.setDividerSize(5);
         rightSplitPane.setResizeWeight(0.67); // Cột giữa chiếm 67% không gian còn lại
-        rightSplitPane.setEnabled(false); // Vô hiệu hóa khả năng kéo divider
+        rightSplitPane.setEnabled(true); // Vô hiệu hóa khả năng kéo divider
         
         // Cột giữa - Danh mục và sản phẩm
         JPanel centerPanel = createCenterPanel();
@@ -406,7 +406,7 @@ public class ThemDonHangView extends JDialog {
         middleSplitPane.setDividerLocation(120);
         middleSplitPane.setResizeWeight(0.0); // Danh mục không resize
         middleSplitPane.setBorder(null);
-        middleSplitPane.setEnabled(false); // Vô hiệu hóa khả năng kéo divider
+        middleSplitPane.setEnabled(true); // Vô hiệu hóa khả năng kéo divider
         
         panel.add(middleSplitPane, BorderLayout.CENTER);
         
@@ -679,14 +679,20 @@ public class ThemDonHangView extends JDialog {
             PreparedStatement ps;
             
             if (categoryId == 0) {
-                // Load tất cả sản phẩm có trạng thái 'ban'
-                sql = "SELECT * FROM mon WHERE TinhTrang = 'dangban' ORDER BY MaLoai, TenMon";
+                // Load tất cả sản phẩm có trạng thái 'ban', loại trừ topping (MaLoai = 4)
+                sql = "SELECT * FROM mon WHERE TinhTrang = 'dangban' AND MaLoai != 4 ORDER BY MaLoai, TenMon";
                 ps = conn.prepareStatement(sql);
             } else {
-                // Load sản phẩm theo danh mục cụ thể
-                sql = "SELECT * FROM mon WHERE MaLoai = ? AND TinhTrang = 'dangban' ORDER BY TenMon";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, categoryId);
+                // Load sản phẩm theo danh mục cụ thể, nhưng không hiển thị topping (MaLoai = 4)
+                if (categoryId == 4) {
+                    // Không load gì nếu là danh mục topping
+                    sql = "SELECT * FROM mon WHERE 1 = 0"; // Query trả về không có kết quả
+                    ps = conn.prepareStatement(sql);
+                } else {
+                    sql = "SELECT * FROM mon WHERE MaLoai = ? AND TinhTrang = 'dangban' ORDER BY TenMon";
+                    ps = conn.prepareStatement(sql);
+                    ps.setInt(1, categoryId);
+                }
             }
             
             try (ResultSet rs = ps.executeQuery()) {
