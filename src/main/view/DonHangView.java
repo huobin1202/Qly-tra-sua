@@ -380,7 +380,7 @@ public class DonHangView extends JPanel {
             textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
             
             JScrollPane scrollPane = new JScrollPane(textArea);
-            scrollPane.setPreferredSize(new Dimension(500, 400));
+            scrollPane.setPreferredSize(new Dimension(900, 400));
             
             // Tạo panel chứa text area và buttons
             JPanel mainPanel = new JPanel(new BorderLayout());

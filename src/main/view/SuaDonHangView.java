@@ -53,6 +53,9 @@ public class SuaDonHangView extends JDialog {
     private final DonHangDTO currentOrder;
     private int currentCategoryId = 1; // Sẽ được cập nhật từ database
     private int originalKhachHangId = 0; // Lưu mã khách hàng ban đầu của đơn hàng
+    // Điều khiển giảm giá tự động / thủ công
+    private boolean isSettingDiscountProgrammatically = false;
+    private boolean isDiscountManuallyEdited = false;
     
     public SuaDonHangView(Window parent, int maDon) {
         super(parent, "Cập nhật hóa đơn", ModalityType.APPLICATION_MODAL);
@@ -446,7 +449,12 @@ public class SuaDonHangView extends JDialog {
         huyHoaDonButton.addActionListener(e -> cancelOrder());
         
         // Event handler cho giảm giá
-        giamGiaSpinner.addChangeListener(e -> updateOrderSummary());
+        giamGiaSpinner.addChangeListener(e -> {
+            if (!isSettingDiscountProgrammatically) {
+                isDiscountManuallyEdited = true; // Người dùng đã chỉnh tay
+            }
+            updateOrderSummary();
+        });
         
         // Event handler cho nút tìm kiếm khách hàng
         timKiemKhachHangButton.addActionListener(e -> timKiemKhachHangTheoSDT());
@@ -488,7 +496,10 @@ public class SuaDonHangView extends JDialog {
                     maHDField.setText(String.valueOf(currentOrder.getMaDon()));
                     nhanVienField.setText(rs.getString("HoTen") != null ? rs.getString("HoTen") : "Admin");
                     
+                    isSettingDiscountProgrammatically = true;
                     giamGiaSpinner.setValue(currentOrder.getGiamGia());
+                    isSettingDiscountProgrammatically = false;
+                    isDiscountManuallyEdited = false; // mặc định theo tự động cho tới khi người dùng sửa
                     
                     // Cập nhật khách hàng nếu có
                     if (selectedKhachHangId > 0) {
@@ -633,6 +644,8 @@ public class SuaDonHangView extends JDialog {
                     // Điền thông tin vào các field
                     khachHangTenField.setText(hoTen);
                     khachHangDiemTichLuyField.setText(String.valueOf(diemTichLuy));
+                    isDiscountManuallyEdited = false; // reset để áp dụng tự động theo điểm
+                    updateOrderSummary();
                     
                     // Cập nhật selected customer
                     selectedKhachHangId = maKH;
@@ -646,6 +659,8 @@ public class SuaDonHangView extends JDialog {
                     if (khachHangDiemTichLuyField.getText().trim().isEmpty()) {
                         khachHangDiemTichLuyField.setText("0");
                     }
+                    isDiscountManuallyEdited = false;
+                    updateOrderSummary();
                     selectedKhachHangId = 0;
                     currentOrder.setMaKH(null);
                 }
@@ -1232,35 +1247,80 @@ public class SuaDonHangView extends JDialog {
     
     private void updateOrderSummary() {
         long tongTien = 0;
+        int totalLy = 0; // Tổng số ly trong đơn hàng
         for (ChiTietDonHangDTO item : orderedItems) {
             tongTien += (item.getGiaMon() + item.getGiaTopping()) * item.getSoLuong();
+            totalLy += item.getSoLuong();
         }
         
-        // Tự động tính giảm giá theo điểm tích lũy hiện có của khách hàng (tối đa 30%)
         int giamGia = (Integer) giamGiaSpinner.getValue();
-        try {
-            int availablePoints = 0;
-            if (khachHangDiemTichLuyField != null && !khachHangDiemTichLuyField.getText().trim().isEmpty()) {
-                availablePoints = Integer.parseInt(khachHangDiemTichLuyField.getText().trim());
+        
+        // Kiểm tra đơn đầu tiên của khách hàng (không tính đơn hiện tại)
+        boolean isFirstOrder = false;
+        Integer maKH = currentOrder.getMaKH();
+        if (maKH != null && maKH > 0) {
+            try (Connection conn = DBUtil.getConnection()) {
+                try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM donhang WHERE MaKH = ? AND TrangThai = 'dathanhtoan' AND MaDon != ?")) {
+                    ps.setInt(1, maKH);
+                    ps.setInt(2, currentOrder.getMaDon());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) == 0) {
+                            isFirstOrder = true;
+                        }
+                    }
+                }
+            } catch (SQLException ignore) {
+                // Không xử lý lỗi ở đây
             }
-            int autoDiscount = 0;
-            if (availablePoints >= 70) {
-                autoDiscount = 30; // Tối đa 30%
-            } else if (availablePoints >= 50) {
-                autoDiscount = 20;
-            } else if (availablePoints >= 30) {
-                autoDiscount = 10;
-            } else if (availablePoints >= 10) {
-                autoDiscount = 5;
+        }
+        
+        // Nếu là đơn đầu tiên và đủ số ly, tự động áp dụng giảm giá
+        if (!isDiscountManuallyEdited && isFirstOrder && totalLy > 0) {
+            int autoDiscountFirstOrder = 0;
+            if (totalLy >= 70) {
+                autoDiscountFirstOrder = 30; // Tối đa 30%
+            } else if (totalLy >= 50) {
+                autoDiscountFirstOrder = 20;
+            } else if (totalLy >= 30) {
+                autoDiscountFirstOrder = 10;
+            } else if (totalLy >= 10) {
+                autoDiscountFirstOrder = 5;
             }
-            // Đảm bảo không vượt quá 30%
-            if (autoDiscount > 30) autoDiscount = 30;
-            if (autoDiscount != giamGia) {
-                giamGia = autoDiscount;
+            if (autoDiscountFirstOrder > giamGia) {
+                giamGia = autoDiscountFirstOrder;
+                isSettingDiscountProgrammatically = true;
                 giamGiaSpinner.setValue(giamGia);
+                isSettingDiscountProgrammatically = false;
             }
-        } catch (NumberFormatException ignore) {
-            // Bỏ qua nếu không parse được điểm
+        } else {
+            // Tự động tính giảm giá theo điểm tích lũy hiện có của khách hàng (tối đa 30%)
+            try {
+                int availablePoints = 0;
+                if (khachHangDiemTichLuyField != null && !khachHangDiemTichLuyField.getText().trim().isEmpty()) {
+                    availablePoints = Integer.parseInt(khachHangDiemTichLuyField.getText().trim());
+                }
+                int autoDiscount = 0;
+                if (availablePoints >= 70) {
+                    autoDiscount = 30; // Tối đa 30%
+                } else if (availablePoints >= 50) {
+                    autoDiscount = 20;
+                } else if (availablePoints >= 30) {
+                    autoDiscount = 10;
+                } else if (availablePoints >= 10) {
+                    autoDiscount = 5;
+                }
+                // Đảm bảo không vượt quá 30%
+                if (autoDiscount > 30) autoDiscount = 30;
+                if (!isDiscountManuallyEdited && autoDiscount != giamGia) {
+                    giamGia = autoDiscount;
+                    isSettingDiscountProgrammatically = true;
+                    giamGiaSpinner.setValue(giamGia);
+                    isSettingDiscountProgrammatically = false;
+                }
+            } catch (NumberFormatException ignore) {
+                // Bỏ qua nếu không parse được điểm
+            }
         }
         
         long giamGiaAmount = tongTien * giamGia / 100;
@@ -1383,6 +1443,13 @@ public class SuaDonHangView extends JDialog {
                 maKH = originalKhachHangId;
             }
             
+            // Đảm bảo đơn hàng đã tồn tại
+            if (currentOrder.getMaDon() <= 0) {
+                conn.rollback();
+                JOptionPane.showMessageDialog(this, "Lỗi: Đơn hàng không hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
             // Cập nhật thông tin đơn hàng
             String updateOrderSql = "UPDATE donhang SET MaKH = ?, GiamGia = ?, TongTien = ? WHERE MaDon = ?";
             try (PreparedStatement ps = conn.prepareStatement(updateOrderSql)) {
@@ -1396,7 +1463,12 @@ public class SuaDonHangView extends JDialog {
                 ps.setInt(2, (Integer) giamGiaSpinner.getValue());
                 ps.setLong(3, currentOrder.getTongTien());
                 ps.setInt(4, currentOrder.getMaDon());
-                ps.executeUpdate();
+                int rowsUpdated = ps.executeUpdate();
+                if (rowsUpdated == 0) {
+                    conn.rollback();
+                    JOptionPane.showMessageDialog(this, "Lỗi: Không tìm thấy đơn hàng với ID = " + currentOrder.getMaDon(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
             }
             
             // Xóa chi tiết cũ
@@ -1406,16 +1478,18 @@ public class SuaDonHangView extends JDialog {
             }
             
             // Thêm chi tiết mới
-            String insertDetailSql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping) VALUES (?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement ps = conn.prepareStatement(insertDetailSql)) {
-                for (ChiTietDonHangDTO item : orderedItems) {
-                    ps.setInt(1, item.getMaDon());
-                    ps.setInt(2, item.getMaMon());
-                    ps.setInt(3, item.getMaTopping());
-                    ps.setInt(4, item.getSoLuong());
-                    ps.setLong(5, item.getGiaMon());
-                    ps.setLong(6, item.getGiaTopping());
-                    ps.executeUpdate();
+            if (!orderedItems.isEmpty()) {
+                String insertDetailSql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping) VALUES (?, ?, ?, ?, ?, ?)";
+                try (PreparedStatement ps = conn.prepareStatement(insertDetailSql)) {
+                    for (ChiTietDonHangDTO item : orderedItems) {
+                        ps.setInt(1, currentOrder.getMaDon()); // Sử dụng MaDon từ currentOrder, không phải từ item
+                        ps.setInt(2, item.getMaMon());
+                        ps.setInt(3, item.getMaTopping());
+                        ps.setInt(4, item.getSoLuong());
+                        ps.setLong(5, item.getGiaMon());
+                        ps.setLong(6, item.getGiaTopping());
+                        ps.executeUpdate();
+                    }
                 }
             }
             
@@ -1482,9 +1556,18 @@ public class SuaDonHangView extends JDialog {
                 try (Connection conn = DBUtil.getConnection()) {
                     Integer maKH = currentOrder.getMaKH();
                     if (maKH != null && maKH > 0) {
+                        // Luôn lấy điểm hiện tại từ database
+                        int currentPoints = 0;
+                        try (PreparedStatement ps = conn.prepareStatement("SELECT DiemTichLuy FROM khachhang WHERE MaKH=?")) {
+                            ps.setInt(1, maKH);
+                            try (ResultSet rs = ps.executeQuery()) {
+                                if (rs.next()) currentPoints = rs.getInt(1);
+                            }
+                        }
+
                         // Tính toán số điểm dùng và điểm nhận được
                         int giamGia = currentOrder.getGiamGia();
-                        
+
                         // Tính điểm đã dùng dựa trên giảm giá
                         int pointsUsed = 0;
                         if (giamGia >= 30) pointsUsed = 1000;
@@ -1496,14 +1579,6 @@ public class SuaDonHangView extends JDialog {
                         int earnedPoints = 0;
                         for (ChiTietDonHangDTO item : orderedItems) {
                             earnedPoints += item.getSoLuong();
-                        }
-
-                        int currentPoints = 0;
-                        try (PreparedStatement ps = conn.prepareStatement("SELECT DiemTichLuy FROM khachhang WHERE MaKH=?")) {
-                            ps.setInt(1, maKH);
-                            try (ResultSet rs = ps.executeQuery()) {
-                                if (rs.next()) currentPoints = rs.getInt(1);
-                            }
                         }
 
                         int newPoints = Math.max(0, currentPoints - pointsUsed) + earnedPoints;
