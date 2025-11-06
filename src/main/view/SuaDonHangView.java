@@ -644,12 +644,12 @@ public class SuaDonHangView extends JDialog {
                     // Điền thông tin vào các field
                     khachHangTenField.setText(hoTen);
                     khachHangDiemTichLuyField.setText(String.valueOf(diemTichLuy));
-                    isDiscountManuallyEdited = false; // reset để áp dụng tự động theo điểm
-                    updateOrderSummary();
-                    
                     // Cập nhật selected customer
                     selectedKhachHangId = maKH;
                     currentOrder.setMaKH(maKH);
+                    // Reset auto mode để áp dụng giảm giá tự động theo điểm tích lũy
+                    isDiscountManuallyEdited = false;
+                    updateOrderSummary();
                     
                     JOptionPane.showMessageDialog(this, "Đã tìm thấy khách hàng!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 } else {
@@ -659,10 +659,11 @@ public class SuaDonHangView extends JDialog {
                     if (khachHangDiemTichLuyField.getText().trim().isEmpty()) {
                         khachHangDiemTichLuyField.setText("0");
                     }
-                    isDiscountManuallyEdited = false;
-                    updateOrderSummary();
                     selectedKhachHangId = 0;
                     currentOrder.setMaKH(null);
+                    // Reset auto mode để áp dụng giảm giá tự động (0% cho khách hàng mới)
+                    isDiscountManuallyEdited = false;
+                    updateOrderSummary();
                 }
             }
         } catch (SQLException e) {
@@ -1254,6 +1255,7 @@ public class SuaDonHangView extends JDialog {
         }
         
         int giamGia = (Integer) giamGiaSpinner.getValue();
+        int suggestedDiscount = giamGia; // Giá trị đề xuất dựa trên điểm tích lũy
         
         // Kiểm tra đơn đầu tiên của khách hàng (không tính đơn hiện tại)
         boolean isFirstOrder = false;
@@ -1275,52 +1277,50 @@ public class SuaDonHangView extends JDialog {
             }
         }
         
-        // Nếu là đơn đầu tiên và đủ số ly, tự động áp dụng giảm giá
-        if (!isDiscountManuallyEdited && isFirstOrder && totalLy > 0) {
-            int autoDiscountFirstOrder = 0;
-            if (totalLy >= 70) {
-                autoDiscountFirstOrder = 30; // Tối đa 30%
-            } else if (totalLy >= 50) {
-                autoDiscountFirstOrder = 20;
-            } else if (totalLy >= 30) {
-                autoDiscountFirstOrder = 10;
+        // Nếu là đơn đầu tiên và đủ số ly, tính giảm giá đề xuất
+        // Chỉ áp dụng 30% khi có 30 ly trở lên
+        if (isFirstOrder && totalLy > 0) {
+            if (totalLy >= 30) {
+                suggestedDiscount = 30; // 30 ly trở lên = 30%
+            } else if (totalLy >= 20) {
+                suggestedDiscount = 20;
             } else if (totalLy >= 10) {
-                autoDiscountFirstOrder = 5;
-            }
-            if (autoDiscountFirstOrder > giamGia) {
-                giamGia = autoDiscountFirstOrder;
-                isSettingDiscountProgrammatically = true;
-                giamGiaSpinner.setValue(giamGia);
-                isSettingDiscountProgrammatically = false;
+                suggestedDiscount = 10;
+            } else if (totalLy >= 5) {
+                suggestedDiscount = 5;
             }
         } else {
-            // Tự động tính giảm giá theo điểm tích lũy hiện có của khách hàng (tối đa 30%)
+            // Tự động tính giảm giá đề xuất theo điểm tích lũy hiện có của khách hàng (tối đa 30%)
             try {
                 int availablePoints = 0;
                 if (khachHangDiemTichLuyField != null && !khachHangDiemTichLuyField.getText().trim().isEmpty()) {
                     availablePoints = Integer.parseInt(khachHangDiemTichLuyField.getText().trim());
                 }
-                int autoDiscount = 0;
-                if (availablePoints >= 70) {
-                    autoDiscount = 30; // Tối đa 30%
-                } else if (availablePoints >= 50) {
-                    autoDiscount = 20;
-                } else if (availablePoints >= 30) {
-                    autoDiscount = 10;
+                // Tính giảm giá theo điểm tích lũy (tối đa 30%)
+                if (availablePoints >= 30) {
+                    suggestedDiscount = 30; // 70 điểm = 30% (tối đa)
+                } else if (availablePoints >= 20) {
+                    suggestedDiscount = 20; // 50 điểm = 20%
                 } else if (availablePoints >= 10) {
-                    autoDiscount = 5;
+                    suggestedDiscount = 10; // 30 điểm = 10%
+                } else {
+                    suggestedDiscount = 0;
                 }
                 // Đảm bảo không vượt quá 30%
-                if (autoDiscount > 30) autoDiscount = 30;
-                if (!isDiscountManuallyEdited && autoDiscount != giamGia) {
-                    giamGia = autoDiscount;
-                    isSettingDiscountProgrammatically = true;
-                    giamGiaSpinner.setValue(giamGia);
-                    isSettingDiscountProgrammatically = false;
-                }
+                if (suggestedDiscount > 30) suggestedDiscount = 30;
             } catch (NumberFormatException ignore) {
                 // Bỏ qua nếu không parse được điểm
+                suggestedDiscount = 0;
             }
+        }
+        
+        // Chỉ tự động cập nhật nếu người dùng chưa chỉnh tay hoặc giá trị đề xuất khác với giá trị hiện tại
+        // Nhưng vẫn cho phép người dùng chỉnh sửa sau đó
+        if (!isDiscountManuallyEdited && suggestedDiscount != giamGia) {
+            giamGia = suggestedDiscount;
+            isSettingDiscountProgrammatically = true;
+            giamGiaSpinner.setValue(giamGia);
+            isSettingDiscountProgrammatically = false;
         }
         
         long giamGiaAmount = tongTien * giamGia / 100;
@@ -1568,12 +1568,12 @@ public class SuaDonHangView extends JDialog {
                         // Tính toán số điểm dùng và điểm nhận được
                         int giamGia = currentOrder.getGiamGia();
 
-                        // Tính điểm đã dùng dựa trên giảm giá
+                        // Tính điểm đã dùng dựa trên giảm giá (tối đa 30%)
                         int pointsUsed = 0;
-                        if (giamGia >= 30) pointsUsed = 1000;
-                        else if (giamGia >= 20) pointsUsed = 500;
-                        else if (giamGia >= 10) pointsUsed = 200;
-                        else if (giamGia >= 5) pointsUsed = 100;
+                        if (giamGia >= 30) pointsUsed = 1000; // 30% = 1000 điểm (tối đa)
+                        else if (giamGia >= 20) pointsUsed = 500; // 20% = 500 điểm
+                        else if (giamGia >= 10) pointsUsed = 200; // 10% = 200 điểm
+                        else if (giamGia >= 5) pointsUsed = 100; // 5% = 100 điểm
 
                         // Tính điểm nhận được: 1 ly = 1 điểm
                         int earnedPoints = 0;
