@@ -614,6 +614,38 @@ public class NhanVienView extends JPanel {
                         }
                     }
                     
+                    // Kiểm tra logic vô hiệu hóa tài khoản và đảm bảo ít nhất 1 quản lý
+                    String chucVuDB = convertChucVuToDatabase(chucVu);
+                    String trangThaiMoi = convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem());
+                    String chucVuCu = nv.getChucVu();
+                    
+                    // Kiểm tra nếu chuyển chức vụ từ Quản lý sang Nhân viên hoặc nghỉ việc
+                    boolean chuyenChucVu = chucVuCu != null && chucVuCu.equalsIgnoreCase("quanly") && chucVuDB.equals("nhanvien");
+                    boolean nghiViec = trangThaiMoi.equals("nghiviec");
+                    
+                    // Nếu chuyển chức vụ hoặc nghỉ việc, tài khoản sẽ bị vô hiệu hóa
+                    if (chuyenChucVu || nghiViec) {
+                        // Kiểm tra nếu nhân viên này là quản lý, cần đảm bảo còn ít nhất 1 quản lý khác
+                        if (chucVuCu != null && chucVuCu.equalsIgnoreCase("quanly")) {
+                            // Đếm số quản lý còn lại (trừ nhân viên hiện tại và những người nghỉ việc)
+                            try (PreparedStatement checkPs = conn.prepareStatement(
+                                "SELECT COUNT(*) FROM nhanvien WHERE ChucVu = 'quanly' AND MaNV != ? AND TrangThai != 'nghiviec'")) {
+                                checkPs.setInt(1, nv.getMaNV());
+                                try (ResultSet rs = checkPs.executeQuery()) {
+                                    if (rs.next() && rs.getInt(1) == 0) {
+                                        JOptionPane.showMessageDialog(this, 
+                                            "Không thể thực hiện thao tác này! Hệ thống cần ít nhất 1 quản lý đang làm việc.", 
+                                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Vô hiệu hóa tài khoản (set TrangThai = "nghiviec")
+                        trangThaiMoi = "nghiviec";
+                    }
+                    
                     PreparedStatement ps;
                     if (!matKhau.isEmpty()) {
                         ps = conn.prepareStatement(
@@ -629,9 +661,9 @@ public class NhanVienView extends JPanel {
                             ps.setNull(5, Types.TIMESTAMP);
                         }
                         
-                        ps.setString(6, convertChucVuToDatabase(chucVu));
+                        ps.setString(6, chucVuDB);
                         ps.setLong(7, luong);
-                        ps.setString(8, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
+                        ps.setString(8, trangThaiMoi);
                         ps.setInt(9, nv.getMaNV());
                     } else {
                         ps = conn.prepareStatement(
@@ -646,9 +678,9 @@ public class NhanVienView extends JPanel {
                             ps.setNull(4, Types.TIMESTAMP);
                         }
                         
-                        ps.setString(5, convertChucVuToDatabase(chucVu));
+                        ps.setString(5, chucVuDB);
                         ps.setLong(6, luong);
-                        ps.setString(7, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
+                        ps.setString(7, trangThaiMoi);
                         ps.setInt(8, nv.getMaNV());
                     }
                     

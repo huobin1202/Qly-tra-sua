@@ -434,6 +434,19 @@ public class NhaCungCapView extends JPanel {
                 System.out.println("Kết nối database thành công!");
                 
                 if (ncc == null) {
+                    // Thêm mới - Kiểm tra số điện thoại trùng
+                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhacungcap WHERE SDT = ?")) {
+                        checkPs.setString(1, sdt);
+                        try (ResultSet rs = checkPs.executeQuery()) {
+                            if (rs.next() && rs.getInt(1) > 0) {
+                                JOptionPane.showMessageDialog(this, 
+                                    "Số điện thoại '" + sdt + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+                        }
+                    }
+                    
                     // Thêm mới
                     try (PreparedStatement ps = conn.prepareStatement(
                         "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
@@ -444,6 +457,22 @@ public class NhaCungCapView extends JPanel {
                         JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                     }
                 } else {
+                    // Sửa - Kiểm tra số điện thoại trùng (nếu đổi số điện thoại)
+                    if (!sdt.equals(ncc.getSoDienThoai())) {
+                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhacungcap WHERE SDT = ? AND MaNCC != ?")) {
+                            checkPs.setString(1, sdt);
+                            checkPs.setInt(2, ncc.getMaNCC());
+                            try (ResultSet rs = checkPs.executeQuery()) {
+                                if (rs.next() && rs.getInt(1) > 0) {
+                                    JOptionPane.showMessageDialog(this, 
+                                        "Số điện thoại '" + sdt + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    
                     // Sửa
                     try (PreparedStatement ps = conn.prepareStatement(
                         "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?")) {

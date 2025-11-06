@@ -89,7 +89,7 @@ public class SuaDonHangView extends JDialog {
         nhanVienField = new JTextField(15);
         nhanVienField.setEditable(false);
         
-        giamGiaSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
+        giamGiaSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 30, 1)); // Tối đa 30%
         giamGiaSpinner.setPreferredSize(new Dimension(80, 25));
         
         // Khởi tạo các component thông tin khách hàng
@@ -1236,7 +1236,7 @@ public class SuaDonHangView extends JDialog {
             tongTien += (item.getGiaMon() + item.getGiaTopping()) * item.getSoLuong();
         }
         
-        // Tự động tính giảm giá theo điểm tích lũy hiện có của khách hàng
+        // Tự động tính giảm giá theo điểm tích lũy hiện có của khách hàng (tối đa 30%)
         int giamGia = (Integer) giamGiaSpinner.getValue();
         try {
             int availablePoints = 0;
@@ -1244,13 +1244,17 @@ public class SuaDonHangView extends JDialog {
                 availablePoints = Integer.parseInt(khachHangDiemTichLuyField.getText().trim());
             }
             int autoDiscount = 0;
-            if (availablePoints >= 500) {
+            if (availablePoints >= 70) {
+                autoDiscount = 30; // Tối đa 30%
+            } else if (availablePoints >= 50) {
                 autoDiscount = 20;
-            } else if (availablePoints >= 200) {
+            } else if (availablePoints >= 30) {
                 autoDiscount = 10;
-            } else if (availablePoints >= 100) {
+            } else if (availablePoints >= 10) {
                 autoDiscount = 5;
             }
+            // Đảm bảo không vượt quá 30%
+            if (autoDiscount > 30) autoDiscount = 30;
             if (autoDiscount != giamGia) {
                 giamGia = autoDiscount;
                 giamGiaSpinner.setValue(giamGia);
@@ -1478,16 +1482,21 @@ public class SuaDonHangView extends JDialog {
                 try (Connection conn = DBUtil.getConnection()) {
                     Integer maKH = currentOrder.getMaKH();
                     if (maKH != null && maKH > 0) {
-                        long tongTien = currentOrder.getTongTien();
+                        // Tính toán số điểm dùng và điểm nhận được
                         int giamGia = currentOrder.getGiamGia();
-                        long phaiTra = tongTien - (tongTien * giamGia / 100);
-
+                        
+                        // Tính điểm đã dùng dựa trên giảm giá
                         int pointsUsed = 0;
-                        if (giamGia >= 20) pointsUsed = 500;
+                        if (giamGia >= 30) pointsUsed = 1000;
+                        else if (giamGia >= 20) pointsUsed = 500;
                         else if (giamGia >= 10) pointsUsed = 200;
                         else if (giamGia >= 5) pointsUsed = 100;
 
-                        int earnedPoints = (int)(phaiTra / 10000);
+                        // Tính điểm nhận được: 1 ly = 1 điểm
+                        int earnedPoints = 0;
+                        for (ChiTietDonHangDTO item : orderedItems) {
+                            earnedPoints += item.getSoLuong();
+                        }
 
                         int currentPoints = 0;
                         try (PreparedStatement ps = conn.prepareStatement("SELECT DiemTichLuy FROM khachhang WHERE MaKH=?")) {

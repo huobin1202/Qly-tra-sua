@@ -17,6 +17,7 @@ public class Runner {
         // Chạy trên EDT (Event Dispatch Thread)
         SwingUtilities.invokeLater(new Runnable() {
             @Override
+            
             public void run() {
                 // Hiển thị màn hình đăng nhập
                 LoginDialog loginDialog = new LoginDialog(null);
