@@ -41,7 +41,7 @@ public class NhanVienView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Tài khoản", "Họ tên", "Chức vụ"});
+        searchCombo = new JComboBox<>(new String[]{"ID", "Tài khoản", "Họ tên"});
         searchField = new JTextField(20);
     }
     
@@ -166,7 +166,7 @@ public class NhanVienView extends JPanel {
             String sql = "SELECT * FROM nhanvien WHERE ";
             PreparedStatement ps;
             
-            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+            if (searchText.isEmpty()) {
                 sql = "SELECT * FROM nhanvien ORDER BY MaNV";
                 ps = conn.prepareStatement(sql);
             } else if (searchType.equals("ID")) {
@@ -177,15 +177,11 @@ public class NhanVienView extends JPanel {
                 sql += "TaiKhoan LIKE ? ORDER BY MaNV";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
-            } else if (searchType.equals("Họ tên")) {
+            } else {
                 sql += "HoTen LIKE ? ORDER BY MaNV";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
-            } else {
-                sql += "ChucVu LIKE ? ORDER BY MaNV";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            }
+            } 
             
             ResultSet rs = ps.executeQuery();
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -354,6 +350,7 @@ public class NhanVienView extends JPanel {
             sdtField = new JTextField(20);
             ngayVaoLamPicker = new DateChooserComponent();
             chucVuCombo = new JComboBox<>(new String[]{"Nhân viên", "Quản lý"});
+            chucVuCombo.setPreferredSize(new Dimension(100, 20)); // Tăng độ rộng và cao
             luongField = new JTextField(20);
             trangThaiCombo = new JComboBox<>(new String[]{"Đang làm", "Nghỉ việc"});
             

@@ -1413,7 +1413,7 @@ public class HangHoaView extends JPanel {
         }
         
         private void initializeComponents() {
-            setSize(350, 250);
+            setSize(360, 250);
             setLocationRelativeTo(getParent());
             
             tenField = new JTextField(20);

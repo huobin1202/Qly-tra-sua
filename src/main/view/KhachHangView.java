@@ -39,7 +39,7 @@ public class KhachHangView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Số điện thoại", "Họ tên"});
+        searchCombo = new JComboBox<>(new String[]{"ID", "Số điện thoại", "Họ tên"});
         searchField = new JTextField(20);
     }
     
@@ -169,7 +169,7 @@ public class KhachHangView extends JPanel {
             String sql = "SELECT * FROM khachhang WHERE ";
             PreparedStatement ps;
             
-            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+            if (searchText.isEmpty()) {
                 sql = "SELECT * FROM khachhang ORDER BY MaKH";
                 ps = conn.prepareStatement(sql);
             } else if (searchType.equals("ID")) {

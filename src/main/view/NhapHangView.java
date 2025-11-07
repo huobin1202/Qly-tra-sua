@@ -46,7 +46,7 @@ public class NhapHangView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Nhân viên", "Nhà cung cấp", "Trạng thái"});
+        searchCombo = new JComboBox<>(new String[]{"ID", "Nhân viên", "Nhà cung cấp"});
         searchField = new JTextField(20);
     }
     
@@ -203,7 +203,7 @@ public class NhapHangView extends JPanel {
                         "WHERE ";
             PreparedStatement ps;
             
-            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+            if (searchText.isEmpty()) {
                 sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
                       "FROM phieunhap p " +
                       "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
@@ -218,12 +218,8 @@ public class NhapHangView extends JPanel {
                 sql += "nv.HoTen LIKE ? ORDER BY p.MaPN";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
-            } else if (searchType.equals("Nhà cung cấp")) {
-                sql += "ncc.TenNCC LIKE ? ORDER BY p.MaPN";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
             } else {
-                sql += "p.TrangThai LIKE ? ORDER BY p.MaPN";
+                sql += "ncc.TenNCC LIKE ? ORDER BY p.MaPN";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
             }

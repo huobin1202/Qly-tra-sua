@@ -39,7 +39,7 @@ public class NhaCungCapView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Tên nhà cung cấp"});
+        searchCombo = new JComboBox<>(new String[]{"ID", "Tên nhà cung cấp"});
         searchField = new JTextField(20);
     }
     
@@ -169,7 +169,7 @@ public class NhaCungCapView extends JPanel {
             String sql = "SELECT * FROM nhacungcap WHERE ";
             PreparedStatement ps;
             
-            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
+            if (searchText.isEmpty()) {
                 sql = "SELECT * FROM nhacungcap ORDER BY MaNCC";
                 ps = conn.prepareStatement(sql);
             } else if (searchType.equals("ID")) {
