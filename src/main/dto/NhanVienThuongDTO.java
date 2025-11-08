@@ -20,7 +20,7 @@ public class NhanVienThuongDTO extends NhanVienDTO {
         return new String[][]{
             {"Quản lý khách hàng", "👤"},
             {"Quản lý đơn hàng", "🛒"},
-            {"Thống kê", "📊"}
+            {"Kho hàng", "🏬"}
         };
     }
 

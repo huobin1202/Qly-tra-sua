@@ -69,6 +69,8 @@ public class DonHangView extends JPanel {
     private void setupLayout() {
         setLayout(new BorderLayout());
         setBackground(new Color(240, 248, 255));
+        // Đảm bảo không có padding/margin không cần thiết ở panel chính
+        setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
         // Header
         JPanel headerPanel = new JPanel(new BorderLayout());        
@@ -77,7 +79,7 @@ public class DonHangView extends JPanel {
         // Top panel - chứa search và buttons trong cùng một hàng
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(new Color(240, 248, 255));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         
         // Button panel (bên trái) - Thêm/Sửa/Xóa
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -161,7 +163,7 @@ public class DonHangView extends JPanel {
         // Date filter panel (below buttons/search)
         JPanel dateFilterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         dateFilterPanel.setBackground(new Color(240, 248, 255));
-        dateFilterPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        dateFilterPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 10, 0));
         
         dateFilterPanel.add(new JLabel("Từ:"));
         dateFilterPanel.add(fromDateChooser);

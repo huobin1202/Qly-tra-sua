@@ -5,6 +5,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import database.DBUtil;
+import database.Session;
 
 public class KhoHangView extends JPanel {
     private JTable table;
@@ -65,6 +66,13 @@ public class KhoHangView extends JPanel {
         editButton.setForeground(Color.BLACK);
         editButton.setFocusPainted(false);
         
+        // Kiểm tra quyền: nhân viên thường không thể sửa kho
+        boolean isNhanVienThuong = "nhanvien".equals(Session.currentChucVu);
+        if (isNhanVienThuong) {
+            editButton.setEnabled(false);
+            editButton.setToolTipText("Bạn không có quyền sửa kho hàng");
+        }
+        
         JButton lowStockButton = new JButton("⚠️ Hàng sắp hết/ đã hết");
         lowStockButton.setBackground(new Color(255, 69, 0));
         lowStockButton.setForeground(Color.BLACK);
@@ -117,14 +125,17 @@ public class KhoHangView extends JPanel {
     }
     
     private void setupEventHandlers() {
-        // Double click to update
-        table.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                if (evt.getClickCount() == 2) {
-                    showUpdateDialog();
+        // Double click to update (chỉ cho quản lý)
+        boolean isNhanVienThuong = "nhanvien".equals(Session.currentChucVu);
+        if (!isNhanVienThuong) {
+            table.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    if (evt.getClickCount() == 2) {
+                        showUpdateDialog();
+                    }
                 }
-            }
-        });
+            });
+        }
         
         // Enter key in search field
         searchField.addActionListener(e -> performSearch());
@@ -195,6 +206,16 @@ public class KhoHangView extends JPanel {
     }
     
     private void showUpdateDialog() {
+        // Kiểm tra quyền: nhân viên thường không thể sửa kho
+        boolean isNhanVienThuong = "nhanvien".equals(Session.currentChucVu);
+        if (isNhanVienThuong) {
+            JOptionPane.showMessageDialog(this, 
+                "Bạn không có quyền sửa kho hàng!", 
+                "Không có quyền", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         int selectedRow = table.getSelectedRow();
         if (selectedRow == -1) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn nguyên liệu cần cập nhật!", "Thông báo", JOptionPane.WARNING_MESSAGE);

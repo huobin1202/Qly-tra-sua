@@ -1,6 +1,5 @@
 import javax.swing.*;
 import view.*;
-import dao.NhapHangDAO;
 import dao.DonHangDAO;
 import dao.MonDAO;
 import dao.NhanVienDAO;
@@ -9,6 +8,12 @@ import static javax.swing.UIManager.*;
 
 public class Runner {
     public static void main(String[] args) {
+        // Clear Session khi bắt đầu chương trình để đảm bảo phải đăng nhập lại
+        database.Session.currentMaNV = 0;
+        database.Session.currentTaiKhoan = null;
+        database.Session.currentChucVu = null;
+        database.Session.currentNhanVien = null;
+        
         // Thiết lập Look and Feel
         try {
             setLookAndFeel(getSystemLookAndFeelClassName());

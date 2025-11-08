@@ -185,20 +185,8 @@ public class BaoCaoView extends JPanel {
         report.append("Năm thống kê: ").append(year).append("\n");
         report.append("================================================================================\n\n");
         
-        // 1. Tổng quan hệ thống
-        report.append("1. TỔNG QUAN HỆ THỐNG\n");
-        report.append("--------------------------------------------------\n");
-        ThongKeDTO tongQuan = thongKeDAO.thongKeTongQuan();
-        report.append(String.format("Tổng doanh thu: %,d VNĐ\n", tongQuan.getDoanhThu()));
-        report.append(String.format("Tổng số khách hàng: %d\n", tongQuan.getSoKhachHang()));
-        report.append(String.format("Tổng số nhân viên: %d\n", tongQuan.getSoNhanVien()));
-        report.append(String.format("Tổng số món ăn: %d\n", tongQuan.getSoMon()));
-        report.append(String.format("Tổng số nguyên liệu: %d\n", tongQuan.getSoNguyenLieu()));
-        report.append(String.format("Tổng số nhà cung cấp: %d\n", tongQuan.getSoNhaCungCap()));
-        report.append("\n");
-        
-        // 2. Món bán chạy nhất
-        report.append("2. TOP 10 MÓN BÁN CHẠY NHẤT\n");
+        // 1. Món bán chạy nhất
+        report.append("1. TOP 10 MÓN BÁN CHẠY NHẤT\n");
         report.append("--------------------------------------------------\n");
         List<ThongKeDTO> monBanChay = thongKeDAO.thongKeMonBanChay(fromDate, toDate);
         report.append(String.format("%-5s %-30s %-15s %-20s\n", "STT", "Tên món", "Số lượng bán", "Tổng tiền"));
@@ -211,8 +199,8 @@ public class BaoCaoView extends JPanel {
         }
         report.append("\n");
         
-        // 3. Doanh thu theo loại món
-        report.append("3. DOANH THU THEO LOẠI MÓN\n");
+        // 2. Doanh thu theo loại món
+        report.append("2. DOANH THU THEO LOẠI MÓN\n");
         report.append("--------------------------------------------------\n");
         List<ThongKeDTO> doanhThuLoaiMon = thongKeDAO.thongKeDoanhThuTheoLoaiMon(fromDate, toDate);
         report.append(String.format("%-5s %-25s %-15s %-20s\n", "STT", "Loại món", "Số lượng bán", "Tổng tiền"));
@@ -225,8 +213,8 @@ public class BaoCaoView extends JPanel {
         }
         report.append("\n");
         
-        // 4. Thống kê nhân viên
-        report.append("4. THỐNG KÊ NHÂN VIÊN BÁN HÀNG\n");
+        // 3. Thống kê nhân viên
+        report.append("3. THỐNG KÊ NHÂN VIÊN BÁN HÀNG\n");
         report.append("--------------------------------------------------\n");
         List<ThongKeDTO> nhanVienData = thongKeDAO.thongKeNhanVienBanHang(fromDate, toDate);
         report.append(String.format("%-5s %-25s %-15s %-20s\n", "STT", "Tên nhân viên", "Số đơn hàng", "Doanh thu"));
@@ -239,8 +227,8 @@ public class BaoCaoView extends JPanel {
         }
         report.append("\n");
         
-        // 5. Doanh thu theo ngày
-        report.append("5. DOANH THU THEO NGÀY\n");
+        // 4. Doanh thu theo ngày
+        report.append("4. DOANH THU THEO NGÀY\n");
         report.append("--------------------------------------------------\n");
         List<ThongKeDTO> doanhThuNgay = thongKeDAO.thongKeDoanhThuTheoNgay(fromDate, toDate);
         report.append(String.format("%-15s %-20s\n", "Ngày", "Doanh thu"));
@@ -251,8 +239,8 @@ public class BaoCaoView extends JPanel {
         }
         report.append("\n");
         
-        // 6. Doanh thu theo tháng
-        report.append("6. DOANH THU THEO THÁNG (").append(year).append(")\n");
+        // 5. Doanh thu theo tháng
+        report.append("5. DOANH THU THEO THÁNG (").append(year).append(")\n");
         report.append("--------------------------------------------------\n");
         List<ThongKeDTO> doanhThuThang = thongKeDAO.thongKeDoanhThuTheoThang(year);
         report.append(String.format("%-15s %-20s\n", "Tháng", "Doanh thu"));
@@ -263,8 +251,8 @@ public class BaoCaoView extends JPanel {
         }
         report.append("\n");
         
-        // 7. Đơn hàng theo trạng thái
-        report.append("7. ĐƠN HÀNG THEO TRẠNG THÁI\n");
+        // 6. Đơn hàng theo trạng thái
+        report.append("6. ĐƠN HÀNG THEO TRẠNG THÁI\n");
         report.append("--------------------------------------------------\n");
         List<ThongKeDTO> donHangTrangThai = thongKeDAO.thongKeDonHangTheoTrangThai();
         report.append(String.format("%-20s %-15s\n", "Trạng thái", "Số đơn hàng"));
@@ -276,8 +264,8 @@ public class BaoCaoView extends JPanel {
         }
         report.append("\n");
         
-        // 8. Khách hàng mới theo tháng
-        report.append("8. KHÁCH HÀNG MỚI THEO THÁNG (").append(year).append(")\n");
+        // 7. Khách hàng mới theo tháng
+        report.append("7. KHÁCH HÀNG MỚI THEO THÁNG (").append(year).append(")\n");
         report.append("--------------------------------------------------\n");
         List<ThongKeDTO> khachHangMoi = thongKeDAO.thongKeKhachHangMoiTheoThang(year);
         report.append(String.format("%-15s %-20s\n", "Tháng", "Số khách hàng"));

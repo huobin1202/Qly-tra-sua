@@ -450,7 +450,16 @@ public class ThongKeView extends JPanel {
         List<ThongKeDTO> data = thongKeDAO.thongKeMonBanChay(fromDate, toDate);
         
         JPanel monBanChayPanel = (JPanel) tabbedPane.getComponentAt(1);
-        JScrollPane scrollPane = (JScrollPane) monBanChayPanel.getComponent(1);
+        // Tìm JScrollPane trong panel (nằm ở BorderLayout.CENTER)
+        JScrollPane scrollPane = null;
+        for (Component comp : monBanChayPanel.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                scrollPane = (JScrollPane) comp;
+                break;
+            }
+        }
+        if (scrollPane == null) return;
+        
         JTable table = (JTable) scrollPane.getViewport().getView();
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         
@@ -473,9 +482,28 @@ public class ThongKeView extends JPanel {
         List<ThongKeDTO> dailyData = thongKeDAO.thongKeDoanhThuTheoNgay(fromDate, toDate);
         
         JPanel doanhThuPanel = (JPanel) tabbedPane.getComponentAt(2);
-        JPanel contentPanel = (JPanel) doanhThuPanel.getComponent(1);
+        // Tìm contentPanel (nằm ở BorderLayout.CENTER)
+        JPanel contentPanel = null;
+        for (Component comp : doanhThuPanel.getComponents()) {
+            if (comp instanceof JPanel && comp != doanhThuPanel.getComponent(0)) {
+                contentPanel = (JPanel) comp;
+                break;
+            }
+        }
+        if (contentPanel == null) return;
+        
+        // Tìm dailyPanel (component đầu tiên trong contentPanel)
         JPanel dailyPanel = (JPanel) contentPanel.getComponent(0);
-        JScrollPane dailyScrollPane = (JScrollPane) dailyPanel.getComponent(0);
+        // Tìm JScrollPane trong dailyPanel
+        JScrollPane dailyScrollPane = null;
+        for (Component comp : dailyPanel.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                dailyScrollPane = (JScrollPane) comp;
+                break;
+            }
+        }
+        if (dailyScrollPane == null) return;
+        
         JTable dailyTable = (JTable) dailyScrollPane.getViewport().getView();
         DefaultTableModel dailyModel = (DefaultTableModel) dailyTable.getModel();
         
@@ -493,7 +521,16 @@ public class ThongKeView extends JPanel {
         List<ThongKeDTO> data = thongKeDAO.thongKeNhanVienBanHang(fromDate, toDate);
         
         JPanel nhanVienPanel = (JPanel) tabbedPane.getComponentAt(3);
-        JScrollPane scrollPane = (JScrollPane) nhanVienPanel.getComponent(1);
+        // Tìm JScrollPane trong panel (nằm ở BorderLayout.CENTER)
+        JScrollPane scrollPane = null;
+        for (Component comp : nhanVienPanel.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                scrollPane = (JScrollPane) comp;
+                break;
+            }
+        }
+        if (scrollPane == null) return;
+        
         JTable table = (JTable) scrollPane.getViewport().getView();
         DefaultTableModel model = (DefaultTableModel) table.getModel();
         
@@ -516,9 +553,28 @@ public class ThongKeView extends JPanel {
         List<ThongKeDTO> orderStatusData = thongKeDAO.thongKeDonHangTheoTrangThai();
         
         JPanel khachHangPanel = (JPanel) tabbedPane.getComponentAt(4);
-        JPanel contentPanel = (JPanel) khachHangPanel.getComponent(1);
+        // Tìm contentPanel (nằm ở BorderLayout.CENTER)
+        JPanel contentPanel = null;
+        for (Component comp : khachHangPanel.getComponents()) {
+            if (comp instanceof JPanel && comp != khachHangPanel.getComponent(0)) {
+                contentPanel = (JPanel) comp;
+                break;
+            }
+        }
+        if (contentPanel == null) return;
+        
+        // Tìm orderStatusPanel (component đầu tiên trong contentPanel)
         JPanel orderStatusPanel = (JPanel) contentPanel.getComponent(0);
-        JScrollPane orderStatusScrollPane = (JScrollPane) orderStatusPanel.getComponent(0);
+        // Tìm JScrollPane trong orderStatusPanel
+        JScrollPane orderStatusScrollPane = null;
+        for (Component comp : orderStatusPanel.getComponents()) {
+            if (comp instanceof JScrollPane) {
+                orderStatusScrollPane = (JScrollPane) comp;
+                break;
+            }
+        }
+        if (orderStatusScrollPane == null) return;
+        
         JTable orderStatusTable = (JTable) orderStatusScrollPane.getViewport().getView();
         DefaultTableModel orderStatusModel = (DefaultTableModel) orderStatusTable.getModel();
         
