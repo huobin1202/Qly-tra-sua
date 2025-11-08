@@ -13,7 +13,7 @@ public class DonHangDAO {
     // Lấy tất cả đơn hàng
     public List<DonHangDTO> layTatCaDonHang() {
         List<DonHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH " +
+        String sql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH, kh.SDT AS SoDienThoai " +
                     "FROM donhang dh " +
                     "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
                     "LEFT JOIN khachhang kh ON dh.MaKH = kh.MaKH " +
@@ -36,6 +36,7 @@ public class DonHangDAO {
                 donHang.setGiamGia(rs.getInt("GiamGia"));
                 donHang.setTenNV(rs.getString("TenNV"));
                 donHang.setTenKH(rs.getString("TenKH"));
+                donHang.setSoDienThoai(rs.getString("SoDienThoai"));
                 danhSach.add(donHang);
             }
         } catch (SQLException e) {
@@ -43,32 +44,63 @@ public class DonHangDAO {
         return danhSach;
     }
     
-    // Tìm kiếm đơn hàng
+    // Tìm kiếm đơn hàng (overload method cũ để tương thích)
     public List<DonHangDTO> timKiemDonHang(String searchType, String searchText) {
+        return timKiemDonHang(searchType, searchText, "Tất cả", "");
+    }
+    
+    // Tìm kiếm đơn hàng với điều kiện (không có ngày)
+    public List<DonHangDTO> timKiemDonHang(String searchType, String searchText, String trangThai, String ngayTim) {
+        // Tham số ngayTim được giữ lại để tương thích nhưng không sử dụng
         List<DonHangDTO> danhSach = new ArrayList<>();
-        String baseSql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH " +
+        String baseSql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH, kh.SDT AS SoDienThoai " +
                         "FROM donhang dh " +
                         "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
                         "LEFT JOIN khachhang kh ON dh.MaKH = kh.MaKH ";
-        String sql = baseSql + "WHERE ";
-        PreparedStatement ps;
+        
+        List<String> conditions = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
         
         try (Connection conn = DBUtil.getConnection()) {
-            if (searchType.equals("Tất cả") || searchText.isEmpty()) {
-                sql = baseSql + "ORDER BY dh.MaDon";
-                ps = conn.prepareStatement(sql);
-            } else if (searchType.equals("ID")) {
-                sql += "dh.MaDon = ? ORDER BY dh.MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Tên NV")) {
-                sql += "nv.HoTen LIKE ? ORDER BY dh.MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            } else {
-                sql += "dh.TrangThai LIKE ? ORDER BY dh.MaDon";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
+            // Điều kiện tìm kiếm theo ID hoặc Tên NV
+            if (searchType != null && !searchText.isEmpty()) {
+                if (searchType.equals("ID")) {
+                    try {
+                        conditions.add("dh.MaDon = ?");
+                        params.add(Integer.parseInt(searchText));
+                    } catch (NumberFormatException e) {
+                        // Nếu không phải số hợp lệ, bỏ qua điều kiện này
+                    }
+                } else if (searchType.equals("Tên NV")) {
+                    conditions.add("nv.HoTen LIKE ?");
+                    params.add("%" + searchText + "%");
+                }
+            }
+            
+            // Điều kiện tìm kiếm theo trạng thái
+            if (trangThai != null && !trangThai.equals("Tất cả")) {
+                String trangThaiDB = convertTrangThaiToDatabase(trangThai);
+                conditions.add("dh.TrangThai = ?");
+                params.add(trangThaiDB);
+            }
+            
+            // Đã bỏ điều kiện tìm kiếm theo ngày
+            
+            // Xây dựng SQL query
+            String sql = baseSql;
+            if (!conditions.isEmpty()) {
+                sql += "WHERE " + String.join(" AND ", conditions);
+            }
+            sql += " ORDER BY dh.MaDon";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            for (int i = 0; i < params.size(); i++) {
+                Object param = params.get(i);
+                if (param instanceof Integer) {
+                    ps.setInt(i + 1, (Integer) param);
+                } else {
+                    ps.setString(i + 1, param.toString());
+                }
             }
             
             try (ResultSet rs = ps.executeQuery()) {
@@ -85,12 +117,25 @@ public class DonHangDAO {
                     donHang.setGiamGia(rs.getInt("GiamGia"));
                     donHang.setTenNV(rs.getString("TenNV"));
                     donHang.setTenKH(rs.getString("TenKH"));
+                    donHang.setSoDienThoai(rs.getString("SoDienThoai"));
                     danhSach.add(donHang);
                 }
             }
         } catch (SQLException e) {
         }
         return danhSach;
+    }
+    
+    // Helper method để chuyển đổi trạng thái từ UI sang database
+    private String convertTrangThaiToDatabase(String trangThaiUI) {
+        if ("Chưa thanh toán".equals(trangThaiUI)) {
+            return "chuathanhtoan";
+        } else if ("Đã thanh toán".equals(trangThaiUI)) {
+            return "dathanhtoan";
+        } else if ("Bị hủy".equals(trangThaiUI)) {
+            return "bihuy";
+        }
+        return trangThaiUI; // Trả về nguyên bản nếu không khớp
     }
     
     // Lấy đơn hàng theo mã
@@ -470,7 +515,7 @@ public class DonHangDAO {
     
     // Lấy thông tin đơn hàng với tên nhân viên và tên khách hàng
     public DonHangDTO layDonHangVoiTenNV(int maDon) {
-        String sql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH " +
+        String sql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH, kh.SDT AS SoDienThoai " +
                     "FROM donhang dh " +
                     "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
                     "LEFT JOIN khachhang kh ON dh.MaKH = kh.MaKH " +
@@ -495,6 +540,7 @@ public class DonHangDAO {
                     donHang.setGiamGia(rs.getInt("GiamGia"));
                     donHang.setTenNV(rs.getString("TenNV"));
                     donHang.setTenKH(rs.getString("TenKH"));
+                    donHang.setSoDienThoai(rs.getString("SoDienThoai"));
                     return donHang;
                 }
             }

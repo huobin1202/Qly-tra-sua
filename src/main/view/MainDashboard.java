@@ -111,6 +111,12 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
         menuPanel.setBackground(new Color(240, 240, 240));
         menuPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
+        
+        // Thêm menu "Tổng quan" ở đầu menu
+        JButton tongQuanButton = createMenuButton("Tổng quan", "📊");
+        menuPanel.add(tongQuanButton);
+        menuPanel.add(Box.createVerticalStrut(5));
+        
         createHangHoaDropdown(menuPanel);
 
         // Lấy menu từ nghiệp vụ Nhân viên hướng đối tượng
@@ -134,7 +140,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
             }
             JButton menuButton = createMenuButton(item[0], item[1]);
             menuPanel.add(menuButton);
-            menuPanel.add(Box.createVerticalStrut(10));
+            menuPanel.add(Box.createVerticalStrut(5));
         }
     }
     
@@ -175,12 +181,13 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     }
     
     private JButton createMenuButton(String text, String icon) {
-        JButton button = new JButton("<html><div style='text-align: left; padding: 8px;'>" + 
-                                   "<span style='font-size: 16px;'>" + icon + "</span> " + 
-                                   "<span style='margin-left: 10px;'>" + text + "</span></div></html>");
-        button.setFont(new Font("Arial", Font.PLAIN, 14));
-        button.setPreferredSize(new Dimension(230, 50));
-        button.setMaximumSize(new Dimension(230, 50));
+        // Dùng HTML với style white-space: nowrap và overflow: hidden để text không xuống dòng
+        JButton button = new JButton("<html><div style='white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 200px;'>" + icon + " " + text + "</div></html>");
+        button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));  // Font hỗ trợ emoji
+        Dimension buttonSize = new Dimension(230, 50);
+        button.setPreferredSize(buttonSize);
+        button.setMaximumSize(buttonSize);
+        button.setMinimumSize(buttonSize); // Đảm bảo button không bị co lại
         button.setBackground(Color.BLACK);
         button.setForeground(Color.BLACK);
         button.setFocusPainted(false);
@@ -209,13 +216,16 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         JPanel hangHoaPanel = new JPanel();
         hangHoaPanel.setLayout(new BoxLayout(hangHoaPanel, BoxLayout.Y_AXIS));
         hangHoaPanel.setBackground(new Color(240, 240, 240));
+        // Đặt preferredSize cố định khi đóng (chỉ bằng mainButton), maximumSize để cho phép mở rộng khi mở dropdown
+        hangHoaPanel.setPreferredSize(new Dimension(230, 50));
+        hangHoaPanel.setMaximumSize(new Dimension(230, Integer.MAX_VALUE));
+        hangHoaPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Loại bỏ border và padding để tránh khoảng cách không mong muốn
+        hangHoaPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
         // Nút chính "Quản lý hàng hóa"
-        JButton mainButton = new JButton("<html><div style='text-align: left; padding: 8px;'>" + 
-                                        "<span style='font-size: 16px;'>📦</span> " + 
-                                        "<span style='margin-left: 10px;'>Quản lý hàng hóa</span>" +
-                                        "<span style='float: right; font-size: 12px;'>▼</span></div></html>");
-        mainButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        JButton mainButton = new JButton("<html><div style='white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 200px;'>📦 Quản lý hàng hóa ▼</div></html>");
+        mainButton.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 14));
         mainButton.setPreferredSize(new Dimension(230, 50));
         mainButton.setMaximumSize(new Dimension(230, 50));
         mainButton.setBackground(Color.BLACK);
@@ -230,6 +240,13 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         subMenuPanel.setLayout(new BoxLayout(subMenuPanel, BoxLayout.Y_AXIS));
         subMenuPanel.setBackground(new Color(250, 250, 250));
         subMenuPanel.setVisible(false);
+        // Đặt maximumSize để tránh khoảng trống lớn khi mở
+        subMenuPanel.setMaximumSize(new Dimension(230, Integer.MAX_VALUE));
+        // Khi ẩn, subMenuPanel không chiếm không gian
+        subMenuPanel.setPreferredSize(new Dimension(0, 0));
+        subMenuPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        // Loại bỏ border và padding để tránh khoảng cách không mong muốn
+        subMenuPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
         
         // Các submenu items
         String[][] subMenuItems = {
@@ -238,28 +255,15 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
             {"Quản lý nguyên liệu", "📄"}
         };
         
-        for (String[] item : subMenuItems) {
+        for (int i = 0; i < subMenuItems.length; i++) {
+            String[] item = subMenuItems[i];
             JButton subButton = createSubMenuButton(item[0], item[1]);
             subMenuPanel.add(subButton);
-            subMenuPanel.add(Box.createVerticalStrut(5));
+            // Chỉ thêm khoảng trống giữa các items, không thêm sau item cuối cùng
+            if (i < subMenuItems.length - 1) {
+                subMenuPanel.add(Box.createVerticalStrut(5));
+            }
         }
-        
-        // Event handler cho nút chính
-        mainButton.addActionListener(e -> {
-            boolean isVisible = subMenuPanel.isVisible();
-            subMenuPanel.setVisible(!isVisible);
-            
-            // Cập nhật icon mũi tên
-            String arrow = isVisible ? "▼" : "▲";
-            mainButton.setText("<html><div style='text-align: left; padding: 8px;'>" + 
-                             "<span style='font-size: 16px;'>📦</span> " + 
-                             "<span style='margin-left: 10px;'>Quản lý hàng hóa</span>" +
-                             "<span style='float: right; font-size: 12px;'>" + arrow + "</span></div></html>");
-            
-            // Refresh layout
-            hangHoaPanel.revalidate();
-            hangHoaPanel.repaint();
-        });
         
         // Hover effect cho nút chính
         mainButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -272,17 +276,48 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         });
         
         hangHoaPanel.add(mainButton);
+        // Không thêm khoảng cách giữa mainButton và subMenuPanel để tránh khoảng cách thừa
         hangHoaPanel.add(subMenuPanel);
-        hangHoaPanel.add(Box.createVerticalStrut(10));
         
         menuPanel.add(hangHoaPanel);
+        // Đặt khoảng cách cố định 3px - đủ gần nhưng không sát
+        // Khi dropdown mở, subMenuPanel sẽ tự tạo khoảng cách hợp lý
+        menuPanel.add(Box.createVerticalStrut(3));
+        
+        // Event handler cho nút chính
+        mainButton.addActionListener(e -> {
+            boolean isVisible = subMenuPanel.isVisible();
+            subMenuPanel.setVisible(!isVisible);
+            
+            // Cập nhật icon mũi tên
+            String arrow = isVisible ? "▼" : "▲";
+            mainButton.setText("<html><div style='white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 200px;'>📦 Quản lý hàng hóa " + arrow + "</div></html>");
+            
+            // Cập nhật preferredSize của hangHoaPanel và subMenuPanel dựa trên trạng thái mở/đóng
+            if (!isVisible) {
+                // Khi mở: tính toán kích thước dựa trên số lượng submenu items
+                int subMenuHeight = subMenuItems.length * 40 + (subMenuItems.length - 1) * 5; // 40px mỗi button + 5px spacing
+                subMenuPanel.setPreferredSize(new Dimension(230, subMenuHeight));
+                hangHoaPanel.setPreferredSize(new Dimension(230, 50 + subMenuHeight));
+            } else {
+                // Khi đóng: subMenuPanel không chiếm không gian
+                subMenuPanel.setPreferredSize(new Dimension(0, 0));
+                hangHoaPanel.setPreferredSize(new Dimension(230, 50));
+            }
+            
+            // Refresh layout - cần revalidate cả menuPanel để cập nhật layout đúng cách
+            hangHoaPanel.revalidate();
+            hangHoaPanel.repaint();
+            // Revalidate menuPanel để đảm bảo layout được cập nhật
+            menuPanel.revalidate();
+            menuPanel.repaint();
+        });
     }
     
     private JButton createSubMenuButton(String text, String icon) {
-        JButton button = new JButton("<html><div style='text-align: left; padding: 8px; margin-left: 20px;'>" + 
-                                   "<span style='font-size: 14px;'>" + icon + "</span> " + 
-                                   "<span style='margin-left: 10px;'>" + text + "</span></div></html>");
-        button.setFont(new Font("Arial", Font.PLAIN, 12));
+        // Dùng HTML với style white-space: nowrap để text không xuống dòng và icon hiển thị được
+        JButton button = new JButton("<html><div style='white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 180px; padding-left: 20px;'>" + icon + " " + text + "</div></html>");
+        button.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 12));
         button.setPreferredSize(new Dimension(210, 40));
         button.setMaximumSize(new Dimension(210, 40));
         button.setBackground(new Color(250, 250, 250));
@@ -452,19 +487,19 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     
     private JPanel createMonView() {
         hangHoaMonPanel = new HangHoaView(this);
-        hangHoaMonPanel.setCurrentView("MON");
+        // Không gọi setCurrentView() ở đây - chỉ load khi view được hiển thị
         return hangHoaMonPanel;
     }
     
     private JPanel createLoaiMonView() {
         hangHoaLoaiPanel = new HangHoaView(this);
-        hangHoaLoaiPanel.setCurrentView("LOAIMON");
+        // Không gọi setCurrentView() ở đây - chỉ load khi view được hiển thị
         return hangHoaLoaiPanel;
     }
     
     private JPanel createNguyenLieuView() {
         hangHoaNguyenLieuPanel = new HangHoaView(this);
-        hangHoaNguyenLieuPanel.setCurrentView("NGUYENLIEU");
+        // Không gọi setCurrentView() ở đây - chỉ load khi view được hiển thị
         return hangHoaNguyenLieuPanel;
     }
     
@@ -568,6 +603,12 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     
     // Menu handler phải đảm bảo mỗi lần chuyển sang layout "MON", "LOAIMON", "NGUYENLIEU" đều hiển thị đúng panel con với trạng thái currentView chuẩn
     private void handleMenuSelection(String menuText) {
+        // "Tổng quan" luôn có thể truy cập, không cần kiểm tra quyền
+        if ("Tổng quan".equals(menuText)) {
+            cardLayout.show(mainPanel, "DEFAULT");
+            return;
+        }
+        
         if (!hasPermission(menuText)) {
             JOptionPane.showMessageDialog(this, 
                 "Bạn không có quyền truy cập chức năng này!", 

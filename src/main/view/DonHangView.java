@@ -5,6 +5,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import database.DBUtil;
 import dto.DonHangDTO;
@@ -17,6 +20,11 @@ public class DonHangView extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
+    private JComboBox<String> trangThaiCombo;
+    private DateChooserComponent fromDateChooser;
+    private DateChooserComponent toDateChooser;
+    private boolean fromDateSelected = false; // Flag để đánh dấu người dùng đã chọn ngày
+    private boolean toDateSelected = false; // Flag để đánh dấu người dùng đã chọn ngày
     private JButton editButton; // Chuyển thành field để có thể vô hiệu hóa
     private MainFrameInterface parent;
     private DonHangDAO donHangDAO;
@@ -32,7 +40,7 @@ public class DonHangView extends JPanel {
     
     private void initializeComponents() {
         // Tạo table model
-        String[] columns = {"ID", "Tên NV", "Mã KH", "Tên KH", "Trạng thái", "Ngày đặt", "Tổng tiền", "Giảm giá"};
+        String[] columns = {"ID", "Tên NV", "Tên KH", "Số điện thoại","Trạng thái", "Ngày đặt", "Tổng tiền", "Giảm giá"};
         tableModel = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -47,8 +55,15 @@ public class DonHangView extends JPanel {
         table.setFont(new Font("Arial", Font.PLAIN, 12));
         
         // Tạo search components
-        searchCombo = new JComboBox<>(new String[]{"Tất cả", "ID", "Tên NV", "Loại", "Trạng thái"});
-        searchField = new JTextField(20);
+        searchCombo = new JComboBox<>(new String[]{"ID", "Tên NV", "Tên KH", "SDT"});
+        searchField = new JTextField(15);
+        
+        // Combo tìm theo trạng thái
+        trangThaiCombo = new JComboBox<>(new String[]{"Tất cả", "Chưa thanh toán", "Đã thanh toán", "Bị hủy"});
+        
+        // Date choosers for date range filtering
+        fromDateChooser = new DateChooserComponent();
+        toDateChooser = new DateChooserComponent();
     }
     
     private void setupLayout() {
@@ -102,6 +117,9 @@ public class DonHangView extends JPanel {
         searchPanel.add(searchCombo);
         searchPanel.add(searchField);
         
+        searchPanel.add(new JLabel("Trạng thái:"));
+        searchPanel.add(trangThaiCombo);
+        
         JButton searchButton = new JButton("🔍 Tìm");
         searchButton.setBackground(new Color(70, 130, 180));
         searchButton.setForeground(Color.BLACK);
@@ -112,11 +130,48 @@ public class DonHangView extends JPanel {
         refreshButton.setBackground(new Color(34, 139, 34));
         refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
+        refreshButton.addActionListener(e -> {
+            searchField.setText("");
+            // Tạm thời remove ActionListener để tránh trigger khi setSelectedIndex
+            java.awt.event.ActionListener[] listeners = trangThaiCombo.getActionListeners();
+            for (java.awt.event.ActionListener listener : listeners) {
+                trangThaiCombo.removeActionListener(listener);
+            }
+            
+            trangThaiCombo.setSelectedIndex(0);
+            fromDateChooser.clearDate();
+            toDateChooser.clearDate();
+            // Reset flags
+            fromDateSelected = false;
+            toDateSelected = false;
+            
+            // Add lại ActionListener
+            for (java.awt.event.ActionListener listener : listeners) {
+                trangThaiCombo.addActionListener(listener);
+            }
+            
+            loadData();
+        });
         searchPanel.add(refreshButton);
         
         // Thêm button panel và search panel vào top panel
         topPanel.add(buttonPanel, BorderLayout.WEST);
         topPanel.add(searchPanel, BorderLayout.EAST);
+        
+        // Date filter panel (below buttons/search)
+        JPanel dateFilterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        dateFilterPanel.setBackground(new Color(240, 248, 255));
+        dateFilterPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        
+        dateFilterPanel.add(new JLabel("Từ:"));
+        dateFilterPanel.add(fromDateChooser);
+        // Thêm listener để đánh dấu khi người dùng chọn ngày
+        fromDateChooser.getDateSpinner().addChangeListener(e -> fromDateSelected = true);
+        
+        dateFilterPanel.add(new JLabel("Đến:"));
+        dateFilterPanel.add(toDateChooser);
+        // Thêm listener để đánh dấu khi người dùng chọn ngày
+        toDateChooser.getDateSpinner().addChangeListener(e -> toDateSelected = true);
         
         // Table panel
         JScrollPane scrollPane = new JScrollPane(table);
@@ -127,12 +182,18 @@ public class DonHangView extends JPanel {
         northContainer.setLayout(new BoxLayout(northContainer, BoxLayout.Y_AXIS));
         northContainer.add(headerPanel);
         northContainer.add(topPanel);
+        northContainer.add(dateFilterPanel);
         add(northContainer, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         
         // Event handlers
         searchButton.addActionListener(e -> performSearch());
-        refreshButton.addActionListener(e -> loadData());
+        // Tìm ngay khi chọn trạng thái
+        trangThaiCombo.addActionListener(e -> {
+            System.out.println("Trạng thái được chọn: " + trangThaiCombo.getSelectedItem());
+            performSearch();
+        });
+        // refreshButton action listener đã được thêm ở trên
         addButton.addActionListener(e -> showAddDialog());
         editButton.addActionListener(e -> showEditDialog());
         deleteButton.addActionListener(e -> performDelete());
@@ -181,8 +242,8 @@ public class DonHangView extends JPanel {
                 Object[] row = {
                     donHang.getMaDon(),
                     donHang.getTenNV() != null ? donHang.getTenNV() : "N/A",
-                    donHang.getMaKH() != null ? donHang.getMaKH() : "",
                     donHang.getTenKH() != null ? donHang.getTenKH() : "",
+                    donHang.getSoDienThoai() != null ? donHang.getSoDienThoai() : "",
                     convertTrangThaiToUI(donHang.getTrangThai()),
                     donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
                     String.format("%,d", donHang.getTongTien()) + " VNĐ",
@@ -201,30 +262,117 @@ public class DonHangView extends JPanel {
     private void performSearch() {
         String searchText = searchField.getText().trim();
         String searchType = (String) searchCombo.getSelectedItem();
+        String trangThai = (String) trangThaiCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
-        try {
-            List<DonHangDTO> danhSach = donHangDAO.timKiemDonHang(searchType, searchText);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        try (Connection conn = DBUtil.getConnection()) {
+            String baseSql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH, kh.SDT AS SoDienThoai " +
+                            "FROM donhang dh " +
+                            "LEFT JOIN nhanvien nv ON dh.MaNV = nv.MaNV " +
+                            "LEFT JOIN khachhang kh ON dh.MaKH = kh.MaKH ";
             
-            for (DonHangDTO donHang : danhSach) {
+            List<String> conditions = new ArrayList<>();
+            List<Object> params = new ArrayList<>();
+            
+            // Điều kiện tìm kiếm theo ID, Tên NV, Tên KH, hoặc SDT
+            if (!searchText.isEmpty() && searchType != null) {
+                if (searchType.equals("ID")) {
+                    try {
+                        conditions.add("dh.MaDon = ?");
+                        params.add(Integer.parseInt(searchText));
+                    } catch (NumberFormatException e) {
+                        // Nếu không phải số hợp lệ, bỏ qua điều kiện này
+                    }
+                } else if (searchType.equals("Tên NV")) {
+                    conditions.add("nv.HoTen LIKE ?");
+                    params.add("%" + searchText + "%");
+                } else if (searchType.equals("Tên KH")) {
+                    conditions.add("kh.HoTen LIKE ?");
+                    params.add("%" + searchText + "%");
+                } else if (searchType.equals("SDT")) {
+                    conditions.add("kh.SDT LIKE ?");
+                    params.add("%" + searchText + "%");
+                }
+            }
+            
+            // Điều kiện tìm kiếm theo trạng thái
+            if (trangThai != null && !trangThai.equals("Tất cả")) {
+                String trangThaiDB = convertTrangThaiToDatabase(trangThai);
+                conditions.add("dh.TrangThai = ?");
+                params.add(trangThaiDB);
+            }
+            
+            // Điều kiện tìm kiếm theo khoảng ngày
+            // Chỉ lọc theo ngày nếu người dùng thực sự chọn ngày (sử dụng flag)
+            if (fromDateSelected) {
+                Date fromDate = fromDateChooser.getSelectedDate();
+                if (fromDate != null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(fromDate);
+                    cal.set(Calendar.HOUR_OF_DAY, 0);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+                    conditions.add("dh.NgayDat >= ?");
+                    params.add(new java.sql.Timestamp(cal.getTimeInMillis()));
+                }
+            }
+            
+            if (toDateSelected) {
+                Date toDate = toDateChooser.getSelectedDate();
+                if (toDate != null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(toDate);
+                    cal.set(Calendar.HOUR_OF_DAY, 23);
+                    cal.set(Calendar.MINUTE, 59);
+                    cal.set(Calendar.SECOND, 59);
+                    cal.set(Calendar.MILLISECOND, 999);
+                    conditions.add("dh.NgayDat <= ?");
+                    params.add(new java.sql.Timestamp(cal.getTimeInMillis()));
+                }
+            }
+            
+            // Xây dựng SQL query
+            String sql = baseSql;
+            if (!conditions.isEmpty()) {
+                sql += "WHERE " + String.join(" AND ", conditions);
+            }
+            sql += " ORDER BY dh.MaDon";
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            for (int i = 0; i < params.size(); i++) {
+                Object param = params.get(i);
+                if (param instanceof Integer) {
+                    ps.setInt(i + 1, (Integer) param);
+                } else if (param instanceof java.sql.Timestamp) {
+                    ps.setTimestamp(i + 1, (java.sql.Timestamp) param);
+                } else {
+                    ps.setString(i + 1, param.toString());
+                }
+            }
+            
+            ResultSet rs = ps.executeQuery();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+            while (rs.next()) {
                 Object[] row = {
-                    donHang.getMaDon(),
-                    donHang.getTenNV() != null ? donHang.getTenNV() : "N/A",
-                    donHang.getMaKH() != null ? donHang.getMaKH() : "",
-                    donHang.getTenKH() != null ? donHang.getTenKH() : "",
-                    convertTrangThaiToUI(donHang.getTrangThai()),
-                    donHang.getNgayDat() != null ? dateFormat.format(donHang.getNgayDat()) : "",
-                    String.format("%,d", donHang.getTongTien()) + " VNĐ",
-                    donHang.getGiamGia() + "%"
+                    rs.getInt("MaDon"),
+                    rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A",
+                    rs.getString("TenKH") != null ? rs.getString("TenKH") : "",
+                    rs.getString("SoDienThoai") != null ? rs.getString("SoDienThoai") : "",
+                    convertTrangThaiToUI(rs.getString("TrangThai")),
+                    rs.getTimestamp("NgayDat") != null ? dateFormat.format(rs.getTimestamp("NgayDat")) : "",
+                    String.format("%,d", rs.getLong("TongTien")) + " VNĐ",
+                    rs.getInt("GiamGia") + "%"
                 };
                 tableModel.addRow(row);
             }
             
             // Cập nhật trạng thái nút sửa sau khi tìm kiếm
             updateEditButtonState();
-        } catch (Exception e) {
+        } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     

@@ -153,7 +153,9 @@ public class DateChooserComponent extends JPanel {
     /**
      * Xóa lựa chọn (thiết lập về ngày hiện tại)
      */
-  
+    public void clearDate() {
+        setCurrentDate();
+    }
     
     /**
      * Kiểm tra xem ngày được chọn có hợp lệ không

@@ -20,18 +20,31 @@ public class HangHoaView extends JPanel {
     private JTextField searchField;
     private JComboBox<String> searchCombo, categoryCombo;
     private MainFrameInterface parent;
-    private String currentView = "MON"; // MON, LOAIMON, or NGUYENLIEU
+    private String currentView = ""; // MON, LOAIMON, or NGUYENLIEU - khởi tạo rỗng để load khi setCurrentView được gọi
     private JComboBox<String> loaiMonFilterCombo;
     private JComboBox<String> tinhTrangFilterCombo;
     // Thêm biến toàn cục cho searchPanel
     private JPanel searchPanel;
     
     public void setCurrentView(String view) {
+        // Chỉ load lại nếu view thay đổi
+        boolean viewChanged = !this.currentView.equals(view);
         this.currentView = view;
+        
         if (currentView.equals("MON")) reloadLoaiMonFilterCombo();
         updateTableHeaders();
         refreshSearchPanel();
-        loadData();
+        
+        // Load dữ liệu chỉ khi view được hiển thị lần đầu hoặc view thay đổi
+        if (!dataLoaded || viewChanged) {
+            loadData();
+            dataLoaded = true;
+        }
+        
+        // Đảm bảo table được hiển thị
+        table.setVisible(true);
+        revalidate();
+        repaint();
     }
     
     
@@ -39,12 +52,14 @@ public class HangHoaView extends JPanel {
         return currentView;
     }
     
+    private boolean dataLoaded = false; // Flag để track xem đã load dữ liệu chưa
+    
     public HangHoaView(MainFrameInterface parent) {
         this.parent = parent;
         initializeComponents();
         setupLayout();
         setupEventHandlers();
-        loadData();
+        // Không load dữ liệu trong constructor - chỉ load khi view được hiển thị
     }
     
     private void initializeComponents() {
@@ -59,9 +74,11 @@ public class HangHoaView extends JPanel {
         
         table = new JTable(tableModel);
         table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        table.setRowHeight(80); // Increased height to accommodate images
+        table.setRowHeight(30); // Giảm height để giảm khoảng trống
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
         table.setFont(new Font("Arial", Font.PLAIN, 12));
+        // Tối ưu hóa hiệu năng rendering
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         
         // Tạo search components
         searchCombo = new JComboBox<>(new String[]{"ID", "Tên"});
@@ -91,19 +108,6 @@ public class HangHoaView extends JPanel {
     private void setupLayout() {
         setLayout(new BorderLayout());
         setBackground(new Color(240, 248, 255));
-        
-        // Header
-        JPanel headerPanel = new JPanel(new BorderLayout());
-        
-        
-        // Back button
-     
-        
-        // Control panel - ẩn dropdown và nút chuyển đổi vì đã có menu riêng biệt
-        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        controlPanel.setBackground(new Color(240, 248, 255));
-        controlPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        // KHÔNG add categoryCombo nào vào controlPanel nữa!
         
         // Top panel - chứa search và buttons trong cùng một hàng
         JPanel topPanel = new JPanel(new BorderLayout());
@@ -149,18 +153,9 @@ public class HangHoaView extends JPanel {
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Danh sách hàng hóa"));
         
-        // Center panel with table
-        JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(scrollPane, BorderLayout.CENTER);
-        
-        // Layout
-        JPanel northContainer = new JPanel();
-        northContainer.setLayout(new BoxLayout(northContainer, BoxLayout.Y_AXIS));
-        northContainer.add(headerPanel);
-        northContainer.add(controlPanel);
-        northContainer.add(topPanel);
-        add(northContainer, BorderLayout.NORTH);
-        add(centerPanel, BorderLayout.CENTER);
+        // Layout - bỏ headerPanel và controlPanel trống để giảm khoảng trống
+        add(topPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
         
         // Event handlers
         // Lưu ý: KHÔNG thao tác gì với searchButton, refreshButton ở setupLayout!
@@ -215,37 +210,56 @@ public class HangHoaView extends JPanel {
     }
     
     private void loadData() {
+        // Clear table trước
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection()) {
-            if (currentView.equals("MON")) {
-                loadMonData(conn);
-            } else if (currentView.equals("LOAIMON")) {
-                loadLoaiMonData(conn);
-            } else {
-                loadNguyenLieuData(conn);
-            }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-        }
         
-        // Set renderer after data is loaded
-        if (currentView.equals("MON") && table.getColumnCount() > 5) {
-            table.getColumnModel().getColumn(5).setCellRenderer(new ImageCellRenderer());
+        // Load dữ liệu trực tiếp trên EDT để đảm bảo hiển thị ngay lập tức
+        // Tối ưu bằng cách batch load và update UI một lần
+        try (Connection conn = DBUtil.getConnection()) {
+            List<Object[]> rows = new ArrayList<>();
+            
+            if (currentView.equals("MON")) {
+                String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
+                String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
+                rows = loadMonDataBatch(conn, tenLoaiSelected, tinhTrangSelected);
+            } else if (currentView.equals("LOAIMON")) {
+                rows = loadLoaiMonDataBatch(conn);
+            } else {
+                rows = loadNguyenLieuDataBatch(conn);
+            }
+            
+            // Batch add rows để tối ưu hiệu suất
+            for (Object[] row : rows) {
+                tableModel.addRow(row);
+            }
+            
+            // Set renderer after data is loaded
+            if (currentView.equals("MON") && table.getColumnCount() > 5) {
+                table.getColumnModel().getColumn(5).setCellRenderer(new ImageCellRenderer());
+            }
+            
+            // Refresh table để hiển thị dữ liệu ngay lập tức
+            table.revalidate();
+            table.repaint();
+        } catch (SQLException e) {
+            e.printStackTrace(); // Debug
+            JOptionPane.showMessageDialog(this, 
+                "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    private void loadMonData(Connection conn) throws SQLException {
+    // Batch load methods - trả về List<Object[]> thay vì add trực tiếp vào tableModel
+    private List<Object[]> loadMonDataBatch(Connection conn, String tenLoaiSelected, String tinhTrangSelected) throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
         String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai";
         List<String> whereConditions = new ArrayList<>();
         List<Object> params = new ArrayList<>();
         
-        String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
         if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
             whereConditions.add("l.TenLoai = ?");
             params.add(tenLoaiSelected);
         }
         
-        String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
         if (tinhTrangSelected != null && !tinhTrangSelected.equals("Tất cả tình trạng")) {
             String tinhTrangDB = convertTinhTrangToDatabase(tinhTrangSelected);
             whereConditions.add("m.TinhTrang = ?");
@@ -272,11 +286,15 @@ public class HangHoaView extends JPanel {
                 rs.getString("TenLoai"),
                 rs.getString("Anh")
             };
-            tableModel.addRow(row);
+            rows.add(row);
         }
+        rs.close();
+        ps.close();
+        return rows;
     }
     
-    private void loadLoaiMonData(Connection conn) throws SQLException {
+    private List<Object[]> loadLoaiMonDataBatch(Connection conn) throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
         String sql = "SELECT MaLoai, TenLoai FROM loaimon ORDER BY MaLoai";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -286,12 +304,14 @@ public class HangHoaView extends JPanel {
                     rs.getInt("MaLoai"),
                     rs.getString("TenLoai"),
                 };
-                tableModel.addRow(row);
+                rows.add(row);
             }
         }
+        return rows;
     }
     
-    private void loadNguyenLieuData(Connection conn) throws SQLException {
+    private List<Object[]> loadNguyenLieuDataBatch(Connection conn) throws SQLException {
+        List<Object[]> rows = new ArrayList<>();
         String sql = "SELECT * FROM nguyenlieu ORDER BY MaNL";
         try (Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -302,9 +322,10 @@ public class HangHoaView extends JPanel {
                     rs.getString("TenNL"),
                     rs.getString("DonVi")
                 };
-                tableModel.addRow(row);
+                rows.add(row);
             }
         }
+        return rows;
     }
     
     private void performSearch() {
@@ -1537,8 +1558,10 @@ public class HangHoaView extends JPanel {
         }
     }
     
-    // Custom cell renderer for image column
+    // Custom cell renderer for image column - tối ưu hóa với cache
     private class ImageCellRenderer extends DefaultTableCellRenderer {
+        private java.util.Map<String, ImageIcon> imageCache = new java.util.HashMap<>();
+        
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             JLabel label = new JLabel();
@@ -1558,6 +1581,14 @@ public class HangHoaView extends JPanel {
             if (value != null && !value.toString().trim().isEmpty()) {
                 String imagePath = value.toString();
                 try {
+                    // Kiểm tra cache trước
+                    ImageIcon cachedIcon = imageCache.get(imagePath);
+                    if (cachedIcon != null) {
+                        label.setIcon(cachedIcon);
+                        label.setText("");
+                        return label;
+                    }
+                    
                     String fullPath = "src/" + imagePath;
                     java.io.File imageFile = new java.io.File(fullPath);
                     
@@ -1565,21 +1596,29 @@ public class HangHoaView extends JPanel {
                         ImageIcon icon = new ImageIcon(fullPath);
                         Image image = icon.getImage();
                         
-                        // Scale image to fit in cell (60x60)
-                        int maxWidth = 60;
-                        int maxHeight = 60;
+                        // Scale image to fit in cell (25x25 để phù hợp với row height 30)
+                        int maxWidth = 25;
+                        int maxHeight = 25;
                         int width = image.getWidth(null);
                         int height = image.getHeight(null);
                         
-                        double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
-                        int newWidth = (int) (width * scale);
-                        int newHeight = (int) (height * scale);
-                        
-                        Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-                        ImageIcon scaledIcon = new ImageIcon(scaledImage);
-                        
-                        label.setIcon(scaledIcon);
-                        label.setText("");
+                        if (width > 0 && height > 0) {
+                            double scale = Math.min((double) maxWidth / width, (double) maxHeight / height);
+                            int newWidth = (int) (width * scale);
+                            int newHeight = (int) (height * scale);
+                            
+                            Image scaledImage = image.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+                            ImageIcon scaledIcon = new ImageIcon(scaledImage);
+                            
+                            // Cache icon để tăng tốc độ
+                            imageCache.put(imagePath, scaledIcon);
+                            
+                            label.setIcon(scaledIcon);
+                            label.setText("");
+                        } else {
+                            label.setIcon(null);
+                            label.setText("No Image");
+                        }
                     } else {
                         label.setIcon(null);
                         label.setText("No Image");

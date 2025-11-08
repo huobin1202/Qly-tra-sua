@@ -5,6 +5,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import database.DBUtil;
 import dto.NhapHangDTO;
@@ -17,6 +20,11 @@ public class NhapHangView extends JPanel {
     private DefaultTableModel tableModel;
     private JTextField searchField;
     private JComboBox<String> searchCombo;
+    private JComboBox<String> trangThaiCombo;
+    private DateChooserComponent fromDateChooser;
+    private DateChooserComponent toDateChooser;
+    private boolean fromDateSelected = false; // Flag để đánh dấu người dùng đã chọn ngày
+    private boolean toDateSelected = false; // Flag để đánh dấu người dùng đã chọn ngày
     private final MainFrameInterface parent;
     private final NhapHangDAO nhapHangDAO;
     
@@ -47,7 +55,14 @@ public class NhapHangView extends JPanel {
         
         // Tạo search components
         searchCombo = new JComboBox<>(new String[]{"ID", "Nhân viên", "Nhà cung cấp"});
-        searchField = new JTextField(20);
+        searchField = new JTextField(15);
+        
+        // Combo tìm theo trạng thái
+        trangThaiCombo = new JComboBox<>(new String[]{"Tất cả", "Chưa xác nhận", "Đã xác nhận"});
+        
+        // Date choosers for date range filtering
+        fromDateChooser = new DateChooserComponent();
+        toDateChooser = new DateChooserComponent();
     }
     
     private void setupLayout() {
@@ -109,6 +124,9 @@ public class NhapHangView extends JPanel {
         searchPanel.add(searchCombo);
         searchPanel.add(searchField);
         
+        searchPanel.add(new JLabel("Trạng thái:"));
+        searchPanel.add(trangThaiCombo);
+        
         JButton searchButton = new JButton("🔍 Tìm");
         searchButton.setBackground(new Color(70, 130, 180));
         searchButton.setForeground(Color.BLACK);
@@ -119,11 +137,50 @@ public class NhapHangView extends JPanel {
         refreshButton.setBackground(new Color(34, 139, 34));
         refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
+        refreshButton.addActionListener(e -> {
+            searchField.setText("");
+            // Tạm thời remove ActionListener để tránh trigger khi setSelectedIndex
+            java.awt.event.ActionListener[] listeners = trangThaiCombo.getActionListeners();
+            for (java.awt.event.ActionListener listener : listeners) {
+                trangThaiCombo.removeActionListener(listener);
+            }
+            
+            trangThaiCombo.setSelectedIndex(0);
+            fromDateChooser.clearDate();
+            toDateChooser.clearDate();
+            // Reset flags
+            fromDateSelected = false;
+            toDateSelected = false;
+            
+            // Add lại ActionListener
+            for (java.awt.event.ActionListener listener : listeners) {
+                trangThaiCombo.addActionListener(listener);
+            }
+            
+            loadData();
+        });
         searchPanel.add(refreshButton);
         
         // Thêm button panel và search panel vào top panel
         topPanel.add(buttonPanel, BorderLayout.WEST);
         topPanel.add(searchPanel, BorderLayout.EAST);
+        
+        // Date filter panel (below buttons/search)
+        JPanel dateFilterPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        dateFilterPanel.setBackground(new Color(240, 248, 255));
+        dateFilterPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        
+        dateFilterPanel.add(new JLabel("Từ:"));
+        dateFilterPanel.add(fromDateChooser);
+        // Thêm listener để đánh dấu khi người dùng chọn ngày
+        fromDateChooser.getDateSpinner().addChangeListener(e -> fromDateSelected = true);
+        
+        dateFilterPanel.add(new JLabel("Đến:"));
+        dateFilterPanel.add(toDateChooser);
+        // Thêm listener để đánh dấu khi người dùng chọn ngày
+        toDateChooser.getDateSpinner().addChangeListener(e -> toDateSelected = true);
+
+      
         
         // Table panel
         JScrollPane scrollPane = new JScrollPane(table);
@@ -134,12 +191,19 @@ public class NhapHangView extends JPanel {
         northContainer.setLayout(new BoxLayout(northContainer, BoxLayout.Y_AXIS));
         northContainer.add(headerPanel);
         northContainer.add(topPanel);
+        northContainer.add(dateFilterPanel);
         add(northContainer, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
         
         // Event handlers
         searchButton.addActionListener(e -> performSearch());
-        refreshButton.addActionListener(e -> loadData());
+        // Tìm ngay khi chọn trạng thái - đơn giản hóa để đảm bảo hoạt động
+        trangThaiCombo.addActionListener(e -> {
+            // Debug: đảm bảo ActionListener được gọi
+            System.out.println("Trạng thái được chọn: " + trangThaiCombo.getSelectedItem());
+            performSearch();
+        });
+        // refreshButton action listener đã được thêm ở trên
         addButton.addActionListener(e -> showAddDialog());
         editButton.addActionListener(e -> showEditDialog());
         deleteButton.addActionListener(e -> performDelete());
@@ -173,13 +237,13 @@ public class NhapHangView extends JPanel {
                 "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
                 "ORDER BY p.MaPN")) {
             
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             while (rs.next()) {
                 Object[] row = {
                     rs.getInt("MaPN"),
                     rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A",
                     rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
-                    rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
+                    rs.getTimestamp("Ngay") != null ? dateFormat.format(rs.getTimestamp("Ngay")) : "",
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
                     convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
@@ -193,50 +257,113 @@ public class NhapHangView extends JPanel {
     private void performSearch() {
         String searchText = searchField.getText().trim();
         String searchType = (String) searchCombo.getSelectedItem();
+        String trangThai = (String) trangThaiCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
         try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
-                        "FROM phieunhap p " +
-                        "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
-                        "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
-                        "WHERE ";
-            PreparedStatement ps;
+            String baseSql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
+                            "FROM phieunhap p " +
+                            "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
+                            "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC ";
             
-            if (searchText.isEmpty()) {
-                sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
-                      "FROM phieunhap p " +
-                      "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
-                      "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
-                      "ORDER BY p.MaPN";
-                ps = conn.prepareStatement(sql);
-            } else if (searchType.equals("ID")) {
-                sql += "p.MaPN = ? ORDER BY p.MaPN";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Nhân viên")) {
-                sql += "nv.HoTen LIKE ? ORDER BY p.MaPN";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            } else {
-                sql += "ncc.TenNCC LIKE ? ORDER BY p.MaPN";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
+            List<String> conditions = new ArrayList<>();
+            List<Object> params = new ArrayList<>();
+            
+            // Điều kiện tìm kiếm theo ID, Nhân viên, hoặc Nhà cung cấp
+            if (!searchText.isEmpty() && searchType != null) {
+                if (searchType.equals("ID")) {
+                    try {
+                        conditions.add("p.MaPN = ?");
+                        params.add(Integer.parseInt(searchText));
+                    } catch (NumberFormatException e) {
+                        // Nếu không phải số hợp lệ, bỏ qua điều kiện này
+                    }
+                } else if (searchType.equals("Nhân viên")) {
+                    conditions.add("nv.HoTen LIKE ?");
+                    params.add("%" + searchText + "%");
+                } else if (searchType.equals("Nhà cung cấp")) {
+                    conditions.add("ncc.TenNCC LIKE ?");
+                    params.add("%" + searchText + "%");
+                }
+            }
+            
+            // Điều kiện tìm kiếm theo trạng thái
+            if (trangThai != null && !trangThai.equals("Tất cả")) {
+                String trangThaiDB = convertTrangThaiUIToDatabase(trangThai);
+                System.out.println("DEBUG: Trạng thái UI: " + trangThai);
+                System.out.println("DEBUG: Trạng thái DB: " + trangThaiDB);
+                conditions.add("p.TrangThai = ?");
+                params.add(trangThaiDB);
+            }
+            
+            // Điều kiện tìm kiếm theo khoảng ngày
+            // Chỉ lọc theo ngày nếu người dùng thực sự chọn ngày (sử dụng flag)
+            if (fromDateSelected) {
+                Date fromDate = fromDateChooser.getSelectedDate();
+                if (fromDate != null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(fromDate);
+                    cal.set(Calendar.HOUR_OF_DAY, 0);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+                    conditions.add("p.Ngay >= ?");
+                    params.add(new java.sql.Timestamp(cal.getTimeInMillis()));
+                }
+            }
+            
+            if (toDateSelected) {
+                Date toDate = toDateChooser.getSelectedDate();
+                if (toDate != null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(toDate);
+                    cal.set(Calendar.HOUR_OF_DAY, 23);
+                    cal.set(Calendar.MINUTE, 59);
+                    cal.set(Calendar.SECOND, 59);
+                    cal.set(Calendar.MILLISECOND, 999);
+                    conditions.add("p.Ngay <= ?");
+                    params.add(new java.sql.Timestamp(cal.getTimeInMillis()));
+                }
+            }
+            
+            // Xây dựng SQL query
+            String sql = baseSql;
+            if (!conditions.isEmpty()) {
+                sql += "WHERE " + String.join(" AND ", conditions);
+            }
+            sql += " ORDER BY p.MaPN";
+            
+            System.out.println("DEBUG: SQL Query: " + sql);
+            System.out.println("DEBUG: Params: " + params);
+            
+            PreparedStatement ps = conn.prepareStatement(sql);
+            for (int i = 0; i < params.size(); i++) {
+                Object param = params.get(i);
+                if (param instanceof Integer) {
+                    ps.setInt(i + 1, (Integer) param);
+                } else if (param instanceof java.sql.Timestamp) {
+                    ps.setTimestamp(i + 1, (java.sql.Timestamp) param);
+                } else {
+                    ps.setString(i + 1, param.toString());
+                }
             }
             
             ResultSet rs = ps.executeQuery();
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            int count = 0;
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
             while (rs.next()) {
+                count++;
                 Object[] row = {
                     rs.getInt("MaPN"),
                     rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A",
                     rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A",
-                    rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "",
+                    rs.getTimestamp("Ngay") != null ? dateFormat.format(rs.getTimestamp("Ngay")) : "",
                     String.format("%,d", rs.getLong("ThanhTien")) + " VNĐ",
                     convertTrangThaiToUI(rs.getString("TrangThai"))
                 };
                 tableModel.addRow(row);
             }
+            System.out.println("DEBUG: Số kết quả tìm được: " + count);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
@@ -401,9 +528,9 @@ public class NhapHangView extends JPanel {
                         if (rs.next()) {
                             tenNV = rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A";
                             tenNCC = rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A";
-                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                            if (rs.getDate("Ngay") != null) {
-                                ngayNhap = dateFormat.format(rs.getDate("Ngay"));
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                            if (rs.getTimestamp("Ngay") != null) {
+                                ngayNhap = dateFormat.format(rs.getTimestamp("Ngay"));
                             }
                             trangThai = convertTrangThaiToUI(rs.getString("TrangThai"));
                         } else {
@@ -1012,8 +1139,8 @@ public class NhapHangView extends JPanel {
                 ResultSet rs = ps.executeQuery();
                 
                 if (rs.next()) {
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                    String ngayNhap = rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "N/A";
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                    String ngayNhap = rs.getTimestamp("Ngay") != null ? dateFormat.format(rs.getTimestamp("Ngay")) : "N/A";
                     content.append("║ Mã phiếu nhập: ").append(String.format("%-20s", rs.getInt("MaPN"))).append(" Ngày nhập: ").append(String.format("%-20s", ngayNhap)).append(" ║\n");
                     content.append("║ Nhân viên:     ").append(String.format("%-20s", rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A")).append(" Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(rs.getString("TrangThai")))).append(" ║\n");
                     content.append("║ Nhà cung cấp: ").append(String.format("%-20s", rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A")).append(" ").append("                                ").append(" ║\n");
@@ -1158,8 +1285,8 @@ public class NhapHangView extends JPanel {
                     ResultSet rs = ps.executeQuery();
                     
                     if (rs.next()) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                        String ngayNhap = rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "N/A";
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                        String ngayNhap = rs.getTimestamp("Ngay") != null ? dateFormat.format(rs.getTimestamp("Ngay")) : "N/A";
                         writer.write("Mã phiếu nhập," + rs.getInt("MaPN") + "\n");
                         writer.write("Ngày nhập," + ngayNhap + "\n");
                         writer.write("Nhân viên," + (rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A") + "\n");
@@ -1238,8 +1365,8 @@ public class NhapHangView extends JPanel {
                     ResultSet rs = ps.executeQuery();
                     
                     if (rs.next()) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                        String ngayNhap = rs.getDate("Ngay") != null ? dateFormat.format(rs.getDate("Ngay")) : "N/A";
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+                        String ngayNhap = rs.getTimestamp("Ngay") != null ? dateFormat.format(rs.getTimestamp("Ngay")) : "N/A";
                         writer.write("<div class='info'>\n");
                         writer.write("<p><strong>Mã phiếu nhập:</strong> " + rs.getInt("MaPN") + "</p>\n");
                         writer.write("<p><strong>Ngày nhập:</strong> " + ngayNhap + "</p>\n");
@@ -1470,6 +1597,16 @@ public class NhapHangView extends JPanel {
     }
     
     // Method chuyển đổi trạng thái từ database sang giao diện
+    // Helper method để chuyển đổi trạng thái từ UI sang database
+    private String convertTrangThaiUIToDatabase(String trangThaiUI) {
+        if ("Chưa xác nhận".equals(trangThaiUI)) {
+            return "chuaxacnhan";
+        } else if ("Đã xác nhận".equals(trangThaiUI)) {
+            return "daxacnhan";
+        }
+        return trangThaiUI; // Trả về nguyên bản nếu không khớp
+    }
+    
     private String convertTrangThaiToUI(String trangThaiDB) {
         if ("daxacnhan".equals(trangThaiDB)) {
             return "Đã xác nhận";

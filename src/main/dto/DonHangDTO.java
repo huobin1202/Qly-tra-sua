@@ -11,6 +11,7 @@ public class DonHangDTO {
     private int giamGia;
     private String tenNV;
     private String tenKH; // Tên khách hàng
+    private String soDienThoai; // Số điện thoại khách hàng
 
     // Constructor mặc định
     public DonHangDTO() {}
@@ -44,4 +45,6 @@ public class DonHangDTO {
     public void setTenNV(String tenNV) { this.tenNV = tenNV; }
     public String getTenKH() { return tenKH; }
     public void setTenKH(String tenKH) { this.tenKH = tenKH; }
+    public String getSoDienThoai() { return soDienThoai; }
+    public void setSoDienThoai(String soDienThoai) { this.soDienThoai = soDienThoai; }
 }

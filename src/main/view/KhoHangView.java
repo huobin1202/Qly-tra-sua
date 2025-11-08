@@ -56,7 +56,7 @@ public class KhoHangView extends JPanel {
         topPanel.setBackground(new Color(240, 248, 255));
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        // Button panel (bên trái) - Cập nhật/Hàng sắp hết
+        // Button panel (bên trái) - Cập nhật/Hàng sắp hết/đã hết
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         buttonPanel.setBackground(new Color(240, 248, 255));
         
@@ -65,7 +65,7 @@ public class KhoHangView extends JPanel {
         editButton.setForeground(Color.BLACK);
         editButton.setFocusPainted(false);
         
-        JButton lowStockButton = new JButton("⚠️ Hàng sắp hết");
+        JButton lowStockButton = new JButton("⚠️ Hàng sắp hết/ đã hết");
         lowStockButton.setBackground(new Color(255, 69, 0));
         lowStockButton.setForeground(Color.BLACK);
         lowStockButton.setFocusPainted(false);
@@ -227,7 +227,7 @@ public class KhoHangView extends JPanel {
                  "ORDER BY COALESCE(k.SoLuong, 0) ASC")) {
             
             StringBuilder lowStock = new StringBuilder();
-            lowStock.append("DANH SÁCH HÀNG SẮP HẾT (≤ 1000):\n\n");
+            lowStock.append("DANH SÁCH HÀNG SẮP HẾT/ĐÃ HẾT (≤ 1000):\n\n");
             
             boolean hasLowStock = false;
             while (rs.next()) {
