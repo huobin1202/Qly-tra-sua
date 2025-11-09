@@ -92,6 +92,18 @@ public class BaoCaoView extends JPanel {
         generateButton.addActionListener(e -> generateReport());
         controlPanel.add(generateButton);
         
+        // Nút làm mới
+        JButton refreshButton = new JButton("🔄 Làm mới");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
+        refreshButton.setBackground(new Color(34, 139, 34));
+        refreshButton.setForeground(Color.BLACK);
+        refreshButton.setFocusPainted(false);
+        refreshButton.addActionListener(e -> {
+            setDefaultDates();
+            generateReport();
+        });
+        controlPanel.add(refreshButton);
+        
         return controlPanel;
     }
     
@@ -114,19 +126,8 @@ public class BaoCaoView extends JPanel {
         printButton.setFocusPainted(false);
         printButton.addActionListener(e -> printReport());
         
-        JButton refreshButton = new JButton("🔄 Làm mới");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 12));
-        refreshButton.setBackground(new Color(34, 139, 34));
-        refreshButton.setForeground(Color.BLACK);
-        refreshButton.setFocusPainted(false);
-        refreshButton.addActionListener(e -> {
-            setDefaultDates();
-            generateReport();
-        });
-        
         buttonPanel.add(exportButton);
         buttonPanel.add(printButton);
-        buttonPanel.add(refreshButton);
         
         return buttonPanel;
     }
