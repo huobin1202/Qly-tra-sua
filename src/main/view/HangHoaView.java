@@ -83,8 +83,6 @@ public class HangHoaView extends JPanel {
         // Tạo search components
         searchCombo = new JComboBox<>(new String[]{"ID", "Tên"});
         searchField = new JTextField(20);
-        // categoryCombo = new JComboBox<>(new String[]{"Món", "Loại món", "Nguyên liệu"});
-        // BỎ HOÀN TOÀN categoryCombo, không khởi tạo, không add vào panel nào nữa
         loaiMonFilterCombo = new JComboBox<>();
         loaiMonFilterCombo.addItem("Tất cả loại");
         // Tải loại món từ DB để đưa vào filter
@@ -190,7 +188,6 @@ public class HangHoaView extends JPanel {
         });
     }
     
-    // Bỏ hoàn toàn switchView(), categoryCombo không tồn tại nữa nên không dùng mỗi khi đổi view
     
     private void updateTableHeaders() {
         if (currentView.equals("MON")) {

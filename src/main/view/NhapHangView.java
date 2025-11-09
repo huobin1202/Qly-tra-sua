@@ -200,7 +200,6 @@ public class NhapHangView extends JPanel {
         // Tìm ngay khi chọn trạng thái - đơn giản hóa để đảm bảo hoạt động
         trangThaiCombo.addActionListener(e -> {
             // Debug: đảm bảo ActionListener được gọi
-            System.out.println("Trạng thái được chọn: " + trangThaiCombo.getSelectedItem());
             performSearch();
         });
         // refreshButton action listener đã được thêm ở trên
@@ -290,8 +289,6 @@ public class NhapHangView extends JPanel {
             // Điều kiện tìm kiếm theo trạng thái
             if (trangThai != null && !trangThai.equals("Tất cả")) {
                 String trangThaiDB = convertTrangThaiUIToDatabase(trangThai);
-                System.out.println("DEBUG: Trạng thái UI: " + trangThai);
-                System.out.println("DEBUG: Trạng thái DB: " + trangThaiDB);
                 conditions.add("p.TrangThai = ?");
                 params.add(trangThaiDB);
             }
@@ -333,8 +330,6 @@ public class NhapHangView extends JPanel {
             }
             sql += " ORDER BY p.MaPN";
             
-            System.out.println("DEBUG: SQL Query: " + sql);
-            System.out.println("DEBUG: Params: " + params);
             
             PreparedStatement ps = conn.prepareStatement(sql);
             for (int i = 0; i < params.size(); i++) {
@@ -363,7 +358,6 @@ public class NhapHangView extends JPanel {
                 };
                 tableModel.addRow(row);
             }
-            System.out.println("DEBUG: Số kết quả tìm được: " + count);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {

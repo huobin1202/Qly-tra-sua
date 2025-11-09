@@ -192,7 +192,6 @@ public class DonHangView extends JPanel {
         searchButton.addActionListener(e -> performSearch());
         // Tìm ngay khi chọn trạng thái
         trangThaiCombo.addActionListener(e -> {
-            System.out.println("Trạng thái được chọn: " + trangThaiCombo.getSelectedItem());
             performSearch();
         });
         // refreshButton action listener đã được thêm ở trên

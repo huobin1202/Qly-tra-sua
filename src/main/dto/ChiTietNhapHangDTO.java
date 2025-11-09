@@ -10,7 +10,8 @@ public class ChiTietNhapHangDTO {
     private long thanhTien;
 
     // Constructor mặc định
-    public ChiTietNhapHangDTO() {}
+    public ChiTietNhapHangDTO() {
+    }
 
     // Constructor đầy đủ
     public ChiTietNhapHangDTO(int maPN, int maNL, String tenNL, int soLuong, long donGia, String donVi) {
@@ -34,36 +35,62 @@ public class ChiTietNhapHangDTO {
     }
 
     // Getters và Setters
-    public int getMaPN() { return maPN; }
-    public void setMaPN(int maPN) { this.maPN = maPN; }
+    public int getMaPN() {
+        return maPN;
+    }
 
-    public int getMaNL() { return maNL; }
-    public void setMaNL(int maNL) { this.maNL = maNL; }
+    public void setMaPN(int maPN) {
+        this.maPN = maPN;
+    }
 
-    public String getTenNL() { return tenNL; }
-    public void setTenNL(String tenNL) { this.tenNL = tenNL; }
+    public int getMaNL() {
+        return maNL;
+    }
 
-    public int getSoLuong() { return soLuong; }
-    public void setSoLuong(int soLuong) { 
+    public void setMaNL(int maNL) {
+        this.maNL = maNL;
+    }
+
+    public String getTenNL() {
+        return tenNL;
+    }
+
+    public void setTenNL(String tenNL) {
+        this.tenNL = tenNL;
+    }
+
+    public int getSoLuong() {
+        return soLuong;
+    }
+
+    public void setSoLuong(int soLuong) {
         this.soLuong = soLuong;
         this.thanhTien = this.soLuong * this.donGia; // Tự động tính lại thành tiền
     }
 
-    public long getDonGia() { return donGia; }
-    public void setDonGia(long donGia) { 
+    public long getDonGia() {
+        return donGia;
+    }
+
+    public void setDonGia(long donGia) {
         this.donGia = donGia;
         this.thanhTien = this.soLuong * this.donGia; // Tự động tính lại thành tiền
     }
 
-    public String getDonVi() { return donVi; }
-    public void setDonVi(String donVi) { this.donVi = donVi; }
-
-    public long getThanhTien() { 
-        return thanhTien; 
+    public String getDonVi() {
+        return donVi;
     }
-    
-    public void setThanhTien(long thanhTien) { 
-        this.thanhTien = thanhTien; 
+
+    public void setDonVi(String donVi) {
+        this.donVi = donVi;
+    }
+
+    public long getThanhTien() {
+        return thanhTien;
+    }
+
+    public void setThanhTien(long thanhTien) {
+        this.thanhTien = thanhTien;
     }
 
     // Phương thức tính lại thành tiền

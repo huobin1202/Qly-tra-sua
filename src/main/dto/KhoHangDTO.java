@@ -6,16 +6,36 @@ public class KhoHangDTO {
     private String tenDonVi;
     private int soLuong;
 
-    public int getMaMon() { return maMon; }
-    public void setMaMon(int maMon) { this.maMon = maMon; }
+    public int getMaMon() {
+        return maMon;
+    }
 
-    public String getTenMon() { return tenMon; }
-    public void setTenMon(String tenMon) { this.tenMon = tenMon; }
+    public void setMaMon(int maMon) {
+        this.maMon = maMon;
+    }
 
-    public String getTenDonVi() { return tenDonVi; }
-    public void setTenDonVi(String tenDonVi) { this.tenDonVi = tenDonVi; }
+    public String getTenMon() {
+        return tenMon;
+    }
 
-    public int getSoLuong() { return soLuong; }
-    public void setSoLuong(int soLuong) { this.soLuong = soLuong; }
+    public void setTenMon(String tenMon) {
+        this.tenMon = tenMon;
+    }
+
+    public String getTenDonVi() {
+        return tenDonVi;
+    }
+
+    public void setTenDonVi(String tenDonVi) {
+        this.tenDonVi = tenDonVi;
+    }
+
+    public int getSoLuong() {
+        return soLuong;
+    }
+
+    public void setSoLuong(int soLuong) {
+        this.soLuong = soLuong;
+    }
 
 }

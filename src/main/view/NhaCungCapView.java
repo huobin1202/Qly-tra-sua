@@ -430,9 +430,7 @@ public class NhaCungCapView extends JPanel {
                 return;
             }
             
-            try (Connection conn = DBUtil.getConnection()) {
-                System.out.println("Kết nối database thành công!");
-                
+            try (Connection conn = DBUtil.getConnection()) {                
                 if (ncc == null) {
                     // Thêm mới - Kiểm tra số điện thoại trùng
                     try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhacungcap WHERE SDT = ?")) {
@@ -487,7 +485,6 @@ public class NhaCungCapView extends JPanel {
                 dataChanged = true;
                 dispose();
             } catch (SQLException e) {
-                System.err.println("Lỗi kết nối database: " + e.getMessage());
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
