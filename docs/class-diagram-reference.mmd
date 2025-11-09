@@ -1,0 +1,239 @@
+classDiagram
+    %% User Management Classes
+    class User {
+        -int userId
+        -String username
+        -String password
+        -String fullName
+        -String email
+        -String phone
+        -UserRole role
+        -UserStatus status
+        -LocalDateTime createdAt
+        +login(username, password) boolean
+        +logout() void
+        +changePassword(newPassword) boolean
+        +updateProfile(userInfo) boolean
+        +hasRole(role) boolean
+    }
+    
+    class Customer {
+        -int customerId
+        -int userId
+        -String address
+        -String city
+        -String district
+        -CustomerType customerType
+        -LocalDateTime createdAt
+        +register(userInfo) boolean
+        +updateAddress(address) void
+        +getOrderHistory() List
+        +calculateDiscount() double
+    }
+    
+    class Admin {
+        -int adminId
+        -int userId
+        -String department
+        +manageUsers() void
+        +viewReports() void
+        +configureSettings() void
+    }
+    
+    %% Product Management Classes
+    class Product {
+        -int productId
+        -int categoryId
+        -String name
+        -String description
+        -BigDecimal price
+        -BigDecimal costPrice
+        -int stockQty
+        -int minStock
+        -ProductStatus status
+        -String imageUrl
+        -LocalDateTime createdAt
+        +addProduct(info) boolean
+        +updateProduct(info) boolean
+        +updatePrice(price) boolean
+        +updateStock(qty) boolean
+        +checkAvailability(qty) boolean
+        +isLowStock() boolean
+        +calculateProfit() BigDecimal
+    }
+    
+    class Category {
+        -int categoryId
+        -String name
+        -String description
+        -CategoryStatus status
+        -LocalDateTime createdAt
+        +addCategory(info) boolean
+        +updateCategory(info) boolean
+        +deleteCategory() boolean
+        +getProducts() List
+    }
+    
+    %% Order Management Classes
+    class Order {
+        -int orderId
+        -int customerId
+        -int userId
+        -LocalDateTime orderDate
+        -BigDecimal totalAmount
+        -BigDecimal discount
+        -BigDecimal taxAmount
+        -BigDecimal finalAmount
+        -PaymentMethod paymentMethod
+        -PaymentStatus paymentStatus
+        -OrderStatus orderStatus
+        -String notes
+        +createOrder(customerInfo) boolean
+        +addItem(product, quantity) boolean
+        +removeItem(productId) boolean
+        +calculateTotal() BigDecimal
+        +applyDiscount(amount) void
+        +processPayment() boolean
+        +updateStatus(status) boolean
+        +cancelOrder() boolean
+        +generateInvoice() Invoice
+    }
+    
+    class OrderItem {
+        -int orderItemId
+        -int orderId
+        -int productId
+        -int quantity
+        -BigDecimal unitPrice
+        -BigDecimal totalPrice
+        -LocalDateTime createdAt
+        +calculateItemTotal() BigDecimal
+        +updateQuantity(quantity) boolean
+        +getProduct() Product
+    }
+    
+    %% Inventory Management Classes
+    class Inventory {
+        -int inventoryId
+        -int productId
+        -InventoryType type
+        -int quantity
+        -String notes
+        -LocalDateTime createdAt
+        -int createdBy
+        +importStock(qty, notes) boolean
+        +exportStock(qty, notes) boolean
+        +adjustStock(qty, reason) boolean
+        +getStockHistory() List
+    }
+    
+    %% Payment Management Classes
+    class Payment {
+        -int paymentId
+        -int orderId
+        -BigDecimal amount
+        -LocalDateTime paymentDate
+        -PaymentMethod paymentMethod
+        -PaymentStatus status
+        -String notes
+        +processPayment() boolean
+        +refundPayment() boolean
+        +validateAmount() boolean
+    }
+    
+    %% Enumerations
+    class UserRole {
+        <<enumeration>>
+        CUSTOMER
+        ADMIN
+        MANAGER
+    }
+    
+    class UserStatus {
+        <<enumeration>>
+        ACTIVE
+        INACTIVE
+        SUSPENDED
+    }
+    
+    class CustomerType {
+        <<enumeration>>
+        REGULAR
+        VIP
+        PREMIUM
+    }
+    
+    class ProductStatus {
+        <<enumeration>>
+        ACTIVE
+        INACTIVE
+        OUT_OF_STOCK
+        DISCONTINUED
+    }
+    
+    class CategoryStatus {
+        <<enumeration>>
+        ACTIVE
+        INACTIVE
+    }
+    
+    class PaymentMethod {
+        <<enumeration>>
+        CASH
+        CREDIT_CARD
+        DEBIT_CARD
+        E_WALLET
+        BANK_TRANSFER
+    }
+    
+    class PaymentStatus {
+        <<enumeration>>
+        PENDING
+        PAID
+        FAILED
+        REFUNDED
+    }
+    
+    class OrderStatus {
+        <<enumeration>>
+        PENDING
+        CONFIRMED
+        PROCESSING
+        SHIPPED
+        DELIVERED
+        CANCELLED
+    }
+    
+    class InventoryType {
+        <<enumeration>>
+        IMPORT
+        EXPORT
+        ADJUSTMENT
+    }
+    
+    %% Inheritance Relationships
+    Customer --|> User : extends
+    Admin --|> User : extends
+    
+    %% Association Relationships
+    User ||--o| Customer : "has profile"
+    Customer ||--o{ Order : "places"
+    User ||--o{ Order : "creates"
+    Product }o--|| Category : "belongs to"
+    Order ||--o{ OrderItem : "contains"
+    Product ||--o{ OrderItem : "ordered in"
+    Product ||--o{ Inventory : "tracked in"
+    Order ||--o| Payment : "has payment"
+    
+    %% Navigation (bidirectional)
+    Customer ..> Order : "gets order history"
+    Order ..> OrderItem : "calculates total"
+    OrderItem ..> Product : "gets product details"
+    Inventory ..> Product : "updates stock"
+    Payment ..> Order : "validates amount"
+    
+    %% Notes
+    note for User "Base class for all system users"
+    note for Customer "Extends User with customer-specific attributes"
+    note for Order "Main order entity with business logic"
+    note for Product "Product with pricing and inventory info"

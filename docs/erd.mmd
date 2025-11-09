@@ -1,0 +1,168 @@
+erDiagram
+    %% Main Entities
+    NHANVIEN {
+        int MaNV PK "Khóa chính"
+        varchar TaiKhoan UK "Tài khoản đăng nhập"
+        varchar MatKhau "Mật khẩu"
+        varchar HoTen "Họ tên nhân viên"
+        varchar SDT "Số điện thoại"
+        datetime NgayVaoLam "Ngày vào làm"
+        varchar ChucVu "Chức vụ"
+        int Luong "Lương"
+    }
+    
+    KHACHHANG {
+        int MaKH PK "Khóa chính"
+        varchar SDT UK "Số điện thoại"
+        varchar HoTen "Họ tên khách hàng"
+        text DiaChi "Địa chỉ"
+        datetime NgaySinh "Ngày sinh"
+    }
+    
+    LOAIMON {
+        int MaLoai PK "Khóa chính"
+        varchar TenLoai UK "Tên loại món"
+    }
+    
+    MON {
+        int MaMon PK "Khóa chính"
+        varchar TenMon "Tên món"
+        bigint Gia "Giá bán"
+        int MaLoai FK "Mã loại món"
+        text MoTa "Mô tả"
+        varchar TrangThai "Trạng thái"
+    }
+    
+    DONDATHANG {
+        int MaDon PK "Khóa chính"
+        int MaNV FK "Mã nhân viên"
+        varchar Loai "Loại đơn hàng"
+        varchar TrangThai "Trạng thái đơn hàng"
+        datetime NgayDat "Ngày đặt hàng"
+        bigint TongTien "Tổng tiền"
+        int GiamGia "Giảm giá"
+    }
+    
+    CHITIETDON {
+        int MaDon FK "Mã đơn hàng"
+        int MaMon FK "Mã món"
+        int MaTopping FK "Mã topping"
+        int SoLuong "Số lượng"
+        bigint DonGia "Đơn giá"
+        text GhiChu "Ghi chú"
+    }
+    
+    NHACUNGCAP {
+        int MaNCC PK "Khóa chính"
+        varchar TenNCC "Tên nhà cung cấp"
+        text DiaChi "Địa chỉ"
+        varchar SDT "Số điện thoại"
+    }
+    
+    NGUYENLIEU {
+        int MaNL PK "Khóa chính"
+        varchar TenNL "Tên nguyên liệu"
+        varchar DonVi "Đơn vị tính"
+        bigint Gia "Giá"
+    }
+    
+    NCC_NGUYENLIEU {
+        int MaNCC FK "Mã nhà cung cấp"
+        int MaNL FK "Mã nguyên liệu"
+        int SoLuong "Số lượng có sẵn"
+    }
+    
+    KHO_NGUYENLIEU {
+        int MaNL PK,FK "Mã nguyên liệu"
+        int SoLuong "Số lượng tồn kho"
+    }
+    
+    PHIEUNHAP {
+        int MaPN PK "Khóa chính"
+        int MaNV FK "Mã nhân viên"
+        int MaNCC FK "Mã nhà cung cấp"
+        date Ngay "Ngày nhập"
+        text GhiChu "Ghi chú"
+        bigint ThanhTien "Thành tiền"
+        varchar TrangThai "Trạng thái phiếu"
+    }
+    
+    CHITIETNHAP_NL {
+        int MaPN FK "Mã phiếu nhập"
+        int MaNL FK "Mã nguyên liệu"
+        int SoLuong "Số lượng nhập"
+        bigint DonGia "Đơn giá"
+        varchar DonVi "Đơn vị"
+    }
+    
+    GIAOHANG {
+        int MaGiao PK "Khóa chính"
+        int MaDon FK "Mã đơn hàng"
+        int MaNV FK "Mã nhân viên"
+        varchar TrangThai "Trạng thái giao hàng"
+        datetime ThoiGian "Thời gian giao"
+        text DiaChi "Địa chỉ giao hàng"
+    }
+    
+    %% Relationships
+    %% Nhân viên relationships
+    NHANVIEN ||--o{ DONDATHANG : "tạo đơn hàng"
+    NHANVIEN ||--o{ PHIEUNHAP : "tạo phiếu nhập"
+    NHANVIEN ||--o{ GIAOHANG : "phụ trách giao hàng"
+    
+    %% Khách hàng relationships
+    KHACHHANG ||--o{ DONDATHANG : "đặt hàng"
+    
+    %% Đơn hàng relationships
+    DONDATHANG ||--o{ CHITIETDON : "chứa chi tiết"
+    DONDATHANG ||--o{ GIAOHANG : "có giao hàng"
+    
+    %% Món relationships
+    MON ||--o{ CHITIETDON : "được chọn"
+    MON ||--o{ MON : "topping"
+    LOAIMON ||--o{ MON : "phân loại"
+    
+    %% Nhà cung cấp relationships
+    NHACUNGCAP ||--o{ NCC_NGUYENLIEU : "cung cấp nguyên liệu"
+    NHACUNGCAP ||--o{ PHIEUNHAP : "bán hàng"
+    
+    %% Nguyên liệu relationships
+    NGUYENLIEU ||--o{ NCC_NGUYENLIEU : "được cung cấp"
+    NGUYENLIEU ||--|| KHO_NGUYENLIEU : "quản lý tồn kho"
+    NGUYENLIEU ||--o{ CHITIETNHAP_NL : "được nhập"
+    
+    %% Phiếu nhập relationships
+    PHIEUNHAP ||--o{ CHITIETNHAP_NL : "chứa chi tiết"
+    
+    %% Notes and constraints
+    %% Primary Keys
+    NHANVIEN }|--|| NHANVIEN : "MaNV PK"
+    KHACHHANG }|--|| KHACHHANG : "MaKH PK"
+    LOAIMON }|--|| LOAIMON : "MaLoai PK"
+    MON }|--|| MON : "MaMon PK"
+    DONDATHANG }|--|| DONDATHANG : "MaDon PK"
+    NHACUNGCAP }|--|| NHACUNGCAP : "MaNCC PK"
+    NGUYENLIEU }|--|| NGUYENLIEU : "MaNL PK"
+    PHIEUNHAP }|--|| PHIEUNHAP : "MaPN PK"
+    GIAOHANG }|--|| GIAOHANG : "MaGiao PK"
+    
+    %% Foreign Key Constraints
+    MON }o--|| LOAIMON : "MaLoai FK"
+    DONDATHANG }o--|| NHANVIEN : "MaNV FK"
+    CHITIETDON }o--|| DONDATHANG : "MaDon FK"
+    CHITIETDON }o--|| MON : "MaMon FK"
+    CHITIETDON }o--o| MON : "MaTopping FK"
+    PHIEUNHAP }o--|| NHANVIEN : "MaNV FK"
+    PHIEUNHAP }o--|| NHACUNGCAP : "MaNCC FK"
+    CHITIETNHAP_NL }o--|| PHIEUNHAP : "MaPN FK"
+    CHITIETNHAP_NL }o--|| NGUYENLIEU : "MaNL FK"
+    NCC_NGUYENLIEU }o--|| NHACUNGCAP : "MaNCC FK"
+    NCC_NGUYENLIEU }o--|| NGUYENLIEU : "MaNL FK"
+    KHO_NGUYENLIEU }o--|| NGUYENLIEU : "MaNL FK"
+    GIAOHANG }o--|| DONDATHANG : "MaDon FK"
+    GIAOHANG }o--|| NHANVIEN : "MaNV FK"
+    
+    %% Composite Primary Keys
+    CHITIETDON }|--|| CHITIETDON : "(MaDon, MaMon, MaTopping) PK"
+    NCC_NGUYENLIEU }|--|| NCC_NGUYENLIEU : "(MaNCC, MaNL) PK"
+    CHITIETNHAP_NL }|--|| CHITIETNHAP_NL : "(MaPN, MaNL) PK"

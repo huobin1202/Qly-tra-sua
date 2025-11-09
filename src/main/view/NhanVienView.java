@@ -1,0 +1,728 @@
+package view;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import database.DBUtil;
+import dto.NhanVienDTO;
+import utils.DateChooserComponent;
+
+public class NhanVienView extends JPanel {
+    private JTable table;
+    private DefaultTableModel tableModel;
+    private JTextField searchField;
+    private JComboBox<String> searchCombo;
+    private MainFrameInterface parent;
+    
+    public NhanVienView(MainFrameInterface parent) {
+        this.parent = parent;
+        initializeComponents();
+        setupLayout();
+        setupEventHandlers();
+        loadData();
+    }
+    
+    private void initializeComponents() {
+        // Tạo table model
+        String[] columns = {"ID", "Tài khoản","Mật khẩu", "Họ tên", "Số điện thoại", "Ngày vào làm", "Chức vụ", "Lương", "Trạng thái"};
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+        
+        table = new JTable(tableModel);
+        table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        table.setRowHeight(25);
+        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        table.setFont(new Font("Arial", Font.PLAIN, 12));
+        
+        // Tạo search components
+        searchCombo = new JComboBox<>(new String[]{"ID", "Tài khoản", "Họ tên"});
+        searchField = new JTextField(20);
+    }
+    
+    private void setupLayout() {
+        setLayout(new BorderLayout());
+        setBackground(new Color(240, 248, 255));
+        
+        // Top panel - chứa search và buttons trong cùng một hàng
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(new Color(240, 248, 255));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Button panel (bên trái) - Thêm/Sửa/Xóa
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonPanel.setBackground(new Color(240, 248, 255));
+        
+        JButton addButton = new JButton("➕ Thêm mới");
+        addButton.setBackground(new Color(34, 139, 34));
+        addButton.setForeground(Color.BLACK);
+        addButton.setFocusPainted(false);
+        
+        JButton editButton = new JButton("✏️ Sửa");
+        editButton.setBackground(new Color(255, 140, 0));
+        editButton.setForeground(Color.BLACK);
+        editButton.setFocusPainted(false);
+        
+        JButton deleteButton = new JButton("🗑️ Xóa");
+        deleteButton.setBackground(new Color(220, 20, 60));
+        deleteButton.setForeground(Color.BLACK);
+        deleteButton.setFocusPainted(false);
+        
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+        
+        // Search panel (bên phải) - Tìm kiếm
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        searchPanel.setBackground(new Color(240, 248, 255));
+        
+        searchPanel.add(new JLabel("Tìm kiếm:"));
+        searchPanel.add(searchCombo);
+        searchPanel.add(searchField);
+        
+        JButton searchButton = new JButton("🔍 Tìm");
+        searchButton.setBackground(new Color(70, 130, 180));
+        searchButton.setForeground(Color.BLACK);
+        searchButton.setFocusPainted(false);
+        searchPanel.add(searchButton);
+        
+        JButton refreshButton = new JButton("🔄 Làm mới");
+        refreshButton.setBackground(new Color(34, 139, 34));
+        refreshButton.setForeground(Color.BLACK);
+        refreshButton.setFocusPainted(false);
+        searchPanel.add(refreshButton);
+        
+        // Thêm button panel và search panel vào top panel
+        topPanel.add(buttonPanel, BorderLayout.WEST);
+        topPanel.add(searchPanel, BorderLayout.EAST);
+        
+        // Table panel
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Danh sách nhân viên"));
+        
+        // Layout
+        add(topPanel, BorderLayout.NORTH);
+        add(scrollPane, BorderLayout.CENTER);
+        
+        // Event handlers
+        searchButton.addActionListener(e -> performSearch());
+        refreshButton.addActionListener(e -> loadData());
+        addButton.addActionListener(e -> showAddDialog());
+        editButton.addActionListener(e -> showEditDialog());
+        deleteButton.addActionListener(e -> performDelete());
+    }
+    
+    private void setupEventHandlers() {
+        // Double click to edit
+        table.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                if (evt.getClickCount() == 2) {
+                    showEditDialog();
+                }
+            }
+        });
+        
+        // Enter key in search field
+        searchField.addActionListener(e -> performSearch());
+    }
+    
+    private void loadData() {
+        tableModel.setRowCount(0);
+        try (Connection conn = DBUtil.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM nhanvien ORDER BY MaNV")) {
+            
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            while (rs.next()) {
+                Object[] row = {
+                    rs.getInt("MaNV"),
+                    rs.getString("TaiKhoan"),
+                    rs.getString("MatKhau"),
+                    rs.getString("HoTen"),
+                    rs.getString("SDT"),
+                    rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
+                    rs.getString("ChucVu"),
+                    String.format("%,d", rs.getLong("Luong")) + " VNĐ",
+                    convertTrangThaiToUI(rs.getString("TrangThai"))
+                };
+                tableModel.addRow(row);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void performSearch() {
+        String searchText = searchField.getText().trim();
+        String searchType = (String) searchCombo.getSelectedItem();
+        
+        tableModel.setRowCount(0);
+        try (Connection conn = DBUtil.getConnection()) {
+            String sql = "SELECT * FROM nhanvien WHERE ";
+            PreparedStatement ps;
+            
+            if (searchText.isEmpty()) {
+                sql = "SELECT * FROM nhanvien ORDER BY MaNV";
+                ps = conn.prepareStatement(sql);
+            } else if (searchType.equals("ID")) {
+                sql += "MaNV = ? ORDER BY MaNV";
+                ps = conn.prepareStatement(sql);
+                ps.setInt(1, Integer.parseInt(searchText));
+            } else if (searchType.equals("Tài khoản")) {
+                sql += "TaiKhoan LIKE ? ORDER BY MaNV";
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, "%" + searchText + "%");
+            } else {
+                sql += "HoTen LIKE ? ORDER BY MaNV";
+                ps = conn.prepareStatement(sql);
+                ps.setString(1, "%" + searchText + "%");
+            } 
+            
+            ResultSet rs = ps.executeQuery();
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            while (rs.next()) {
+                Object[] row = {
+                    rs.getInt("MaNV"),
+                    rs.getString("TaiKhoan"),
+                    rs.getString("MatKhau"),
+                    rs.getString("HoTen"),
+                    rs.getString("SDT"),
+                    rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
+                    rs.getString("ChucVu"),
+                    String.format("%,d", rs.getLong("Luong")) + " VNĐ",
+                    convertTrangThaiToUI(rs.getString("TrangThai"))
+                };
+                tableModel.addRow(row);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void showAddDialog() {
+        NhanVienDialog dialog = new NhanVienDialog(SwingUtilities.getWindowAncestor(this), "Thêm nhân viên mới", null);
+        dialog.setVisible(true);
+        if (dialog.isDataChanged()) {
+            loadData();
+        }
+    }
+    
+    private void showEditDialog() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần sửa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int id = (Integer) tableModel.getValueAt(selectedRow, 0);
+        String taiKhoan = (String) tableModel.getValueAt(selectedRow, 1);
+        String matKhau = (String) tableModel.getValueAt(selectedRow, 2);
+        String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
+        String sdt = (String) tableModel.getValueAt(selectedRow, 4);
+        String ngayVaoLamStr = (String) tableModel.getValueAt(selectedRow, 5);
+        String chucVu = (String) tableModel.getValueAt(selectedRow, 6);
+        String luongStr = (String) tableModel.getValueAt(selectedRow, 7);
+        String trangThai = (selectedRow < tableModel.getColumnCount()) ? (String) tableModel.getValueAt(selectedRow, 8) : "Đang làm";
+        
+        Timestamp ngayVaoLam = null;
+        if (!ngayVaoLamStr.isEmpty()) {
+            try {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                ngayVaoLam = new Timestamp(dateFormat.parse(ngayVaoLamStr).getTime());
+            } catch (Exception e) {
+                // Ignore parsing error
+            }
+        }
+        
+        long luong = 0;
+        if (!luongStr.isEmpty()) {
+            try {
+                luong = Long.parseLong(luongStr.replaceAll("[^0-9]", "")); // Cho phép số thực
+            } catch (Exception e) {
+                // Ignore parsing error
+            }
+        }
+        
+        NhanVienDTO nv;
+        // Truyền ID và trạng thái vào constructor mới chuẩn hóa (các file DTO đã sửa nhận thêm trạng thái)
+        if (chucVu != null && chucVu.trim().equalsIgnoreCase("quanly")) {
+            nv = new dto.NhanVienQuanLyDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, luong, convertTrangThaiToDatabase(trangThai));
+        } else {
+            nv = new dto.NhanVienThuongDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, luong, convertTrangThaiToDatabase(trangThai));
+        }
+        NhanVienDialog dialog = new NhanVienDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhân viên", nv);
+        dialog.setVisible(true);
+        if (dialog.isDataChanged()) {
+            loadData();
+        }
+    }
+    
+    private void performDelete() {
+        int selectedRow = table.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this, "Vui lòng chọn nhân viên cần xóa!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        int id = (Integer) tableModel.getValueAt(selectedRow, 0);
+        String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
+        
+        // Kiểm tra khóa ngoại trước khi xóa
+        try (Connection conn = DBUtil.getConnection()) {
+            // Kiểm tra nhân viên có được sử dụng trong đơn đặt hàng không
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM donhang WHERE MaNV=?")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Không thể xóa nhân viên này vì đã có đơn đặt hàng liên quan!", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+            
+            // Kiểm tra nhân viên có được sử dụng trong phiếu nhập không
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieunhap WHERE MaNV=?")) {
+                ps.setInt(1, id);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Không thể xóa nhân viên này vì đã có phiếu nhập liên quan!", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this, "Lỗi kiểm tra ràng buộc: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        int result = JOptionPane.showConfirmDialog(this, 
+            "Bạn có chắc chắn muốn xóa nhân viên '" + hoTen + "'?", 
+            "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+        
+        if (result == JOptionPane.YES_OPTION) {
+            try (Connection conn = DBUtil.getConnection();
+                 PreparedStatement ps = conn.prepareStatement("DELETE FROM nhanvien WHERE MaNV=?")) {
+                ps.setInt(1, id);
+                ps.executeUpdate();
+                JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                loadData();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+    
+    // Inner class for Add/Edit dialog
+    private class NhanVienDialog extends JDialog {
+        private JTextField taiKhoanField, matKhauField, hoTenField, sdtField, luongField;
+        private DateChooserComponent ngayVaoLamPicker;
+        private JComboBox<String> chucVuCombo;
+        private JComboBox<String> trangThaiCombo; // Thêm trong NhanVienDialog
+        private boolean dataChanged = false;
+        private NhanVienDTO nv;
+        
+        public NhanVienDialog(Window parent, String title, NhanVienDTO nv) {
+            super(parent, title, ModalityType.APPLICATION_MODAL);
+            this.nv = nv;
+            initializeComponents();
+            setupLayout();
+            setupEventHandlers();
+        }
+        
+        private void initializeComponents() {
+            setSize(450, 500);
+            setLocationRelativeTo(getParent());
+            
+            taiKhoanField = new JTextField(20);
+            matKhauField = new JTextField(20);
+            hoTenField = new JTextField(20);
+            sdtField = new JTextField(20);
+            ngayVaoLamPicker = new DateChooserComponent();
+            chucVuCombo = new JComboBox<>(new String[]{"Nhân viên", "Quản lý"});
+            chucVuCombo.setPreferredSize(new Dimension(100, 20)); // Tăng độ rộng và cao
+            luongField = new JTextField(20);
+            trangThaiCombo = new JComboBox<>(new String[]{"Đang làm", "Nghỉ việc"});
+            
+            if (nv != null) {
+                // Sửa nhân viên - hiển thị thông tin hiện tại
+                taiKhoanField.setText(nv.getTaiKhoan());
+                matKhauField.setText(nv.getMatKhau());
+                hoTenField.setText(nv.getHoTen());
+                sdtField.setText(String.valueOf(nv.getSoDienThoai()));
+                if (nv.getNgayVaoLam() != null) {
+                    ngayVaoLamPicker.setDate(nv.getNgayVaoLam());
+                }
+                chucVuCombo.setSelectedItem(convertChucVuToUI(nv.getChucVu()));
+                luongField.setText(String.valueOf(nv.getLuong()));
+                String trangThaiUi = convertTrangThaiToUI(nv.getTrangThai());
+                trangThaiCombo.setSelectedItem(trangThaiUi);
+            } else {
+                // Thêm nhân viên mới - tự động set ngày hiện tại
+                ngayVaoLamPicker.setCurrentDate();
+                trangThaiCombo.setSelectedIndex(0);
+            }
+        }
+        
+        private void setupLayout() {
+            setLayout(new BorderLayout());
+            
+            JPanel mainPanel = new JPanel(new GridBagLayout());
+            mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+            
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(10, 10, 10, 10);
+            
+            // Tài khoản
+            gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Tài khoản:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(taiKhoanField, gbc);
+            
+            // Mật khẩu
+            gbc.gridx = 0; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Mật khẩu:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(matKhauField, gbc);
+            
+            // Họ tên
+            gbc.gridx = 0; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Họ tên:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(hoTenField, gbc);
+            
+            // Số điện thoại
+            gbc.gridx = 0; gbc.gridy = 3; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Số điện thoại:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(sdtField, gbc);
+            
+            // Ngày vào làm
+            gbc.gridx = 0; gbc.gridy = 4; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Ngày vào làm:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(ngayVaoLamPicker, gbc);
+            
+            // Chức vụ
+            gbc.gridx = 0; gbc.gridy = 5; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Chức vụ:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(chucVuCombo, gbc);
+            
+            // Lương
+            gbc.gridx = 0; gbc.gridy = 6; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Lương (VNĐ):"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(luongField, gbc);
+            
+            // Trạng thái
+            gbc.gridx = 0; gbc.gridy = 7; gbc.anchor = GridBagConstraints.EAST;
+            mainPanel.add(new JLabel("Trạng thái:"), gbc);
+            gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+            mainPanel.add(trangThaiCombo, gbc);
+            
+            // Buttons
+            gbc.gridx = 0; gbc.gridy = 8; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
+            JPanel buttonPanel = new JPanel(new FlowLayout());
+            
+            JButton saveButton = new JButton("Lưu");
+            saveButton.setBackground(new Color(34, 139, 34));
+            saveButton.setForeground(Color.BLACK);
+            saveButton.setFocusPainted(false);
+            saveButton.addActionListener(e -> saveData());
+            
+            JButton cancelButton = new JButton("Hủy");
+            cancelButton.setBackground(new Color(220, 220, 220));
+            cancelButton.setFocusPainted(false);
+            cancelButton.addActionListener(e -> dispose());
+            
+            buttonPanel.add(saveButton);
+            buttonPanel.add(cancelButton);
+            mainPanel.add(buttonPanel, gbc);
+            
+            add(mainPanel, BorderLayout.CENTER);
+        }
+        
+        private void setupEventHandlers() {
+            // Event handlers are already set in setupLayout()
+        }
+        
+        private JButton findButton(String text) {
+            for (Component comp : getComponents()) {
+                if (comp instanceof JPanel) {
+                    JButton button = findButtonInPanel((JPanel) comp, text);
+                    if (button != null) return button;
+                }
+            }
+            return null;
+        }
+        
+        private JButton findButtonInPanel(JPanel panel, String text) {
+            for (Component comp : panel.getComponents()) {
+                if (comp instanceof JButton) {
+                    JButton button = (JButton) comp;
+                    if (button.getText().equals(text)) {
+                        return button;
+                    }
+                } else if (comp instanceof JPanel) {
+                    JButton button = findButtonInPanel((JPanel) comp, text);
+                    if (button != null) return button;
+                }
+            }
+            return null;
+        }
+        
+        private void saveData() {
+            String taiKhoan = taiKhoanField.getText().trim();
+            String matKhau = matKhauField.getText().trim();
+            String hoTen = hoTenField.getText().trim();
+            String ngayVaoLamStr = ngayVaoLamPicker.getSelectedDateString();
+            String chucVu = (String) chucVuCombo.getSelectedItem();
+            String luongStr = luongField.getText().trim();
+            String sdtStr = sdtField.getText().trim();
+            if (taiKhoan.isEmpty() || hoTen.isEmpty() || sdtStr.isEmpty() || chucVu.isEmpty() || luongStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ thông tin bắt buộc!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            long luong;
+            try {
+                luong = Long.parseLong(luongStr.replaceAll("[^0-9]", ""));
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Lương phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Validation số điện thoại
+            // Kiểm tra chỉ chứa số
+            if (!sdtStr.matches("\\d+")) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại chỉ được chứa số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Kiểm tra độ dài
+            if (sdtStr.length() < 9 || sdtStr.length() > 11) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            try (Connection conn = DBUtil.getConnection()) {
+                if (nv == null) {
+                    // Thêm mới
+                    if (matKhau.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "Vui lòng nhập mật khẩu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    
+                    // Kiểm tra tài khoản trùng
+                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE TaiKhoan = ?")) {
+                        checkPs.setString(1, taiKhoan);
+                        try (ResultSet rs = checkPs.executeQuery()) {
+                            if (rs.next() && rs.getInt(1) > 0) {
+                                JOptionPane.showMessageDialog(this, 
+                                    "Tài khoản '" + taiKhoan + "' đã tồn tại! Vui lòng chọn tài khoản khác.", 
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+                        }
+                    }
+                    
+                    // Kiểm tra số điện thoại trùng
+                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE SDT = ?")) {
+                        checkPs.setString(1, sdtStr);
+                        try (ResultSet rs = checkPs.executeQuery()) {
+                            if (rs.next() && rs.getInt(1) > 0) {
+                                JOptionPane.showMessageDialog(this, 
+                                    "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                return;
+                            }
+                        }
+                    }
+                    
+                    PreparedStatement ps = conn.prepareStatement(
+                        "INSERT INTO nhanvien (TaiKhoan, MatKhau, HoTen, SDT, NgayVaoLam, ChucVu, Luong, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        Statement.RETURN_GENERATED_KEYS);
+                    ps.setString(1, taiKhoan);
+                    ps.setString(2, matKhau);
+                    ps.setString(3, hoTen);
+                    ps.setString(4, sdtStr);
+                    
+                    if (!ngayVaoLamStr.isEmpty()) {
+                        ps.setString(5, ngayVaoLamStr );
+                    } else {
+                        ps.setNull(5, Types.TIMESTAMP);
+                    }
+                    
+                    ps.setString(6, convertChucVuToDatabase(chucVu));
+                    ps.setLong(7, luong);
+                    ps.setString(8, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
+                    ps.executeUpdate();
+                    
+                    // Lấy MaNV được tạo tự động (nếu có)
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        if (rs.next()) {
+                            // MaNV đã được tạo tự động
+                        }
+                    }
+                    
+                    JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    // Sửa
+                    // Kiểm tra tài khoản trùng (nếu đổi tài khoản)
+                    if (!taiKhoan.equals(nv.getTaiKhoan())) {
+                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE TaiKhoan = ? AND MaNV != ?")) {
+                            checkPs.setString(1, taiKhoan);
+                            checkPs.setInt(2, nv.getMaNV());
+                            try (ResultSet rs = checkPs.executeQuery()) {
+                                if (rs.next() && rs.getInt(1) > 0) {
+                                    JOptionPane.showMessageDialog(this, 
+                                        "Tài khoản '" + taiKhoan + "' đã tồn tại! Vui lòng chọn tài khoản khác.", 
+                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Kiểm tra số điện thoại trùng (nếu đổi số điện thoại)
+                    if (!sdtStr.equals(String.valueOf(nv.getSoDienThoai()))) {
+                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE SDT = ? AND MaNV != ?")) {
+                            checkPs.setString(1, sdtStr);
+                            checkPs.setInt(2, nv.getMaNV());
+                            try (ResultSet rs = checkPs.executeQuery()) {
+                                if (rs.next() && rs.getInt(1) > 0) {
+                                    JOptionPane.showMessageDialog(this, 
+                                        "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Kiểm tra logic vô hiệu hóa tài khoản và đảm bảo ít nhất 1 quản lý
+                    String chucVuDB = convertChucVuToDatabase(chucVu);
+                    String trangThaiMoi = convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem());
+                    String chucVuCu = nv.getChucVu();
+                    
+                    // Kiểm tra nếu chuyển chức vụ từ Quản lý sang Nhân viên hoặc nghỉ việc
+                    boolean chuyenChucVu = chucVuCu != null && chucVuCu.equalsIgnoreCase("quanly") && chucVuDB.equals("nhanvien");
+                    boolean nghiViec = trangThaiMoi.equals("nghiviec");
+                    
+                    // Nếu chuyển chức vụ hoặc nghỉ việc, tài khoản sẽ bị vô hiệu hóa
+                    if (chuyenChucVu || nghiViec) {
+                        // Kiểm tra nếu nhân viên này là quản lý, cần đảm bảo còn ít nhất 1 quản lý khác
+                        if (chucVuCu != null && chucVuCu.equalsIgnoreCase("quanly")) {
+                            // Đếm số quản lý còn lại (trừ nhân viên hiện tại và những người nghỉ việc)
+                            try (PreparedStatement checkPs = conn.prepareStatement(
+                                "SELECT COUNT(*) FROM nhanvien WHERE ChucVu = 'quanly' AND MaNV != ? AND TrangThai != 'nghiviec'")) {
+                                checkPs.setInt(1, nv.getMaNV());
+                                try (ResultSet rs = checkPs.executeQuery()) {
+                                    if (rs.next() && rs.getInt(1) == 0) {
+                                        JOptionPane.showMessageDialog(this, 
+                                            "Không thể thực hiện thao tác này! Hệ thống cần ít nhất 1 quản lý đang làm việc.", 
+                                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Vô hiệu hóa tài khoản (set TrangThai = "nghiviec")
+                        trangThaiMoi = "nghiviec";
+                    }
+                    
+                    PreparedStatement ps;
+                    if (!matKhau.isEmpty()) {
+                        ps = conn.prepareStatement(
+                            "UPDATE nhanvien SET TaiKhoan=?, MatKhau=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=?, TrangThai=? WHERE MaNV=?");
+                        ps.setString(1, taiKhoan);
+                        ps.setString(2, matKhau);
+                        ps.setString(3, hoTen);
+                        ps.setString(4, sdtStr);
+                        
+                        if (!ngayVaoLamStr.isEmpty()) {
+                            ps.setString(5, ngayVaoLamStr );
+                        } else {
+                            ps.setNull(5, Types.TIMESTAMP);
+                        }
+                        
+                        ps.setString(6, chucVuDB);
+                        ps.setLong(7, luong);
+                        ps.setString(8, trangThaiMoi);
+                        ps.setInt(9, nv.getMaNV());
+                    } else {
+                        ps = conn.prepareStatement(
+                            "UPDATE nhanvien SET TaiKhoan=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=?, TrangThai=? WHERE MaNV=?");
+                        ps.setString(1, taiKhoan);
+                        ps.setString(2, hoTen);
+                        ps.setString(3, sdtStr);
+                        
+                        if (!ngayVaoLamStr.isEmpty()) {
+                            ps.setString(4, ngayVaoLamStr );
+                        } else {
+                            ps.setNull(4, Types.TIMESTAMP);
+                        }
+                        
+                        ps.setString(5, chucVuDB);
+                        ps.setLong(6, luong);
+                        ps.setString(7, trangThaiMoi);
+                        ps.setInt(8, nv.getMaNV());
+                    }
+                    
+                    ps.executeUpdate();
+                    JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                }
+                dataChanged = true;
+                dispose();
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        
+        public boolean isDataChanged() {
+            return dataChanged;
+        }
+        
+        // Method chuyển đổi chức vụ từ giao diện sang database
+        private String convertChucVuToDatabase(String chucVuUI) {
+            if ("Nhân viên".equals(chucVuUI)) {
+                return "nhanvien";
+            } else if ("Quản lý".equals(chucVuUI)) {
+                return "quanly";
+            }
+            return "nhanvien"; // Mặc định
+        }
+        
+        // Method chuyển đổi chức vụ từ database sang giao diện
+        private String convertChucVuToUI(String chucVuDB) {
+            if ("nhanvien".equals(chucVuDB)) {
+                return "Nhân viên";
+            } else if ("quanly".equals(chucVuDB)) {
+                return "Quản lý";
+            }
+            return "Nhân viên"; // Mặc định
+        }
+    }
+
+    // Biện dịch trạng thái DB <=> UI
+    private String convertTrangThaiToUI(String trangThaiDb) {
+        if ("nghiviec".equalsIgnoreCase(trangThaiDb)) return "Nghỉ việc";
+        return "Đang làm";
+    }
+    private String convertTrangThaiToDatabase(String trangThaiUi) {
+        if ("Nghỉ việc".equals(trangThaiUi)) return "nghiviec";
+        return "danglam";
+    }
+}

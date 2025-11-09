@@ -1,0 +1,744 @@
+classDiagram
+    %% ============================================
+    %% HỆ THỐNG QUẢN LÝ TRÀ SỮA
+    %% Biểu đồ lớp UML - Cập nhật dựa trên code thực tế
+    %% ============================================
+    
+    %% Main Application Classes
+    class Runner {
+        +main(String[] args)$ void
+    }
+    
+    class MainDashboard {
+        -JPanel mainPanel
+        -CardLayout cardLayout
+        -JPanel leftSidebar
+        -JLabel userInfoLabel
+        -JLabel roleLabel
+        -String currentUserRole
+        -HangHoaView hangHoaMonPanel
+        -HangHoaView hangHoaLoaiPanel
+        -HangHoaView hangHoaNguyenLieuPanel
+        +MainDashboard()
+        -initializeComponents() void
+        -setupLayout() void
+        -setupEventHandlers() void
+        -createLeftSidebar() void
+        -createChildViews() void
+        +showView(String viewName) void
+        +refreshData() void
+    }
+    
+    class LoginDialog {
+        -JTextField usernameField
+        -JPasswordField passwordField
+        -boolean loginSuccessful
+        +LoginDialog(JFrame parent)
+        +isLoginSuccessful() boolean
+        -validateLogin() boolean
+    }
+    
+    class Session {
+        +int currentMaNV$
+        +String currentTaiKhoan$
+        +String currentChucVu$
+    }
+    
+    %% View Interface
+    class MainFrameInterface {
+        <<interface>>
+        +showView(String viewName) void
+        +refreshData() void
+    }
+    
+    %% View Classes
+    class DonHangView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JTextField searchField
+        -JComboBox searchCombo
+        -MainFrameInterface parent
+        +DonHangView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -loadData() void
+        -setupEventHandlers() void
+    }
+    
+    class ThemDonHangView {
+        -JComboBox monCombo
+        -JComboBox toppingCombo
+        -JSpinner soLuongSpinner
+        -JTextField ghiChuField
+        -JLabel tongTienLabel
+        -MainFrameInterface parent
+        +ThemDonHangView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -calculateTotal() void
+    }
+    
+    class SuaDonHangView {
+        -JComboBox monCombo
+        -JComboBox toppingCombo
+        -JSpinner soLuongSpinner
+        -JTextField ghiChuField
+        -JLabel tongTienLabel
+        -MainFrameInterface parent
+        -DonHangDTO donHang
+        +SuaDonHangView(MainFrameInterface parent, DonHangDTO donHang)
+        -initializeComponents() void
+        -setupLayout() void
+        -loadDonHangData() void
+    }
+    
+    class HangHoaView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JTextField searchField
+        -JComboBox searchCombo
+        -JComboBox categoryCombo
+        -MainFrameInterface parent
+        -String currentView
+        +HangHoaView(MainFrameInterface parent)
+        +setCurrentView(String view) void
+        +getCurrentView() String
+        -initializeComponents() void
+        -setupLayout() void
+        -loadData() void
+    }
+    
+    class ThemMonView {
+        -JTextField tenMonField
+        -JTextField giaField
+        -JComboBox loaiMonCombo
+        -JTextArea moTaArea
+        -MainFrameInterface parent
+        +ThemMonView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -saveMon() void
+    }
+    
+    class KhachHangView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JTextField searchField
+        -JComboBox searchCombo
+        -MainFrameInterface parent
+        +KhachHangView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -loadData() void
+    }
+    
+    class NhanVienView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JTextField searchField
+        -JComboBox searchCombo
+        -MainFrameInterface parent
+        +NhanVienView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -loadData() void
+    }
+    
+    class NhaCungCapView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JTextField searchField
+        -JComboBox searchCombo
+        -MainFrameInterface parent
+        +NhaCungCapView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -loadData() void
+    }
+    
+    class NhapHangView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JTextField searchField
+        -JComboBox searchCombo
+        -MainFrameInterface parent
+        +NhapHangView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -loadData() void
+    }
+    
+    class ThemNhapHangView {
+        -JComboBox nhaCungCapCombo
+        -JComboBox nguyenLieuCombo
+        -JSpinner soLuongSpinner
+        -JTextField donGiaField
+        -JTextField donViField
+        -JTextArea ghiChuArea
+        -MainFrameInterface parent
+        +ThemNhapHangView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -savePhieuNhap() void
+    }
+    
+    class KhoHangView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JTextField searchField
+        -JComboBox searchCombo
+        -MainFrameInterface parent
+        +KhoHangView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -loadData() void
+    }
+    
+    class ThongKeView {
+        -JTabbedPane tabbedPane
+        -ThongKeDAO thongKeDAO
+        -JComboBox yearCombo
+        -JTextField fromDateField
+        -JTextField toDateField
+        +ThongKeView()
+        -initializeComponents() void
+        -setupLayout() void
+        -loadInitialData() void
+        -createTongQuanTab() void
+        -createMonBanChayTab() void
+        -createDoanhThuTab() void
+        -createNhanVienTab() void
+        -createKhachHangTab() void
+        -createBaoCaoTab() void
+    }
+    
+    class BaoCaoView {
+        -JTable table
+        -DefaultTableModel tableModel
+        -JComboBox reportTypeCombo
+        -JTextField fromDateField
+        -JTextField toDateField
+        -MainFrameInterface parent
+        +BaoCaoView(MainFrameInterface parent)
+        -initializeComponents() void
+        -setupLayout() void
+        -generateReport() void
+    }
+    
+    %% DAO Classes
+    class DonHangDAO {
+        +layTatCaDonHang() List~DonHangDTO~
+        +timKiemDonHang(String searchType, String searchText) List~DonHangDTO~
+        +layDonHangTheoMa(int maDon) DonHangDTO
+        +themDonHang(DonHangDTO donHang) boolean
+        +suaDonHang(DonHangDTO donHang) boolean
+        +xoaDonHang(int maDon) boolean
+        +layChiTietDonHang(int maDon) List~ChiTietDonHangDTO~
+    }
+    
+    class KhachHangDAO {
+        +layTatCaKhachHang() List~KhachHangDTO~
+        +timKiemKhachHang(String keyword) List~KhachHangDTO~
+        +themKhachHang(KhachHangDTO khachHang) boolean
+        +suaKhachHang(KhachHangDTO khachHang) boolean
+        +xoaKhachHang(int maKH) boolean
+    }
+    
+    class NhanVienDAO {
+        +layTatCaNhanVien() List~NhanVienDTO~
+        +timKiemNhanVien(String keyword) List~NhanVienDTO~
+        +layNhanVienTheoMa(int maNV) NhanVienDTO
+        +layNhanVienTheoTaiKhoan(String taiKhoan) NhanVienDTO
+        +themNhanVien(NhanVienDTO nhanVien) boolean
+        +suaNhanVien(NhanVienDTO nhanVien) boolean
+        +xoaNhanVien(int maNV) boolean
+        +chuanHoaChucVuNhanVien() void
+    }
+    
+    class MonDAO {
+        +layTatCaMon() List~MonDTO~
+        +timKiemMon(String keyword) List~MonDTO~
+        +layMonTheoMaLoai(int maLoai) List~MonDTO~
+        +themMon(MonDTO mon) boolean
+        +suaMon(MonDTO mon) boolean
+        +xoaMon(int maMon) boolean
+        +chuanHoaTrangThaiMon() void
+    }
+    
+    class HangHoaDAO {
+        +layTatCaLoaiMon() List~LoaiMonDTO~
+        +themLoaiMon(LoaiMonDTO loaiMon) boolean
+        +suaLoaiMon(LoaiMonDTO loaiMon) boolean
+        +xoaLoaiMon(int maLoai) boolean
+        +layTatCaNguyenLieu() List~NguyenLieuDTO~
+        +themNguyenLieu(NguyenLieuDTO nguyenLieu) boolean
+        +suaNguyenLieu(NguyenLieuDTO nguyenLieu) boolean
+        +xoaNguyenLieu(int maNL) boolean
+    }
+    
+    class NhaCungCapDAO {
+        +layTatCaNhaCungCap() List~NhaCungCapDTO~
+        +timKiemNhaCungCap(String keyword) List~NhaCungCapDTO~
+        +themNhaCungCap(NhaCungCapDTO nhaCungCap) boolean
+        +suaNhaCungCap(NhaCungCapDTO nhaCungCap) boolean
+        +xoaNhaCungCap(int maNCC) boolean
+    }
+    
+    class NhapHangDAO {
+        +taoPhieuNhap(NhapHangDTO phieuNhap) boolean
+        +capNhatPhieuNhap(NhapHangDTO phieuNhap) boolean
+        +xacNhanPhieuNhap(int maPN) boolean
+        +xoaPhieuNhap(int maPN) boolean
+        +layTatCaPhieuNhap() List~NhapHangDTO~
+        +timKiemPhieuNhap(String keyword) List~NhapHangDTO~
+    }
+    
+    class KhoHangDAO {
+        +xemTonNguyenLieu() List~KhoHangDTO~
+        +xemDanhSachNCC(int maNL) List~NhaCungCapSanPhamDTO~
+        +xemNguyenLieuNCC(int maNCC) List~SanPhamChonNhapDTO~
+        +capNhatTonKho(int maNL, int soLuong) boolean
+    }
+    
+    class ThongKeDAO {
+        +getTongQuan() ThongKeDTO
+        +getMonBanChay(String fromDate, String toDate) List~ThongKeDTO~
+        +getDoanhThu(String fromDate, String toDate) List~ThongKeDTO~
+        +getNhanVien(String fromDate, String toDate) List~ThongKeDTO~
+        +getKhachHang(String fromDate, String toDate) List~ThongKeDTO~
+    }
+    
+    %% DTO Classes - Nhân viên (Inheritance)
+    class NhanVienDTO {
+        <<abstract>>
+        #int maNV
+        #String taiKhoan
+        #String matKhau
+        #String hoTen
+        #String soDienThoai
+        #Timestamp ngayVaoLam
+        #String chucVu
+        #long luong
+        #String trangThai
+        +NhanVienDTO()
+        +NhanVienDTO(...)
+        +tinhLuong() double*
+        +getMenuItems() String[][]*
+        +getHangHoaSubmenu() String[][]*
+        +getMaNV() int
+        +setMaNV(int) void
+        +getTaiKhoan() String
+        +setTaiKhoan(String) void
+        +getMatKhau() String
+        +setMatKhau(String) void
+        +getHoTen() String
+        +setHoTen(String) void
+        +getSoDienThoai() String
+        +setSoDienThoai(String) void
+        +getNgayVaoLam() Timestamp
+        +setNgayVaoLam(Timestamp) void
+        +getChucVu() String
+        +setChucVu(String) void
+        +getLuong() long
+        +setLuong(long) void
+        +getTrangThai() String
+        +setTrangThai(String) void
+    }
+    
+    class NhanVienThuongDTO {
+        +NhanVienThuongDTO(...)
+        +tinhLuong() double
+        +getMenuItems() String[][]
+        +getHangHoaSubmenu() String[][]
+    }
+    
+    class NhanVienQuanLyDTO {
+        +NhanVienQuanLyDTO(...)
+        +tinhLuong() double
+        +getMenuItems() String[][]
+        +getHangHoaSubmenu() String[][]
+    }
+    
+    %% DTO Classes - Đơn hàng
+    class DonHangDTO {
+        -int maDon
+        -int maNV
+        -Integer maKH
+        -String trangThai
+        -Timestamp ngayDat
+        -long tongTien
+        -int giamGia
+        -String tenNV
+        -String tenKH
+        +DonHangDTO()
+        +DonHangDTO(...)
+        +getMaDon() int
+        +setMaDon(int) void
+        +getMaNV() int
+        +setMaNV(int) void
+        +getMaKH() Integer
+        +setMaKH(Integer) void
+        +getTrangThai() String
+        +setTrangThai(String) void
+        +getNgayDat() Timestamp
+        +setNgayDat(Timestamp) void
+        +getTongTien() long
+        +setTongTien(long) void
+        +getGiamGia() int
+        +setGiamGia(int) void
+    }
+    
+    class ChiTietDonHangDTO {
+        -int maDon
+        -int maMon
+        -int maTopping
+        -int soLuong
+        -long giaMon
+        -long giaTopping
+        -String tenMon
+        -String tenTopping
+        -String anh
+        +ChiTietDonHangDTO()
+        +ChiTietDonHangDTO(...)
+        +getMaDon() int
+        +setMaDon(int) void
+        +getMaMon() int
+        +setMaMon(int) void
+        +getMaTopping() int
+        +setMaTopping(int) void
+        +getSoLuong() int
+        +setSoLuong(int) void
+        +getGiaMon() long
+        +setGiaMon(long) void
+        +getGiaTopping() long
+        +setGiaTopping(long) void
+        +getTenMon() String
+        +setTenMon(String) void
+        +getTenTopping() String
+        +setTenTopping(String) void
+        +getAnh() String
+        +setAnh(String) void
+    }
+    
+    %% DTO Classes - Khách hàng
+    class KhachHangDTO {
+        -int maKH
+        -String soDienThoai
+        -String hoTen
+        -int diemTichLuy
+        +KhachHangDTO()
+        +KhachHangDTO(...)
+        +getMaKH() int
+        +setMaKH(int) void
+        +getSoDienThoai() String
+        +setSoDienThoai(String) void
+        +getHoTen() String
+        +setHoTen(String) void
+        +getDiemTichLuy() int
+        +setDiemTichLuy(int) void
+    }
+    
+    %% DTO Classes - Món và loại món
+    class MonDTO {
+        -int maMon
+        -String tenMon
+        -long gia
+        -String tinhTrang
+        -int maLoai
+        -String anh
+        +MonDTO()
+        +MonDTO(...)
+        +getMaMon() int
+        +setMaMon(int) void
+        +getTenMon() String
+        +setTenMon(String) void
+        +getGia() long
+        +setGia(long) void
+        +getTinhTrang() String
+        +setTinhTrang(String) void
+        +getMaLoai() int
+        +setMaLoai(int) void
+        +getAnh() String
+        +setAnh(String) void
+    }
+    
+    class LoaiMonDTO {
+        -int maLoai
+        -String tenLoai
+        +LoaiMonDTO()
+        +getMaLoai() int
+        +setMaLoai(int) void
+        +getTenLoai() String
+        +setTenLoai(String) void
+    }
+    
+    class MonNguyenLieuDTO {
+        -int maMon
+        -int maNL
+        -String tenNL
+        -int soLuong
+        -String donVi
+        +MonNguyenLieuDTO()
+        +MonNguyenLieuDTO(...)
+        +getMaMon() int
+        +setMaMon(int) void
+        +getMaNL() int
+        +setMaNL(int) void
+        +getTenNL() String
+        +setTenNL(String) void
+        +getSoLuong() int
+        +setSoLuong(int) void
+        +getDonVi() String
+        +setDonVi(String) void
+    }
+    
+    %% DTO Classes - Nhà cung cấp và nguyên liệu
+    class NhaCungCapDTO {
+        -int maNCC
+        -String tenNCC
+        -String diaChi
+        -String sdt
+        +NhaCungCapDTO()
+        +getMaNCC() int
+        +setMaNCC(int) void
+        +getTenNCC() String
+        +setTenNCC(String) void
+        +getDiaChi() String
+        +setDiaChi(String) void
+        +getSdt() String
+        +setSdt(String) void
+    }
+    
+    class NguyenLieuDTO {
+        -int maNL
+        -String tenNL
+        -String donVi
+        -long gia
+        +NguyenLieuDTO()
+        +getMaNL() int
+        +setMaNL(int) void
+        +getTenNL() String
+        +setTenNL(String) void
+        +getDonVi() String
+        +setDonVi(String) void
+        +getGia() long
+        +setGia(long) void
+    }
+    
+    %% DTO Classes - Nhập hàng
+    class NhapHangDTO {
+        -int maPN
+        -int maNV
+        -int maNCC
+        -String ngay
+        -String ghiChu
+        -long thanhTien
+        -String trangThai
+        +NhapHangDTO()
+        +getMaPN() int
+        +setMaPN(int) void
+        +getMaNV() int
+        +setMaNV(int) void
+        +getMaNCC() int
+        +setMaNCC(int) void
+        +getNgay() String
+        +setNgay(String) void
+        +getGhiChu() String
+        +setGhiChu(String) void
+        +getThanhTien() long
+        +setThanhTien(long) void
+        +getTrangThai() String
+        +setTrangThai(String) void
+    }
+    
+    class ChiTietNhapHangDTO {
+        -int maPN
+        -int maNL
+        -int soLuong
+        -long donGia
+        -String donVi
+        +ChiTietNhapHangDTO()
+        +getMaPN() int
+        +setMaPN(int) void
+        +getMaNL() int
+        +setMaNL(int) void
+        +getSoLuong() int
+        +setSoLuong(int) void
+        +getDonGia() long
+        +setDonGia(long) void
+        +getDonVi() String
+        +setDonVi(String) void
+    }
+    
+    %% DTO Classes - Kho hàng và thống kê
+    class KhoHangDTO {
+        -int maMon
+        -String tenMon
+        -String tenDonVi
+        -int soLuong
+        +KhoHangDTO()
+        +getMaMon() int
+        +setMaMon(int) void
+        +getTenMon() String
+        +setTenMon(String) void
+        +getTenDonVi() String
+        +setTenDonVi(String) void
+        +getSoLuong() int
+        +setSoLuong(int) void
+    }
+    
+    class ThongKeDTO {
+        -String ten
+        -int soLuong
+        -long giaTri
+        -String donVi
+        +ThongKeDTO()
+        +getTen() String
+        +setTen(String) void
+        +getSoLuong() int
+        +setSoLuong(int) void
+        +getGiaTri() long
+        +setGiaTri(long) void
+        +getDonVi() String
+        +setDonVi(String) void
+    }
+    
+    class NhaCungCapSanPhamDTO {
+        -int maNCC
+        -String tenNCC
+        -int maNL
+        -String tenNL
+        -int soLuong
+        -String donVi
+        +NhaCungCapSanPhamDTO()
+        +getMaNCC() int
+        +setMaNCC(int) void
+        +getTenNCC() String
+        +setTenNCC(String) void
+        +getMaNL() int
+        +setMaNL(int) void
+        +getTenNL() String
+        +setTenNL(String) void
+        +getSoLuong() int
+        +setSoLuong(int) void
+        +getDonVi() String
+        +setDonVi(String) void
+    }
+    
+    class SanPhamChonNhapDTO {
+        -int maNL
+        -String tenNL
+        -int soLuong
+        -String donVi
+        -long donGia
+        +SanPhamChonNhapDTO()
+        +getMaNL() int
+        +setMaNL(int) void
+        +getTenNL() String
+        +setTenNL(String) void
+        +getSoLuong() int
+        +setSoLuong(int) void
+        +getDonVi() String
+        +setDonVi(String) void
+        +getDonGia() long
+        +setDonGia(long) void
+    }
+    
+    %% Database Classes
+    class DBUtil {
+        -String URL$
+        -String USER$
+        -String PASS$
+        +getConnection() Connection$
+    }
+    
+    %% Controller Interface
+    class IQuanLy {
+        <<interface>>
+        +them() void
+        +sua() void
+        +xoa() void
+        +timkiem() void
+    }
+    
+    %% ============================================
+    %% RELATIONSHIPS
+    %% ============================================
+    
+    %% Inheritance Relationships
+    NhanVienThuongDTO --|> NhanVienDTO : extends
+    NhanVienQuanLyDTO --|> NhanVienDTO : extends
+    
+    %% Implementation Relationships
+    MainDashboard ..|> MainFrameInterface : implements
+    
+    %% Application Flow
+    Runner --> LoginDialog : creates
+    Runner --> MainDashboard : creates
+    LoginDialog --> Session : updates
+    LoginDialog --> NhanVienDAO : uses
+    
+    %% View to DAO relationships
+    DonHangView --> DonHangDAO : uses
+    ThemDonHangView --> DonHangDAO : uses
+    SuaDonHangView --> DonHangDAO : uses
+    HangHoaView --> MonDAO : uses
+    HangHoaView --> HangHoaDAO : uses
+    ThemMonView --> MonDAO : uses
+    KhachHangView --> KhachHangDAO : uses
+    NhanVienView --> NhanVienDAO : uses
+    NhaCungCapView --> NhaCungCapDAO : uses
+    NhapHangView --> NhapHangDAO : uses
+    ThemNhapHangView --> NhapHangDAO : uses
+    KhoHangView --> KhoHangDAO : uses
+    ThongKeView --> ThongKeDAO : uses
+    BaoCaoView --> ThongKeDAO : uses
+    
+    %% DAO to DTO relationships
+    DonHangDAO --> DonHangDTO : uses
+    DonHangDAO --> ChiTietDonHangDTO : uses
+    KhachHangDAO --> KhachHangDTO : uses
+    NhanVienDAO --> NhanVienDTO : uses
+    NhanVienDAO --> NhanVienThuongDTO : uses
+    NhanVienDAO --> NhanVienQuanLyDTO : uses
+    MonDAO --> MonDTO : uses
+    HangHoaDAO --> LoaiMonDTO : uses
+    HangHoaDAO --> NguyenLieuDTO : uses
+    NhaCungCapDAO --> NhaCungCapDTO : uses
+    NhapHangDAO --> NhapHangDTO : uses
+    NhapHangDAO --> ChiTietNhapHangDTO : uses
+    KhoHangDAO --> KhoHangDTO : uses
+    KhoHangDAO --> NhaCungCapSanPhamDTO : uses
+    KhoHangDAO --> SanPhamChonNhapDTO : uses
+    ThongKeDAO --> ThongKeDTO : uses
+    
+    %% DAO to Database relationships
+    DonHangDAO --> DBUtil : uses
+    KhachHangDAO --> DBUtil : uses
+    NhanVienDAO --> DBUtil : uses
+    MonDAO --> DBUtil : uses
+    HangHoaDAO --> DBUtil : uses
+    NhaCungCapDAO --> DBUtil : uses
+    NhapHangDAO --> DBUtil : uses
+    KhoHangDAO --> DBUtil : uses
+    ThongKeDAO --> DBUtil : uses
+    
+    %% Data Model Relationships
+    MonDTO --> LoaiMonDTO : belongs to
+    DonHangDTO --> ChiTietDonHangDTO : contains
+    DonHangDTO --> NhanVienDTO : created by
+    DonHangDTO --> KhachHangDTO : for customer
+    ChiTietDonHangDTO --> MonDTO : references
+    NhapHangDTO --> NhanVienDTO : created by
+    NhapHangDTO --> NhaCungCapDTO : from supplier
+    NhapHangDTO --> ChiTietNhapHangDTO : contains
+    ChiTietNhapHangDTO --> NguyenLieuDTO : references
+    MonNguyenLieuDTO --> MonDTO : used by
+    MonNguyenLieuDTO --> NguyenLieuDTO : ingredient
+    
+    %% Notes
+    note for NhanVienDTO "Abstract base class\nfor all employee types"
+    note for NhanVienThuongDTO "Regular employee\nwith basic salary"
+    note for NhanVienQuanLyDTO "Manager employee\nwith bonus salary"
+    note for MainDashboard "Main application window\nimplements MainFrameInterface"
+    note for DBUtil "Database utility class\nprovides connection"
