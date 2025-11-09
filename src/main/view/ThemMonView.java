@@ -53,7 +53,20 @@ public class ThemMonView extends JDialog {
         
         // Số lượng
         soLuongSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 99, 1));
-        soLuongSpinner.setPreferredSize(new Dimension(60, 25));
+        soLuongSpinner.setPreferredSize(new Dimension(60, 30));
+        soLuongSpinner.setMinimumSize(new Dimension(60, 30));
+        soLuongSpinner.setMaximumSize(new Dimension(60, 30));
+        // Ẩn các nút mũi tên mặc định của JSpinner
+        JSpinner.DefaultEditor editor = (JSpinner.DefaultEditor) soLuongSpinner.getEditor();
+        editor.getTextField().setEditable(false);
+        editor.getTextField().setHorizontalAlignment(JTextField.CENTER);
+        // Tìm và ẩn các nút mũi tên của JSpinner
+        for (Component comp : soLuongSpinner.getComponents()) {
+            if (comp instanceof JButton) {
+                comp.setVisible(false);
+                comp.setPreferredSize(new Dimension(0, 0));
+            }
+        }
         
         // Giá món
         giaMonField = new JTextField(String.valueOf(selectedProduct.getGia()));
@@ -112,10 +125,14 @@ public class ThemMonView extends JDialog {
         quantityPanel.setBackground(new Color(240, 248, 255));
         
         JButton minusButton = new JButton("-");
-        minusButton.setPreferredSize(new Dimension(30, 25));
+        minusButton.setPreferredSize(new Dimension(35, 30));
+        minusButton.setMinimumSize(new Dimension(35, 30));
+        minusButton.setMaximumSize(new Dimension(35, 30));
         minusButton.setBackground(new Color(70, 130, 180));
         minusButton.setForeground(Color.BLACK);
+        minusButton.setFont(new Font("Arial", Font.BOLD, 16));
         minusButton.setFocusPainted(false);
+        minusButton.setBorder(BorderFactory.createRaisedBevelBorder());
         minusButton.addActionListener(e -> {
             int current = (Integer) soLuongSpinner.getValue();
             if (current > 1) {
@@ -125,10 +142,14 @@ public class ThemMonView extends JDialog {
         });
         
         JButton plusButton = new JButton("+");
-        plusButton.setPreferredSize(new Dimension(30, 25));
+        plusButton.setPreferredSize(new Dimension(35, 30));
+        plusButton.setMinimumSize(new Dimension(35, 30));
+        plusButton.setMaximumSize(new Dimension(35, 30));
         plusButton.setBackground(new Color(70, 130, 180));
         plusButton.setForeground(Color.BLACK);
+        plusButton.setFont(new Font("Arial", Font.BOLD, 16));
         plusButton.setFocusPainted(false);
+        plusButton.setBorder(BorderFactory.createRaisedBevelBorder());
         plusButton.addActionListener(e -> {
             int current = (Integer) soLuongSpinner.getValue();
             if (current < 99) {
@@ -140,6 +161,18 @@ public class ThemMonView extends JDialog {
         quantityPanel.add(minusButton);
         quantityPanel.add(soLuongSpinner);
         quantityPanel.add(plusButton);
+        
+        // Ẩn các nút mũi tên của JSpinner sau khi đã được thêm vào panel
+        SwingUtilities.invokeLater(() -> {
+            for (Component comp : soLuongSpinner.getComponents()) {
+                if (comp instanceof JButton) {
+                    comp.setVisible(false);
+                    comp.setPreferredSize(new Dimension(0, 0));
+                }
+            }
+            // Tìm trong các container con
+            findAndHideSpinnerButtons(soLuongSpinner);
+        });
         
         mainPanel.add(quantityPanel, gbc);
         
@@ -196,6 +229,19 @@ public class ThemMonView extends JDialog {
         // Buttons
         themButton.addActionListener(e -> addItem());
         huyButton.addActionListener(e -> dispose());
+    }
+    
+    // Helper method để tìm và ẩn các nút mũi tên của JSpinner
+    private void findAndHideSpinnerButtons(Component comp) {
+        if (comp instanceof JButton) {
+            comp.setVisible(false);
+            comp.setPreferredSize(new Dimension(0, 0));
+        }
+        if (comp instanceof Container) {
+            for (Component child : ((Container) comp).getComponents()) {
+                findAndHideSpinnerButtons(child);
+            }
+        }
     }
     
     private void loadToppings() {

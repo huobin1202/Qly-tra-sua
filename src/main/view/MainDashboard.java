@@ -533,7 +533,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         headerPanel.setBackground(new Color(70, 130, 180));
         headerPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         
-        JLabel titleLabel = new JLabel("📊 DASHBOARD TỔNG QUAN");
+        JLabel titleLabel = new JLabel("DASHBOARD TỔNG QUAN");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
         
@@ -565,27 +565,27 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         ThongKeDTO tongQuan = thongKeDAO.thongKeTongQuan();
         
         // Tạo các card thống kê
-        contentPanel.add(createStatCard("💰 TỔNG DOANH THU", 
+        contentPanel.add(createStatCard("TỔNG DOANH THU", 
             String.format("%,d VNĐ", tongQuan.getDoanhThu()), 
             new Color(46, 125, 50)));
         
-        contentPanel.add(createStatCard("👥 KHÁCH HÀNG", 
+        contentPanel.add(createStatCard("KHÁCH HÀNG", 
             String.valueOf(tongQuan.getSoKhachHang()), 
             new Color(156, 39, 176)));
         
-        contentPanel.add(createStatCard("👨‍💼 NHÂN VIÊN", 
+        contentPanel.add(createStatCard("NHÂN VIÊN", 
             String.valueOf(tongQuan.getSoNhanVien()), 
             new Color(255, 87, 34)));
         
-        contentPanel.add(createStatCard("🍴 MÓN ĂN", 
+        contentPanel.add(createStatCard("MÓN ĂN", 
             String.valueOf(tongQuan.getSoMon()), 
             new Color(0, 150, 136)));
         
-        contentPanel.add(createStatCard("📦 NGUYÊN LIỆU", 
+        contentPanel.add(createStatCard("NGUYÊN LIỆU", 
             String.valueOf(tongQuan.getSoNguyenLieu()), 
             new Color(121, 85, 72)));
         
-        contentPanel.add(createStatCard("🏢 NHÀ CUNG CẤP", 
+        contentPanel.add(createStatCard("NHÀ CUNG CẤP", 
             String.valueOf(tongQuan.getSoNhaCungCap()), 
             new Color(63, 81, 181)));
         

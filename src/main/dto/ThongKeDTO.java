@@ -22,6 +22,7 @@ public class ThongKeDTO {
     private int soMon;
     private int soNguyenLieu;
     private int soNhaCungCap;
+    private String tenNhaCungCap;
 
     // Constructors
     public ThongKeDTO() {}
@@ -131,4 +132,7 @@ public class ThongKeDTO {
 
     public int getSoNhaCungCap() { return soNhaCungCap; }
     public void setSoNhaCungCap(int soNhaCungCap) { this.soNhaCungCap = soNhaCungCap; }
+
+    public String getTenNhaCungCap() { return tenNhaCungCap; }
+    public void setTenNhaCungCap(String tenNhaCungCap) { this.tenNhaCungCap = tenNhaCungCap; }
 }

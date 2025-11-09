@@ -913,15 +913,12 @@ public class SuaDonHangView extends JDialog {
         // Lấy danh sách nguyên liệu cần cho món
         List<MonNguyenLieuDTO> nguyenLieuList = hangHoaDAO.layNguyenLieuCuaMon(maMon);
         
-        if (nguyenLieuList == null || nguyenLieuList.isEmpty()) {
-            // Món không có nguyên liệu định nghĩa, cho phép thêm
-            return null;
-        }
-        
         // Tính tổng nguyên liệu cần cho tất cả món trong đơn hàng (bao gồm món mới)
         java.util.Map<Integer, Integer> tongNguyenLieuCan = new java.util.HashMap<>();
+        java.util.Map<Integer, String> tenNguyenLieuMap = new java.util.HashMap<>(); // Để lưu tên nguyên liệu
+        java.util.Map<Integer, String> donViMap = new java.util.HashMap<>(); // Để lưu đơn vị
         
-        // Đếm nguyên liệu từ các món đã có trong đơn hàng
+        // Đếm nguyên liệu từ các món đã có trong đơn hàng (bao gồm cả topping của chúng)
         for (ChiTietDonHangDTO item : orderedItems) {
             if (item.getMaMon() == maMonCheck && 
                 item.getTenTopping() != null && 
@@ -930,21 +927,58 @@ public class SuaDonHangView extends JDialog {
                 continue;
             }
             
+            // Nguyên liệu của món chính
             List<MonNguyenLieuDTO> nguyenLieuItem = hangHoaDAO.layNguyenLieuCuaMon(item.getMaMon());
             if (nguyenLieuItem != null) {
                 for (MonNguyenLieuDTO nl : nguyenLieuItem) {
                     int tongSoLuong = nl.getSoLuong() * item.getSoLuong();
                     tongNguyenLieuCan.put(nl.getMaNL(), 
                         tongNguyenLieuCan.getOrDefault(nl.getMaNL(), 0) + tongSoLuong);
+                    tenNguyenLieuMap.put(nl.getMaNL(), nl.getTenNL());
+                    donViMap.put(nl.getMaNL(), nl.getDonVi());
+                }
+            }
+            
+            // Nguyên liệu của topping (nếu có)
+            if (item.getTenTopping() != null && !item.getTenTopping().equals("No Topping")) {
+                int maTopping = findToppingId(item.getTenTopping());
+                List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+                if (nguyenLieuTopping != null) {
+                    for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
+                        int tongSoLuong = nl.getSoLuong() * item.getSoLuong();
+                        tongNguyenLieuCan.put(nl.getMaNL(), 
+                            tongNguyenLieuCan.getOrDefault(nl.getMaNL(), 0) + tongSoLuong);
+                        tenNguyenLieuMap.put(nl.getMaNL(), nl.getTenNL());
+                        donViMap.put(nl.getMaNL(), nl.getDonVi());
+                    }
                 }
             }
         }
         
         // Cộng thêm nguyên liệu của món mới
-        for (MonNguyenLieuDTO nl : nguyenLieuList) {
-            int tongSoLuong = nl.getSoLuong() * soLuong;
-            tongNguyenLieuCan.put(nl.getMaNL(), 
-                tongNguyenLieuCan.getOrDefault(nl.getMaNL(), 0) + tongSoLuong);
+        if (nguyenLieuList != null) {
+            for (MonNguyenLieuDTO nl : nguyenLieuList) {
+                int tongSoLuong = nl.getSoLuong() * soLuong;
+                tongNguyenLieuCan.put(nl.getMaNL(), 
+                    tongNguyenLieuCan.getOrDefault(nl.getMaNL(), 0) + tongSoLuong);
+                tenNguyenLieuMap.put(nl.getMaNL(), nl.getTenNL());
+                donViMap.put(nl.getMaNL(), nl.getDonVi());
+            }
+        }
+        
+        // Cộng thêm nguyên liệu của topping mới (nếu có)
+        if (tenTopping != null && !tenTopping.equals("No Topping")) {
+            int maTopping = findToppingId(tenTopping);
+            List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+            if (nguyenLieuTopping != null && !nguyenLieuTopping.isEmpty()) {
+                for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
+                    int tongSoLuong = nl.getSoLuong() * soLuong;
+                    tongNguyenLieuCan.put(nl.getMaNL(), 
+                        tongNguyenLieuCan.getOrDefault(nl.getMaNL(), 0) + tongSoLuong);
+                    tenNguyenLieuMap.put(nl.getMaNL(), nl.getTenNL());
+                    donViMap.put(nl.getMaNL(), nl.getDonVi());
+                }
+            }
         }
         
         // Kiểm tra từng nguyên liệu có đủ trong kho không
@@ -955,34 +989,33 @@ public class SuaDonHangView extends JDialog {
             // Lấy tồn kho hiện tại
             dto.KhoHangDTO tonKho = khoHangDAO.layTonKhoTheoMaNL(maNL);
             if (tonKho == null || tonKho.getSoLuong() < soLuongCan) {
-                // Tìm tên nguyên liệu để hiển thị thông báo
-                String tenNL = "";
-                for (MonNguyenLieuDTO nl : nguyenLieuList) {
-                    if (nl.getMaNL() == maNL) {
-                        tenNL = nl.getTenNL();
-                        break;
-                    }
-                }
-                if (tenNL.isEmpty()) {
-                    // Tìm trong các nguyên liệu khác
-                    for (ChiTietDonHangDTO item : orderedItems) {
-                        List<MonNguyenLieuDTO> nlList = hangHoaDAO.layNguyenLieuCuaMon(item.getMaMon());
-                        if (nlList != null) {
-                            for (MonNguyenLieuDTO nl : nlList) {
-                                if (nl.getMaNL() == maNL) {
-                                    tenNL = nl.getTenNL();
-                                    break;
-                                }
+                String tenNL = tenNguyenLieuMap.getOrDefault(maNL, "Không xác định");
+                int tonKhoHienTai = (tonKho != null) ? tonKho.getSoLuong() : 0;
+                String donVi = donViMap.getOrDefault(maNL, tonKho != null ? tonKho.getTenDonVi() : "");
+                
+                // Kiểm tra xem nguyên liệu thiếu là từ món hay từ topping
+                String nguonThieu = "";
+                if (tenTopping != null && !tenTopping.equals("No Topping")) {
+                    int maTopping = findToppingId(tenTopping);
+                    List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+                    boolean laTuTopping = false;
+                    if (nguyenLieuTopping != null) {
+                        for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
+                            if (nl.getMaNL() == maNL) {
+                                laTuTopping = true;
+                                break;
                             }
-                            if (!tenNL.isEmpty()) break;
                         }
+                    }
+                    if (laTuTopping) {
+                        nguonThieu = "Topping: " + tenTopping + "\n";
                     }
                 }
                 
-                int tonKhoHienTai = (tonKho != null) ? tonKho.getSoLuong() : 0;
                 return "Không đủ nguyên liệu!\n" +
+                       nguonThieu +
                        "Nguyên liệu: " + tenNL + "\n" +
-                       "Cần: " + soLuongCan + " " + (tonKho != null ? tonKho.getTenDonVi() : "") + "\n" +
+                       "Cần: " + soLuongCan + " " + donVi + "\n" +
                        "Hiện có trong kho: " + tonKhoHienTai + " " + (tonKho != null ? tonKho.getTenDonVi() : "");
             }
         }
@@ -1196,11 +1229,14 @@ public class SuaDonHangView extends JDialog {
         controlPanel.setBackground(new Color(144, 238, 144));
         
         JButton minusButton = new JButton("-");
-        minusButton.setPreferredSize(new Dimension(25, 25));
+        minusButton.setPreferredSize(new Dimension(35, 30));
+        minusButton.setMinimumSize(new Dimension(35, 30));
+        minusButton.setMaximumSize(new Dimension(35, 30));
         minusButton.setBackground(new Color(70, 130, 180));
         minusButton.setForeground(Color.BLACK);
+        minusButton.setFont(new Font("Arial", Font.BOLD, 16));
         minusButton.setFocusPainted(false);
-        minusButton.setFont(new Font("Arial", Font.BOLD, 12));
+        minusButton.setBorder(BorderFactory.createRaisedBevelBorder());
         minusButton.addActionListener(e -> {
             if (item.getSoLuong() > 1) {
                 item.setSoLuong(item.getSoLuong() - 1);
@@ -1216,16 +1252,20 @@ public class SuaDonHangView extends JDialog {
         
         JLabel quantityLabel = new JLabel(String.valueOf(item.getSoLuong()));
         quantityLabel.setFont(new Font("Arial", Font.BOLD, 12));
-        quantityLabel.setPreferredSize(new Dimension(30, 25));
+        quantityLabel.setPreferredSize(new Dimension(40, 30));
+        quantityLabel.setMinimumSize(new Dimension(40, 30));
         quantityLabel.setHorizontalAlignment(JLabel.CENTER);
         quantityLabel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         
         JButton plusButton = new JButton("+");
-        plusButton.setPreferredSize(new Dimension(25, 25));
+        plusButton.setPreferredSize(new Dimension(35, 30));
+        plusButton.setMinimumSize(new Dimension(35, 30));
+        plusButton.setMaximumSize(new Dimension(35, 30));
         plusButton.setBackground(new Color(70, 130, 180));
         plusButton.setForeground(Color.BLACK);
+        plusButton.setFont(new Font("Arial", Font.BOLD, 16));
         plusButton.setFocusPainted(false);
-        plusButton.setFont(new Font("Arial", Font.BOLD, 12));
+        plusButton.setBorder(BorderFactory.createRaisedBevelBorder());
         plusButton.addActionListener(e -> {
             item.setSoLuong(item.getSoLuong() + 1);
             updateOrderedItemsTable();

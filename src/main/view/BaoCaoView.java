@@ -14,7 +14,6 @@ import utils.DateChooserComponent;
 
 public class BaoCaoView extends JPanel {
     private final ThongKeDAO thongKeDAO;
-    private JComboBox<String> yearCombo;
     private DateChooserComponent fromDatePicker;
     private DateChooserComponent toDatePicker;
     private JTextArea reportArea;
@@ -23,7 +22,7 @@ public class BaoCaoView extends JPanel {
         thongKeDAO = new ThongKeDAO();
         initializeComponents();
         setupLayout();
-        generateDefaultReport();
+        // Không tự động tạo báo cáo - để người dùng chọn ngày và tạo
     }
     
     private void initializeComponents() {
@@ -31,14 +30,11 @@ public class BaoCaoView extends JPanel {
         setBackground(new Color(240, 248, 255));
         
         // Initialize components
-        yearCombo = new JComboBox<>();
         fromDatePicker = new DateChooserComponent();
         toDatePicker = new DateChooserComponent();
         reportArea = new JTextArea();
         
-        // Populate year combo
-        populateYearCombo();
-        setDefaultDates();
+        // Không set default dates - để người dùng tự chọn
         
         // Setup report area
         reportArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -87,13 +83,8 @@ public class BaoCaoView extends JPanel {
         toDatePicker.setFont(new Font("Arial", Font.PLAIN, 12));
         controlPanel.add(toDatePicker);
         
-        // Năm
-        controlPanel.add(new JLabel("Năm:"));
-        yearCombo.setFont(new Font("Arial", Font.PLAIN, 12));
-        controlPanel.add(yearCombo);
-        
         // Nút tạo báo cáo
-        JButton generateButton = new JButton("📊 Tạo báo cáo");
+        JButton generateButton = new JButton("Tạo báo cáo");
         generateButton.setFont(new Font("Arial", Font.BOLD, 12));
         generateButton.setBackground(new Color(34, 139, 34));
         generateButton.setForeground(Color.BLACK);
@@ -128,23 +119,16 @@ public class BaoCaoView extends JPanel {
         refreshButton.setBackground(new Color(34, 139, 34));
         refreshButton.setForeground(Color.BLACK);
         refreshButton.setFocusPainted(false);
-        refreshButton.addActionListener(e -> generateReport());
+        refreshButton.addActionListener(e -> {
+            setDefaultDates();
+            generateReport();
+        });
         
         buttonPanel.add(exportButton);
         buttonPanel.add(printButton);
         buttonPanel.add(refreshButton);
         
         return buttonPanel;
-    }
-    
-    private void populateYearCombo() {
-        java.util.Calendar cal = java.util.Calendar.getInstance();
-        int currentYear = cal.get(java.util.Calendar.YEAR);
-        
-        for (int i = currentYear - 5; i <= currentYear + 1; i++) {
-            yearCombo.addItem(String.valueOf(i));
-        }
-        yearCombo.setSelectedItem(String.valueOf(currentYear));
     }
     
     private void setDefaultDates() {
@@ -158,20 +142,26 @@ public class BaoCaoView extends JPanel {
         fromDatePicker.setDate(cal.getTime());
     }
     
-    private void generateDefaultReport() {
-        generateReport();
-    }
-    
     private void generateReport() {
         String fromDate = fromDatePicker.getSelectedDateString();
         String toDate = toDatePicker.getSelectedDateString();
-        String year = (String) yearCombo.getSelectedItem();
         
         // Validate dates
         if (fromDate.isEmpty() || toDate.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập đầy đủ ngày bắt đầu và kết thúc!", 
                 "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
+        }
+        
+        // Lấy năm từ ngày kết thúc
+        String year = "";
+        try {
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            cal.setTime(toDatePicker.getSelectedDate());
+            year = String.valueOf(cal.get(java.util.Calendar.YEAR));
+        } catch (Exception e) {
+            // Nếu không lấy được, dùng năm hiện tại
+            year = String.valueOf(java.util.Calendar.getInstance().get(java.util.Calendar.YEAR));
         }
         
         StringBuilder report = new StringBuilder();
@@ -182,7 +172,6 @@ public class BaoCaoView extends JPanel {
         report.append("================================================================================\n");
         report.append("Ngày tạo báo cáo: ").append(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date())).append("\n");
         report.append("Khoảng thời gian: ").append(fromDate).append(" đến ").append(toDate).append("\n");
-        report.append("Năm thống kê: ").append(year).append("\n");
         report.append("================================================================================\n\n");
         
         // 1. Món bán chạy nhất
@@ -274,6 +263,89 @@ public class BaoCaoView extends JPanel {
         for (ThongKeDTO item : khachHangMoi) {
             report.append(String.format("%-15s %-20d\n", item.getThang(), item.getSoKhachHang()));
         }
+        report.append("\n");
+        
+        // 8. Top khách hàng VIP
+        report.append("8. TOP 10 KHÁCH HÀNG VIP\n");
+        report.append("--------------------------------------------------\n");
+        List<ThongKeDTO> khachHangVIP = thongKeDAO.thongKeKhachHangVIP(fromDate, toDate);
+        report.append(String.format("%-5s %-30s %-15s %-20s\n", "STT", "Tên khách hàng", "Số đơn hàng", "Tổng tiền"));
+        report.append("----------------------------------------------------------------------\n");
+        
+        stt = 1;
+        for (ThongKeDTO item : khachHangVIP) {
+            report.append(String.format("%-5d %-30s %-15d %,d VNĐ\n", 
+                stt++, item.getTenKhachHang(), item.getSoDonHang(), item.getTongTien()));
+        }
+        report.append("\n");
+        
+        // 9. Chi phí nhập hàng
+        report.append("9. CHI PHÍ NHẬP HÀNG\n");
+        report.append("--------------------------------------------------\n");
+        List<ThongKeDTO> chiPhiNhapHang = thongKeDAO.thongKeChiPhiNhapHang(fromDate, toDate);
+        report.append(String.format("%-15s %-20s\n", "Ngày", "Chi phí"));
+        report.append("-----------------------------------\n");
+        
+        long tongChiPhi = 0;
+        for (ThongKeDTO item : chiPhiNhapHang) {
+            report.append(String.format("%-15s %,d VNĐ\n", item.getNgay(), item.getDoanhThu()));
+            tongChiPhi += item.getDoanhThu();
+        }
+        report.append("-----------------------------------\n");
+        report.append(String.format("%-15s %,d VNĐ\n", "Tổng chi phí:", tongChiPhi));
+        report.append("\n");
+        
+        // 10. Nhà cung cấp được sử dụng nhiều nhất
+        report.append("10. TOP 10 NHÀ CUNG CẤP ĐƯỢC SỬ DỤNG NHIỀU NHẤT\n");
+        report.append("--------------------------------------------------\n");
+        List<ThongKeDTO> nhaCungCap = thongKeDAO.thongKeNhaCungCap(fromDate, toDate);
+        report.append(String.format("%-5s %-30s %-15s %-20s\n", "STT", "Tên nhà cung cấp", "Số phiếu nhập", "Tổng chi phí"));
+        report.append("----------------------------------------------------------------------\n");
+        
+        stt = 1;
+        for (ThongKeDTO item : nhaCungCap) {
+            report.append(String.format("%-5d %-30s %-15d %,d VNĐ\n", 
+                stt++, item.getTenNhaCungCap(), item.getSoDonHang(), item.getDoanhThu()));
+        }
+        report.append("\n");
+        
+        // 11. Nguyên liệu sắp hết (ngưỡng <= 50)
+        report.append("11. NGUYÊN LIỆU SẮP HẾT (≤ 50)\n");
+        report.append("--------------------------------------------------\n");
+        List<ThongKeDTO> nguyenLieuSapHet = thongKeDAO.thongKeNguyenLieuSapHet(50);
+        report.append(String.format("%-5s %-30s %-15s %-15s\n", "STT", "Tên nguyên liệu", "Số lượng", "Đơn vị"));
+        report.append("----------------------------------------------------------------------\n");
+        
+        stt = 1;
+        for (ThongKeDTO item : nguyenLieuSapHet) {
+            report.append(String.format("%-5d %-30s %-15d %-15s\n", 
+                stt++, item.getTenMon(), item.getSoLuongBan(), item.getTenLoaiMon()));
+        }
+        report.append("\n");
+        
+        // 12. Lợi nhuận
+        report.append("12. LỢI NHUẬN\n");
+        report.append("--------------------------------------------------\n");
+        ThongKeDTO loiNhuan = thongKeDAO.thongKeLoiNhuan(fromDate, toDate);
+        long tongChiPhiNhapHang = loiNhuan.getDoanhThu() - loiNhuan.getTongTien(); // Chi phí = doanh thu - lợi nhuận
+        report.append(String.format("%-30s %,d VNĐ\n", "Tổng doanh thu:", loiNhuan.getDoanhThu()));
+        report.append(String.format("%-30s %,d VNĐ\n", "Tổng chi phí nhập hàng:", tongChiPhiNhapHang));
+        report.append(String.format("%-30s %,d VNĐ\n", "Lợi nhuận:", loiNhuan.getTongTien()));
+        report.append("\n");
+        
+        // 13. Giá trị đơn hàng trung bình
+        report.append("13. GIÁ TRỊ ĐƠN HÀNG TRUNG BÌNH\n");
+        report.append("--------------------------------------------------\n");
+        ThongKeDTO giaTriTrungBinh = thongKeDAO.thongKeGiaTriDonHangTrungBinh(fromDate, toDate);
+        report.append(String.format("%-30s %,d VNĐ\n", "Giá trị trung bình:", giaTriTrungBinh.getTongTien()));
+        report.append(String.format("%-30s %d đơn\n", "Tổng số đơn hàng:", giaTriTrungBinh.getSoDonHang()));
+        report.append("\n");
+        
+        // 14. Tổng giá trị tồn kho
+        report.append("14. TỔNG GIÁ TRỊ TỒN KHO\n");
+        report.append("--------------------------------------------------\n");
+        long tongGiaTriTonKho = thongKeDAO.layTongGiaTriTonKho();
+        report.append(String.format("%-30s %,d VNĐ\n", "Tổng giá trị tồn kho:", tongGiaTriTonKho));
         report.append("\n");
         
         // Footer
