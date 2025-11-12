@@ -3,9 +3,9 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.*;
-import database.DBUtil;
+import java.util.List;
 import dto.KhachHangDTO;
+import dao.KhachHangDAO;
 
 public class KhachHangView extends JPanel {
     private JTable table;
@@ -13,9 +13,11 @@ public class KhachHangView extends JPanel {
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
+    private KhachHangDAO khachHangDAO;
     
     public KhachHangView(MainFrameInterface parent) {
         this.parent = parent;
+        this.khachHangDAO = new KhachHangDAO();
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -142,20 +144,18 @@ public class KhachHangView extends JPanel {
     
     private void loadData() {
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM khachhang ORDER BY MaKH")) {
-            
-            while (rs.next()) {
+        try {
+            List<KhachHangDTO> danhSach = khachHangDAO.layTatCaKhachHang();
+            for (KhachHangDTO kh : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaKH"),
-                    rs.getString("SDT"),
-                    rs.getString("HoTen"),
-                    rs.getInt("DiemTichLuy")
+                    kh.getMaKH(),
+                    kh.getSoDienThoai(),
+                    kh.getHoTen(),
+                    kh.getDiemTichLuy()
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -165,41 +165,21 @@ public class KhachHangView extends JPanel {
         String searchType = (String) searchCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT * FROM khachhang WHERE ";
-            PreparedStatement ps;
-            
-            if (searchText.isEmpty()) {
-                sql = "SELECT * FROM khachhang ORDER BY MaKH";
-                ps = conn.prepareStatement(sql);
-            } else if (searchType.equals("ID")) {
-                sql += "MaKH = ? ORDER BY MaKH";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Số điện thoại")) {
-                sql += "SDT LIKE ? ORDER BY MaKH";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            } else {
-                sql += "HoTen LIKE ? ORDER BY MaKH";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            }
-            
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
+        try {
+            List<KhachHangDTO> danhSach = khachHangDAO.timKiemKhachHang(searchType, searchText);
+            for (KhachHangDTO kh : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaKH"),
-                    rs.getString("SDT"),
-                    rs.getString("HoTen"),
-                    rs.getInt("DiemTichLuy")
+                    kh.getMaKH(),
+                    kh.getSoDienThoai(),
+                    kh.getHoTen(),
+                    kh.getDiemTichLuy()
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -246,13 +226,14 @@ public class KhachHangView extends JPanel {
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM khachhang WHERE MaKH=?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData();
-            } catch (SQLException e) {
+            try {
+                if (khachHangDAO.xoaKhachHang(id)) {
+                    JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    loadData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Không thể xóa khách hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -377,61 +358,52 @@ public class KhachHangView extends JPanel {
                 return;
             }
             
-            try (Connection conn = DBUtil.getConnection()) {
+            try {
                 if (kh == null) {
                     // Thêm mới
                     // Kiểm tra số điện thoại trùng
-                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM khachhang WHERE SDT = ?")) {
-                        checkPs.setString(1, sdtStr);
-                        try (ResultSet rs = checkPs.executeQuery()) {
-                            if (rs.next() && rs.getInt(1) > 0) {
-                                JOptionPane.showMessageDialog(this, 
-                                    "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
-                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                return;
-                            }
-                        }
+                    if (khachHangDAO.kiemTraSDTTonTai(sdtStr)) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
-                    PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO khachhang (SDT, HoTen, DiemTichLuy) VALUES (?, ?, ?)");
-                    ps.setString(1, sdtStr);
-                    ps.setString(2, hoTen);
-                    ps.setInt(3, diemTichLuy);
+                    KhachHangDTO newKh = new KhachHangDTO();
+                    newKh.setSoDienThoai(sdtStr);
+                    newKh.setHoTen(hoTen);
+                    newKh.setDiemTichLuy(diemTichLuy);
                     
-                    ps.executeUpdate();
-                    JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    if (khachHangDAO.themKhachHang(newKh)) {
+                        JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Không thể thêm khách hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                 } else {
                     // Sửa
                     // Kiểm tra số điện thoại trùng (nếu đổi số điện thoại)
-                    if (!sdtStr.equals(kh.getSoDienThoai())) {
-                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM khachhang WHERE SDT = ? AND MaKH != ?")) {
-                            checkPs.setString(1, sdtStr);
-                            checkPs.setInt(2, kh.getMaKH());
-                            try (ResultSet rs = checkPs.executeQuery()) {
-                                if (rs.next() && rs.getInt(1) > 0) {
-                                    JOptionPane.showMessageDialog(this, 
-                                        "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
-                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                    return;
-                                }
-                            }
-                        }
+                    if (!sdtStr.equals(kh.getSoDienThoai()) && khachHangDAO.kiemTraSDTTonTai(sdtStr)) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
-                    PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE khachhang SET SDT=?, HoTen=?, DiemTichLuy=? WHERE MaKH=?");
-                    ps.setString(1, sdtStr);
-                    ps.setString(2, hoTen);
-                    ps.setInt(3, diemTichLuy);
-                    ps.setInt(4, kh.getMaKH());
+                    kh.setSoDienThoai(sdtStr);
+                    kh.setHoTen(hoTen);
+                    kh.setDiemTichLuy(diemTichLuy);
                     
-                    ps.executeUpdate();
-                    JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    if (khachHangDAO.capNhatKhachHang(kh)) {
+                        JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Không thể cập nhật khách hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                 }
                 dataChanged = true;
                 dispose();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }

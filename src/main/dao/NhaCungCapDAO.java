@@ -291,4 +291,57 @@ public class NhaCungCapDAO {
         }
         return false;
     }
+    
+    // Kiểm tra ràng buộc trước khi xóa nhà cung cấp
+    public String kiemTraRangBuocXoa(int maNCC) {
+        try (Connection conn = DBUtil.getConnection()) {
+            // Kiểm tra trong bảng phieunhap
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieunhap WHERE MaNCC=?")) {
+                ps.setInt(1, maNCC);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return "Không thể xóa nhà cung cấp này vì đã có phiếu nhập liên quan!";
+                    }
+                }
+            }
+            
+            // Kiểm tra trong bảng ncc_nguyenlieu
+            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM ncc_nguyenlieu WHERE MaNCC=?")) {
+                ps.setInt(1, maNCC);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return "Không thể xóa nhà cung cấp này vì đã có nguyên liệu liên quan!";
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            return "Lỗi kiểm tra ràng buộc: " + e.getMessage();
+        }
+        return null; // Không có ràng buộc
+    }
+    
+    // Kiểm tra số điện thoại tồn tại
+    public boolean kiemTraSDTTonTai(String soDienThoai, Integer maNCCExclude) {
+        String sql = "SELECT COUNT(*) FROM nhacungcap WHERE SDT = ?";
+        if (maNCCExclude != null) {
+            sql += " AND MaNCC != ?";
+        }
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            
+            ps.setString(1, soDienThoai);
+            if (maNCCExclude != null) {
+                ps.setInt(2, maNCCExclude);
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+        }
+        return false;
+    }
 }

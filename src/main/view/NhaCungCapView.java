@@ -3,9 +3,9 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.*;
-import database.DBUtil;
+import java.util.List;
 import dto.NhaCungCapDTO;
+import dao.NhaCungCapDAO;
 
 public class NhaCungCapView extends JPanel {
     private JTable table;
@@ -13,9 +13,11 @@ public class NhaCungCapView extends JPanel {
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
+    private NhaCungCapDAO nhaCungCapDAO;
     
     public NhaCungCapView(MainFrameInterface parent) {
         this.parent = parent;
+        this.nhaCungCapDAO = new NhaCungCapDAO();
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -142,20 +144,18 @@ public class NhaCungCapView extends JPanel {
     
     private void loadData() {
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM nhacungcap ORDER BY MaNCC")) {
-            
-            while (rs.next()) {
+        try {
+            List<NhaCungCapDTO> danhSach = nhaCungCapDAO.layTatCaNhaCungCap();
+            for (NhaCungCapDTO ncc : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaNCC"),
-                    rs.getString("TenNCC"),
-                    rs.getString("SDT"),
-                    rs.getString("DiaChi")
+                    ncc.getMaNCC(),
+                    ncc.getTenNCC(),
+                    ncc.getSoDienThoai(),
+                    ncc.getDiaChi()
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -165,37 +165,21 @@ public class NhaCungCapView extends JPanel {
         String searchType = (String) searchCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT * FROM nhacungcap WHERE ";
-            PreparedStatement ps;
-            
-            if (searchText.isEmpty()) {
-                sql = "SELECT * FROM nhacungcap ORDER BY MaNCC";
-                ps = conn.prepareStatement(sql);
-            } else if (searchType.equals("ID")) {
-                sql += "MaNCC = ? ORDER BY MaNCC";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else {
-                sql += "TenNCC LIKE ? ORDER BY MaNCC";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            }
-            
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
+        try {
+            List<NhaCungCapDTO> danhSach = nhaCungCapDAO.timKiemNhaCungCap(searchType, searchText);
+            for (NhaCungCapDTO ncc : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaNCC"),
-                    rs.getString("TenNCC"),
-                    rs.getString("SDT"),
-                    rs.getString("DiaChi")
+                    ncc.getMaNCC(),
+                    ncc.getTenNCC(),
+                    ncc.getSoDienThoai(),
+                    ncc.getDiaChi()
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -237,34 +221,14 @@ public class NhaCungCapView extends JPanel {
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String ten = (String) tableModel.getValueAt(selectedRow, 1);
         
-        // Kiểm tra xem nhà cung cấp có đang được sử dụng không
-        try (Connection conn = DBUtil.getConnection()) {
-            // Kiểm tra trong bảng phieunhap
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieunhap WHERE MaNCC=?")) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Không thể xóa nhà cung cấp này vì đã có phiếu nhập liên quan!", 
-                            "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
+        // Kiểm tra ràng buộc trước khi xóa
+        try {
+            String rangBuocMsg = nhaCungCapDAO.kiemTraRangBuocXoa(id);
+            if (rangBuocMsg != null) {
+                JOptionPane.showMessageDialog(this, rangBuocMsg, "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-            
-            // Kiểm tra trong bảng ncc_nguyenlieu
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM ncc_nguyenlieu WHERE MaNCC=?")) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Không thể xóa nhà cung cấp này vì đã có nguyên liệu liên quan!", 
-                            "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-            }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi kiểm tra ràng buộc: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -274,17 +238,14 @@ public class NhaCungCapView extends JPanel {
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM nhacungcap WHERE MaNCC=?")) {
-                ps.setInt(1, id);
-                int rowsAffected = ps.executeUpdate();
-                if (rowsAffected > 0) {
+            try {
+                if (nhaCungCapDAO.xoaNhaCungCap(id)) {
                     JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                     loadData();
                 } else {
-                    JOptionPane.showMessageDialog(this, "Không tìm thấy nhà cung cấp để xóa!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Không thể xóa nhà cung cấp!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -430,61 +391,52 @@ public class NhaCungCapView extends JPanel {
                 return;
             }
             
-            try (Connection conn = DBUtil.getConnection()) {                
+            try {
                 if (ncc == null) {
                     // Thêm mới - Kiểm tra số điện thoại trùng
-                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhacungcap WHERE SDT = ?")) {
-                        checkPs.setString(1, sdt);
-                        try (ResultSet rs = checkPs.executeQuery()) {
-                            if (rs.next() && rs.getInt(1) > 0) {
-                                JOptionPane.showMessageDialog(this, 
-                                    "Số điện thoại '" + sdt + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
-                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                return;
-                            }
-                        }
+                    if (nhaCungCapDAO.kiemTraSDTTonTai(sdt, null)) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Số điện thoại '" + sdt + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
                     // Thêm mới
-                    try (PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO nhacungcap (TenNCC, SDT, DiaChi) VALUES (?, ?, ?)")) {
-                        ps.setString(1, ten);
-                        ps.setString(2, sdt);
-                        ps.setString(3, diaChi);
-                        int result = ps.executeUpdate();
+                    NhaCungCapDTO newNcc = new NhaCungCapDTO();
+                    newNcc.setTenNCC(ten);
+                    newNcc.setSoDienThoai(sdt);
+                    newNcc.setDiaChi(diaChi);
+                    
+                    if (nhaCungCapDAO.themNhaCungCap(newNcc)) {
                         JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Không thể thêm nhà cung cấp!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                 } else {
                     // Sửa - Kiểm tra số điện thoại trùng (nếu đổi số điện thoại)
-                    if (!sdt.equals(ncc.getSoDienThoai())) {
-                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhacungcap WHERE SDT = ? AND MaNCC != ?")) {
-                            checkPs.setString(1, sdt);
-                            checkPs.setInt(2, ncc.getMaNCC());
-                            try (ResultSet rs = checkPs.executeQuery()) {
-                                if (rs.next() && rs.getInt(1) > 0) {
-                                    JOptionPane.showMessageDialog(this, 
-                                        "Số điện thoại '" + sdt + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
-                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                    return;
-                                }
-                            }
-                        }
+                    if (!sdt.equals(ncc.getSoDienThoai()) && nhaCungCapDAO.kiemTraSDTTonTai(sdt, ncc.getMaNCC())) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Số điện thoại '" + sdt + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
                     // Sửa
-                    try (PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE nhacungcap SET TenNCC=?, SDT=?, DiaChi=? WHERE MaNCC=?")) {
-                        ps.setString(1, ten);
-                        ps.setString(2, sdt);
-                        ps.setString(3, diaChi);
-                        ps.setInt(4, ncc.getMaNCC());
-                        int result = ps.executeUpdate();
+                    ncc.setTenNCC(ten);
+                    ncc.setSoDienThoai(sdt);
+                    ncc.setDiaChi(diaChi);
+                    
+                    if (nhaCungCapDAO.capNhatNhaCungCap(ncc)) {
                         JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Không thể cập nhật nhà cung cấp!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                 }
                 dataChanged = true;
                 dispose();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
