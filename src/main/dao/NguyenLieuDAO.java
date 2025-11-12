@@ -193,25 +193,6 @@ public class NguyenLieuDAO {
         return null; // Không có ràng buộc
     }
     
-    // Lấy danh sách nguyên liệu cho combo box
-    public List<NguyenLieuDTO> layDanhSachNguyenLieuChoCombo() {
-        List<NguyenLieuDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT MaNL, TenNL, DonVi FROM nguyenlieu ORDER BY TenNL";
-        
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                NguyenLieuDTO nguyenLieu = new NguyenLieuDTO();
-                nguyenLieu.setMaNL(rs.getInt("MaNL"));
-                nguyenLieu.setTenNL(rs.getString("TenNL"));
-                nguyenLieu.setDonVi(rs.getString("DonVi"));
-                danhSach.add(nguyenLieu);
-            }
-        } catch (SQLException e) {
-        }
-        return danhSach;
-    }
+   
 }
 

@@ -11,7 +11,7 @@ import dto.ChiTietDonHangDTO;
 import dto.MonDTO;
 import dto.LoaiMonDTO;
 import dao.DonHangDAO;
-import dao.HangHoaDAO;
+import dao.MonDAO;
 import dao.KhoHangDAO;
 import dto.MonNguyenLieuDTO;
 
@@ -907,11 +907,11 @@ public class SuaDonHangView extends JDialog {
     
     // Kiểm tra xem có đủ nguyên liệu cho món với số lượng cho trước không
     private String kiemTraNguyenLieu(int maMon, int soLuong, int maMonCheck, String tenTopping) {
-        HangHoaDAO hangHoaDAO = new HangHoaDAO();
+        MonDAO monDAO = new MonDAO();
         KhoHangDAO khoHangDAO = new KhoHangDAO();
         
         // Lấy danh sách nguyên liệu cần cho món
-        List<MonNguyenLieuDTO> nguyenLieuList = hangHoaDAO.layNguyenLieuCuaMon(maMon);
+        List<MonNguyenLieuDTO> nguyenLieuList = monDAO.layNguyenLieuCuaMon(maMon);
         
         // Tính tổng nguyên liệu cần cho tất cả món trong đơn hàng (bao gồm món mới)
         java.util.Map<Integer, Integer> tongNguyenLieuCan = new java.util.HashMap<>();
@@ -928,7 +928,7 @@ public class SuaDonHangView extends JDialog {
             }
             
             // Nguyên liệu của món chính
-            List<MonNguyenLieuDTO> nguyenLieuItem = hangHoaDAO.layNguyenLieuCuaMon(item.getMaMon());
+            List<MonNguyenLieuDTO> nguyenLieuItem = monDAO.layNguyenLieuCuaMon(item.getMaMon());
             if (nguyenLieuItem != null) {
                 for (MonNguyenLieuDTO nl : nguyenLieuItem) {
                     int tongSoLuong = nl.getSoLuong() * item.getSoLuong();
@@ -942,7 +942,7 @@ public class SuaDonHangView extends JDialog {
             // Nguyên liệu của topping (nếu có)
             if (item.getTenTopping() != null && !item.getTenTopping().equals("No Topping")) {
                 int maTopping = findToppingId(item.getTenTopping());
-                List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+                List<MonNguyenLieuDTO> nguyenLieuTopping = monDAO.layNguyenLieuCuaMon(maTopping);
                 if (nguyenLieuTopping != null) {
                     for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
                         int tongSoLuong = nl.getSoLuong() * item.getSoLuong();
@@ -969,7 +969,7 @@ public class SuaDonHangView extends JDialog {
         // Cộng thêm nguyên liệu của topping mới (nếu có)
         if (tenTopping != null && !tenTopping.equals("No Topping")) {
             int maTopping = findToppingId(tenTopping);
-            List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+            List<MonNguyenLieuDTO> nguyenLieuTopping = monDAO.layNguyenLieuCuaMon(maTopping);
             if (nguyenLieuTopping != null && !nguyenLieuTopping.isEmpty()) {
                 for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
                     int tongSoLuong = nl.getSoLuong() * soLuong;
@@ -997,7 +997,7 @@ public class SuaDonHangView extends JDialog {
                 String nguonThieu = "";
                 if (tenTopping != null && !tenTopping.equals("No Topping")) {
                     int maTopping = findToppingId(tenTopping);
-                    List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+                    List<MonNguyenLieuDTO> nguyenLieuTopping = monDAO.layNguyenLieuCuaMon(maTopping);
                     boolean laTuTopping = false;
                     if (nguyenLieuTopping != null) {
                         for (MonNguyenLieuDTO nl : nguyenLieuTopping) {

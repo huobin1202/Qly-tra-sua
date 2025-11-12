@@ -11,7 +11,6 @@ public class ThongKeDTO {
     private int soDonHang;
     private String ngay;
     private String thang;
-    private String nam;
     private String trangThai;
     private int maDon;
     private Timestamp ngayDat;
@@ -67,13 +66,7 @@ public class ThongKeDTO {
         }
     }
 
-    // Constructor cho năm
-    public ThongKeDTO(String nam, long doanhThu, short type) {
-        if (type == 1) { // Year
-            this.nam = nam;
-            this.doanhThu = doanhThu;
-        }
-    }
+    
 
     // Getters and Setters
     public String getTenMon() { return tenMon; }
@@ -100,8 +93,7 @@ public class ThongKeDTO {
     public String getThang() { return thang; }
     public void setThang(String thang) { this.thang = thang; }
 
-    public String getNam() { return nam; }
-    public void setNam(String nam) { this.nam = nam; }
+
 
     public String getTrangThai() { return trangThai; }
     public void setTrangThai(String trangThai) { this.trangThai = trangThai; }

@@ -623,49 +623,7 @@ public class ThongKeDAO {
         return result;
     }
     
-    // Thống kê theo giờ trong ngày
-    public List<ThongKeDTO> thongKeTheoGio(String tuNgay, String denNgay) {
-        List<ThongKeDTO> result = new ArrayList<>();
-        String sql = "SELECT HOUR(NgayDat) as Gio, COUNT(*) as SoDonHang, SUM(TongTien) as DoanhThu " +
-                    "FROM donhang " +
-                    "WHERE TrangThai = 'dathanhtoan' ";
-        
-        if (tuNgay != null && !tuNgay.isEmpty()) {
-            sql += "AND DATE(NgayDat) >= DATE(?) ";
-        }
-        if (denNgay != null && !denNgay.isEmpty()) {
-            sql += "AND DATE(NgayDat) <= DATE(?) ";
-        }
-        
-        sql += "GROUP BY HOUR(NgayDat) " +
-               "ORDER BY Gio ASC";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            int paramIndex = 1;
-            if (tuNgay != null && !tuNgay.isEmpty()) {
-                ps.setString(paramIndex++, tuNgay);
-            }
-            if (denNgay != null && !denNgay.isEmpty()) {
-                ps.setString(paramIndex++, denNgay);
-            }
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    ThongKeDTO tk = new ThongKeDTO();
-                    tk.setNgay(rs.getInt("Gio") + ":00"); // Dùng ngay để lưu giờ
-                    tk.setSoDonHang(rs.getInt("SoDonHang"));
-                    tk.setDoanhThu(rs.getLong("DoanhThu"));
-                    result.add(tk);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        
-        return result;
-    }
+   
     
     // Lấy tổng giá trị tồn kho
     public long layTongGiaTriTonKho() {

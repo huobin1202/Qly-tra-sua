@@ -139,61 +139,10 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Tìm kiếm phiếu nhập theo trạng thái
-    @Override
-    public List<NhapHangDTO> timPhieuNhapTheoTrangThai(String trangThai) {
-        List<NhapHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM phieunhap WHERE TrangThai = ? ORDER BY Ngay DESC";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, trangThai);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    danhSach.add(new NhapHangDTO(
-                        rs.getInt("MaPN"),
-                        rs.getInt("MaNV"),
-                        rs.getInt("MaNCC"),
-                        rs.getString("Ngay"),
-                        rs.getLong("ThanhTien"),
-                        rs.getString("TrangThai")
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-        }
-        return danhSach;
-    }
+   
     
     // Tìm kiếm phiếu nhập theo nhà cung cấp
-    @Override
-    public List<NhapHangDTO> timPhieuNhapTheoNCC(int maNCC) {
-        List<NhapHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT * FROM phieunhap WHERE MaNCC = ? ORDER BY Ngay DESC";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setInt(1, maNCC);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    danhSach.add(new NhapHangDTO(
-                        rs.getInt("MaPN"),
-                        rs.getInt("MaNV"),
-                        rs.getInt("MaNCC"),
-                        rs.getString("Ngay"),
-                        rs.getLong("ThanhTien"),
-                        rs.getString("TrangThai")
-                    ));
-                }
-            }
-        } catch (SQLException e) {
-        }
-        return danhSach;
-    }
-    
+   
     // Cập nhật phiếu nhập (chỉ khi chưa xác nhận)
     @Override
     public boolean capNhatPhieuNhap(NhapHangDTO phieuNhap) {
@@ -342,25 +291,9 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         }
     }
     
-    // Kiểm tra phiếu nhập có tồn tại và chưa xác nhận không
-    @Override
-    public boolean kiemTraCoTheSuaXoa(int maPN) {
-        NhapHangDTO phieu = layPhieuNhapTheoMa(maPN);
-        return phieu != null && phieu.isChuaXacNhan();
-    }
+
     
-    // Hiển thị thông tin phiếu nhập (không dùng trong GUI)
-    @Override
-    public void hienThiPhieuNhap(NhapHangDTO phieu) {
-        // Method không dùng trong GUI
-    }
-    
-    // Hiển thị danh sách phiếu nhập (không dùng trong GUI)
-    @Override
-    public void hienThiDanhSachPhieuNhap(List<NhapHangDTO> danhSach) {
-        // Method không dùng trong GUI
-    }
-    
+  
     
     // Thêm chi tiết phiếu nhập với kiểm tra ràng buộc trong Java
     @Override
@@ -449,19 +382,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         }
     }
     
-    // Cập nhật kho nguyên liệu
-    private void capNhatKhoNguyenLieu(int maNL, int soLuong) {
-        String sql = "INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?) ON DUPLICATE KEY UPDATE SoLuong = SoLuong + ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, maNL);
-            ps.setInt(2, soLuong);
-            ps.setInt(3, soLuong);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-        }
-    }
+  
     
     // Cập nhật tổng tiền phiếu nhập
     private void capNhatTongTienPhieuNhap(int maPN, long thanhTien) {
@@ -691,10 +612,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         return null;
     }
     
-    // Hiển thị chi tiết phiếu nhập
-    @Override
-    public void hienThiChiTietPhieuNhap(int maPN) {
-        // Method này không cần thiết trong GUI, chỉ để interface
-    }
+
     
 }

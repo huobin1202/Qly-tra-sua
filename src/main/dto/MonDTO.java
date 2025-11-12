@@ -12,16 +12,6 @@ String tenLoai;
     // Constructor mặc định
     public MonDTO() {}
 
-    public MonDTO(int maMon, String tenMon, long gia, String tinhTrang, int maLoai) {
-        this.maMon = maMon;
-        this.tenMon = tenMon;
-        this.gia = gia;
-        this.tinhTrang = tinhTrang;
-        this.maLoai = maLoai;
-        this.anh = "";
-        this.tenLoai = "";
-    }
-
     public MonDTO(int maMon, String tenMon, long gia, String tinhTrang, int maLoai, String anh) {
         this.maMon = maMon;
         this.tenMon = tenMon;

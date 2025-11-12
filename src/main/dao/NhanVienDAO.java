@@ -306,32 +306,7 @@ public class NhanVienDAO {
         return false;
     }
     
-    // Lấy danh sách nhân viên cho combo box
-    public List<NhanVienDTO> layDanhSachNhanVienChoCombo() {
-        List<NhanVienDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT MaNV, HoTen FROM nhanvien ORDER BY HoTen";
-        
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                NhanVienDTO nhanVien = new NhanVienThuongDTO(
-                    rs.getInt("MaNV"),
-                    "", // taiKhoan để trống
-                    "", // matKhau để trống
-                    rs.getString("HoTen"),
-                    "", // sdt để trống
-                    null, // ngayvaoLam null
-                    0, // lương=0
-                    "danglam" // trạng thái mặc định
-                );
-                danhSach.add(nhanVien);
-            }
-        } catch (SQLException e) {
-        }
-        return danhSach;
-    }
+   
     
     // Method để chuẩn hóa chức vụ nhân viên trong database
     public boolean chuanHoaChucVuNhanVien() {

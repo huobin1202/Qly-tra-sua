@@ -50,27 +50,7 @@ public class LoaiMonDAO {
         return null;
     }
     
-    // Lấy loại món theo tên
-    public LoaiMonDTO layLoaiMonTheoTen(String tenLoai) {
-        String sql = "SELECT * FROM loaimon WHERE TenLoai = ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, tenLoai);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    LoaiMonDTO loaiMon = new LoaiMonDTO();
-                    loaiMon.setMaLoai(rs.getInt("MaLoai"));
-                    loaiMon.setTenLoai(rs.getString("TenLoai"));
-                    return loaiMon;
-                }
-            }
-        } catch (SQLException e) {
-        }
-        return null;
-    }
+  
     
     // Lấy mã loại món theo tên
     public int layMaLoaiMonTheoTen(String tenLoai) {
@@ -90,29 +70,7 @@ public class LoaiMonDAO {
         }
         return -1;
     }
-    
-    // Lấy loại món theo index
-    public LoaiMonDTO layLoaiMonTheoIndex(int index) {
-        String sql = "SELECT * FROM loaimon ORDER BY MaLoai LIMIT 1 OFFSET ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setInt(1, index);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    LoaiMonDTO loaiMon = new LoaiMonDTO();
-                    loaiMon.setMaLoai(rs.getInt("MaLoai"));
-                    loaiMon.setTenLoai(rs.getString("TenLoai"));
-                    return loaiMon;
-                }
-            }
-        } catch (SQLException e) {
-        }
-        return null;
-    }
-    
+   
     // Thêm loại món mới
     public boolean themLoaiMon(LoaiMonDTO loaiMon) {
         String sql = "INSERT INTO loaimon (TenLoai) VALUES (?)";

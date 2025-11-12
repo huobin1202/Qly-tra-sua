@@ -44,10 +44,6 @@ public class DonHangDAO {
         return danhSach;
     }
     
-    // Tìm kiếm đơn hàng (overload method cũ để tương thích)
-    public List<DonHangDTO> timKiemDonHang(String searchType, String searchText) {
-        return timKiemDonHang(searchType, searchText, "Tất cả", "");
-    }
     
     // Tìm kiếm đơn hàng với điều kiện (không có ngày)
     public List<DonHangDTO> timKiemDonHang(String searchType, String searchText, String trangThai, String ngayTim) {
@@ -195,32 +191,6 @@ public class DonHangDAO {
                     }
                 }
             }
-        } catch (SQLException e) {
-        }
-        return false;
-    }
-    
-    // Cập nhật đơn hàng
-    public boolean capNhatDonHang(DonHangDTO donHang) {
-        String sql = "UPDATE donhang SET MaNV=?, MaKH=?, TrangThai=?, NgayDat=?, TongTien=?, GiamGia=? WHERE MaDon=?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setInt(1, donHang.getMaNV());
-            if (donHang.getMaKH() != null) {
-                ps.setInt(2, donHang.getMaKH());
-            } else {
-                ps.setNull(2, java.sql.Types.INTEGER);
-            }
-            ps.setString(3, donHang.getTrangThai());
-            ps.setTimestamp(4, donHang.getNgayDat());
-            ps.setLong(5, donHang.getTongTien());
-            ps.setInt(6, donHang.getGiamGia());
-            ps.setInt(7, donHang.getMaDon());
-            
-            int result = ps.executeUpdate();
-            return result > 0;
         } catch (SQLException e) {
         }
         return false;
@@ -476,42 +446,7 @@ public class DonHangDAO {
         }
         return danhSach;
     }
-    
-    // Thêm chi tiết đơn hàng
-    public boolean themChiTietDonHang(ChiTietDonHangDTO chiTiet) {
-        String sql = "INSERT INTO chitietdonhang (MaDon, MaMon, MaTopping, SoLuong, GiaMon, GiaTopping) VALUES (?, ?, ?, ?, ?, ?)";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setInt(1, chiTiet.getMaDon());
-            ps.setInt(2, chiTiet.getMaMon());
-            ps.setInt(3, chiTiet.getMaTopping());
-            ps.setInt(4, chiTiet.getSoLuong());
-            ps.setLong(5, chiTiet.getGiaMon());
-            ps.setLong(6, chiTiet.getGiaTopping());
-            
-            int result = ps.executeUpdate();
-            return result > 0;
-        } catch (SQLException e) {
-        }
-        return false;
-    }
-    
-    // Xóa tất cả chi tiết đơn hàng
-    public boolean xoaTatCaChiTietDonHang(int maDon) {
-        String sql = "DELETE FROM chitietdonhang WHERE MaDon = ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setInt(1, maDon);
-            int result = ps.executeUpdate();
-            return result >= 0; // >= 0 vì có thể không có chi tiết nào
-        } catch (SQLException e) {
-        }
-        return false;
-    }
+
     
     // Lấy thông tin đơn hàng với tên nhân viên và tên khách hàng
     public DonHangDTO layDonHangVoiTenNV(int maDon) {

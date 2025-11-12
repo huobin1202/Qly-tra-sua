@@ -18,20 +18,11 @@ public interface IQuanLyPhieuNhap {
     boolean xoaPhieuNhap(int maPN);
 
     // Search operations
-    List<NhapHangDTO> timPhieuNhapTheoTrangThai(String trangThai);
 
-    List<NhapHangDTO> timPhieuNhapTheoNCC(int maNCC);
 
     // Status operations
     boolean xacNhanPhieuNhap(int maPN);
-
-    boolean kiemTraCoTheSuaXoa(int maPN);
-
     // Display operations
-    void hienThiPhieuNhap(NhapHangDTO phieu);
-
-    void hienThiDanhSachPhieuNhap(List<NhapHangDTO> danhSach);
-
     // Chi tiết phiếu nhập operations
     boolean themChiTietPhieuNhap(int maPN, int maNL, int soLuong, long donGia, String donVi);
 
@@ -43,5 +34,4 @@ public interface IQuanLyPhieuNhap {
 
     boolean xoaChiTietPhieuNhap(int maPN, int maNL);
 
-    void hienThiChiTietPhieuNhap(int maPN);
 }

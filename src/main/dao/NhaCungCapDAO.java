@@ -205,34 +205,6 @@ public class NhaCungCapDAO {
         return danhSach;
     }
     
-    // Lấy tất cả sản phẩm nhà cung cấp
-    public List<NhaCungCapSanPhamDTO> layTatCaSanPhamNCC() {
-        List<NhaCungCapSanPhamDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT ncc.MaNCC, ncc.TenNCC, nl.MaNL, nl.TenNL, nl.DonVi, nccnl.SoLuong, nccnl.DonGia " +
-                    "FROM nhacungcap ncc " +
-                    "JOIN ncc_nguyenlieu nccnl ON ncc.MaNCC = nccnl.MaNCC " +
-                    "JOIN nguyenlieu nl ON nccnl.MaNL = nl.MaNL " +
-                    "ORDER BY ncc.TenNCC, nl.TenNL";
-        
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                NhaCungCapSanPhamDTO sanPham = new NhaCungCapSanPhamDTO();
-                sanPham.setMaNCC(rs.getInt("MaNCC"));
-                sanPham.setTenNCC(rs.getString("TenNCC"));
-                sanPham.setMaNL(rs.getInt("MaNL"));
-                sanPham.setTenNL(rs.getString("TenNL"));
-                sanPham.setDonVi(rs.getString("DonVi"));
-                sanPham.setSoLuong(rs.getInt("SoLuong"));
-                sanPham.setDonGia(rs.getLong("DonGia"));
-                danhSach.add(sanPham);
-            }
-        } catch (SQLException e) {
-        }
-        return danhSach;
-    }
     
     // Thêm sản phẩm cho nhà cung cấp
     public boolean themSanPhamNCC(int maNCC, int maNL, int soLuong, long donGia) {

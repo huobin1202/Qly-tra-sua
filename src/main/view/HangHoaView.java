@@ -9,7 +9,6 @@ import java.util.List;
 import dao.MonDAO;
 import dao.LoaiMonDAO;
 import dao.NguyenLieuDAO;
-import dao.HangHoaDAO;
 import dto.MonDTO;
 import dto.MonNguyenLieuDTO;
 import dto.MonViewDTO;
@@ -20,7 +19,7 @@ public class HangHoaView extends JPanel {
     private JTable table;
     private DefaultTableModel tableModel;
     private JTextField searchField;
-    private JComboBox<String> searchCombo, categoryCombo;
+    private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
     private String currentView = ""; // MON, LOAIMON, or NGUYENLIEU - khởi tạo rỗng để load khi setCurrentView được gọi
     private JComboBox<String> loaiMonFilterCombo;
@@ -30,7 +29,6 @@ public class HangHoaView extends JPanel {
     private final MonDAO monDAO = new MonDAO();
     private final LoaiMonDAO loaiMonDAO = new LoaiMonDAO();
     private final NguyenLieuDAO nguyenLieuDAO = new NguyenLieuDAO();
-    private final HangHoaDAO hangHoaDAO = new HangHoaDAO();
     
     public void setCurrentView(String view) {
         // Chỉ load lại nếu view thay đổi
@@ -438,7 +436,7 @@ public class HangHoaView extends JPanel {
         
         // Kiểm tra khóa ngoại trước khi xóa
         if (currentView.equals("MON")) {
-            String message = hangHoaDAO.kiemTraRangBuocXoaMon(id);
+            String message = monDAO.kiemTraRangBuocXoaMon(id);
             if (message != null) {
                 JOptionPane.showMessageDialog(this, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -465,7 +463,7 @@ public class HangHoaView extends JPanel {
         if (result == JOptionPane.YES_OPTION) {
             boolean success;
             if (currentView.equals("MON")) {
-                success = hangHoaDAO.xoaMon(id);
+                success = monDAO.xoaMon(id);
             } else if (currentView.equals("LOAIMON")) {
                 success = loaiMonDAO.xoaLoaiMon(id);
             } else {
@@ -500,7 +498,7 @@ public class HangHoaView extends JPanel {
         private JTable ingredientsTable;
         private DefaultTableModel ingredientsTableModel;
         private List<MonNguyenLieuDTO> ingredientsList = new ArrayList<>();
-        private HangHoaDAO hangHoaDAO = new HangHoaDAO();
+        private MonDAO monDAO = new MonDAO();
         
         public MonDialog(Window parent, String title, MonDTO mon) {
             super(parent, title, ModalityType.APPLICATION_MODAL);
@@ -768,7 +766,7 @@ public class HangHoaView extends JPanel {
         private void loadNguyenLieu() {
             nguyenLieuCombo.removeAllItems();
             try {
-                List<NguyenLieuDTO> list = hangHoaDAO.layTatCaNguyenLieu();
+                List<NguyenLieuDTO> list = nguyenLieuDAO.layTatCaNguyenLieu();
                 for (NguyenLieuDTO nl : list) {
                     nguyenLieuCombo.addItem(nl);
                 }
@@ -791,7 +789,7 @@ public class HangHoaView extends JPanel {
         private void loadIngredients() {
             if (mon == null) return;
             
-            ingredientsList = hangHoaDAO.layNguyenLieuCuaMon(mon.getMaMon());
+            ingredientsList = monDAO.layNguyenLieuCuaMon(mon.getMaMon());
             refreshIngredientsTable();
         }
         
@@ -926,7 +924,7 @@ public class HangHoaView extends JPanel {
                 dto.setMaMon(maMon);
             }
             
-            if (!hangHoaDAO.capNhatNguyenLieuChoMon(maMon, ingredientsList)) {
+            if (!monDAO.capNhatNguyenLieuChoMon(maMon, ingredientsList)) {
                 JOptionPane.showMessageDialog(this, "Không thể cập nhật nguyên liệu cho món!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -1088,31 +1086,7 @@ public class HangHoaView extends JPanel {
             tenField.addActionListener(e -> saveData());
         }
         
-        private JButton findButton(String text) {
-            for (Component comp : getComponents()) {
-                if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
-        }
-        
-        private JButton findButtonInPanel(JPanel panel, String text) {
-            for (Component comp : panel.getComponents()) {
-                if (comp instanceof JButton) {
-                    JButton button = (JButton) comp;
-                    if (button.getText().equals(text)) {
-                        return button;
-                    }
-                } else if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
-        }
-        
+
         private void saveData() {
             String ten = tenField.getText().trim();
             
@@ -1222,30 +1196,6 @@ public class HangHoaView extends JPanel {
             // Event handlers are already set in setupLayout()
         }
         
-        private JButton findButton(String text) {
-            for (Component comp : getComponents()) {
-                if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
-        }
-        
-        private JButton findButtonInPanel(JPanel panel, String text) {
-            for (Component comp : panel.getComponents()) {
-                if (comp instanceof JButton) {
-                    JButton button = (JButton) comp;
-                    if (button.getText().equals(text)) {
-                        return button;
-                    }
-                } else if (comp instanceof JPanel) {
-                    JButton button = findButtonInPanel((JPanel) comp, text);
-                    if (button != null) return button;
-                }
-            }
-            return null;
-        }
         
         private void saveData() {
             String ten = tenField.getText().trim();
