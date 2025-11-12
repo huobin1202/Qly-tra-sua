@@ -152,6 +152,133 @@ public class HangHoaDAO {
                     mon.setTinhTrang(rs.getString("TinhTrang"));
                     mon.setMaLoai(rs.getInt("MaLoai"));
                 mon.setAnh(rs.getString("Anh"));
+                mon.setTenLoai(rs.getString("TenLoai"));
+                    danhSach.add(mon);
+                }
+            }
+        } catch (SQLException e) {
+        }
+        return danhSach;
+    }
+    
+    // Lấy món với bộ lọc theo loại và tình trạng
+    public List<MonDTO> layMonTheoBoLoc(String tenLoaiSelected, String tinhTrangSelected) {
+        List<MonDTO> danhSach = new ArrayList<>();
+        List<String> whereConditions = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT m.*, lm.TenLoai FROM mon m LEFT JOIN loaimon lm ON m.MaLoai = lm.MaLoai"
+        );
+        
+        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
+            whereConditions.add("lm.TenLoai = ?");
+            params.add(tenLoaiSelected);
+        }
+        
+        if (tinhTrangSelected != null && !tinhTrangSelected.equals("Tất cả tình trạng")) {
+            whereConditions.add("m.TinhTrang = ?");
+            params.add(convertTinhTrangToDatabase(tinhTrangSelected));
+        }
+        
+        if (!whereConditions.isEmpty()) {
+            sql.append(" WHERE ").append(String.join(" AND ", whereConditions));
+        }
+        sql.append(" ORDER BY m.MaMon");
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MonDTO mon = new MonDTO();
+                    mon.setMaMon(rs.getInt("MaMon"));
+                    mon.setTenMon(rs.getString("TenMon"));
+                    mon.setGia(rs.getLong("Gia"));
+                    mon.setTinhTrang(rs.getString("TinhTrang"));
+                    mon.setMaLoai(rs.getInt("MaLoai"));
+                    mon.setAnh(rs.getString("Anh"));
+                    mon.setTenLoai(rs.getString("TenLoai"));
+                    danhSach.add(mon);
+                }
+            }
+        } catch (SQLException e) {
+        }
+        return danhSach;
+    }
+    
+    // Tìm kiếm món mở rộng với nhiều điều kiện
+    public List<MonDTO> timKiemMonMoRong(
+            String searchType,
+            String searchText,
+            String tenLoaiSelected,
+            String tinhTrangSelected) {
+        
+        List<MonDTO> danhSach = new ArrayList<>();
+        List<String> conditions = new ArrayList<>();
+        List<Object> params = new ArrayList<>();
+        
+        StringBuilder sql = new StringBuilder(
+            "SELECT m.*, lm.TenLoai FROM mon m LEFT JOIN loaimon lm ON m.MaLoai = lm.MaLoai"
+        );
+        
+        if (searchText != null && !searchText.isEmpty()) {
+            if ("ID".equals(searchType)) {
+                conditions.add("m.MaMon = ?");
+                try {
+                    params.add(Integer.parseInt(searchText));
+                } catch (NumberFormatException e) {
+                    // Bỏ qua nếu không phải số
+                }
+            } else if ("Tên".equals(searchType)) {
+                conditions.add("m.TenMon LIKE ?");
+                params.add("%" + searchText + "%");
+            } else if ("Loại".equals(searchType)) {
+                conditions.add("lm.TenLoai LIKE ?");
+                params.add("%" + searchText + "%");
+            } else {
+                // Mặc định tìm theo trạng thái hiển thị
+                conditions.add("m.TinhTrang LIKE ?");
+                params.add("%" + convertTinhTrangToDatabase(searchText) + "%");
+            }
+        }
+        
+        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
+            conditions.add("lm.TenLoai = ?");
+            params.add(tenLoaiSelected);
+        }
+        
+        if (tinhTrangSelected != null && !tinhTrangSelected.equals("Tất cả tình trạng")) {
+            conditions.add("m.TinhTrang = ?");
+            params.add(convertTinhTrangToDatabase(tinhTrangSelected));
+        }
+        
+        if (!conditions.isEmpty()) {
+            sql.append(" WHERE ").append(String.join(" AND ", conditions));
+        }
+        sql.append(" ORDER BY m.MaMon");
+        
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    MonDTO mon = new MonDTO();
+                    mon.setMaMon(rs.getInt("MaMon"));
+                    mon.setTenMon(rs.getString("TenMon"));
+                    mon.setGia(rs.getLong("Gia"));
+                    mon.setTinhTrang(rs.getString("TinhTrang"));
+                    mon.setMaLoai(rs.getInt("MaLoai"));
+                    mon.setAnh(rs.getString("Anh"));
+                    mon.setTenLoai(rs.getString("TenLoai"));
                     danhSach.add(mon);
                 }
             }
@@ -222,6 +349,36 @@ public class HangHoaDAO {
         } catch (SQLException e) {
         }
         return false;
+    }
+    
+    // Kiểm tra ràng buộc khi xóa món
+    public String kiemTraRangBuocXoaMon(int maMon) {
+        try (Connection conn = DBUtil.getConnection()) {
+            // Kiểm tra món trong chi tiết đơn hàng
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM chitietdonhang WHERE MaMon = ?")) {
+                ps.setInt(1, maMon);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return "Không thể xóa món này vì đã được sử dụng trong đơn hàng!";
+                    }
+                }
+            }
+            
+            // Kiểm tra món được dùng làm topping
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM chitietdonhang WHERE MaTopping = ?")) {
+                ps.setInt(1, maMon);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        return "Không thể xóa món này vì đã được sử dụng làm topping trong đơn hàng!";
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            return "Lỗi kiểm tra ràng buộc: " + e.getMessage();
+        }
+        return null;
     }
     
     // Lấy mã món theo tên
@@ -598,6 +755,26 @@ public class HangHoaDAO {
         return false;
     }
     
+    // Cập nhật danh sách nguyên liệu của món (xóa cũ, thêm mới)
+    public boolean capNhatNguyenLieuChoMon(int maMon, List<MonNguyenLieuDTO> ingredientsList) {
+        try (Connection conn = DBUtil.getConnection()) {
+            createMonNguyenLieuTableIfNotExists(conn);
+            
+            try (PreparedStatement deletePs = conn.prepareStatement("DELETE FROM mon_nguyenlieu WHERE MaMon = ?")) {
+                deletePs.setInt(1, maMon);
+                deletePs.executeUpdate();
+            }
+            
+            if (ingredientsList == null || ingredientsList.isEmpty()) {
+                return true;
+            }
+            
+            return themNhieuNguyenLieuVaoMon(conn, maMon, ingredientsList);
+        } catch (SQLException e) {
+        }
+        return false;
+    }
+    
     // Tạo bảng mon_nguyenlieu nếu chưa tồn tại
     private void createMonNguyenLieuTableIfNotExists(Connection conn) {
         String sql = "CREATE TABLE IF NOT EXISTS mon_nguyenlieu (" +
@@ -614,5 +791,15 @@ public class HangHoaDAO {
         } catch (SQLException e) {
             // Ignore if table already exists or other errors
         }
+    }
+    
+    private String convertTinhTrangToDatabase(String tinhTrangUI) {
+        if ("Đang bán".equalsIgnoreCase(tinhTrangUI)) {
+            return "dangban";
+        }
+        if ("Tạm ngừng".equalsIgnoreCase(tinhTrangUI)) {
+            return "ngungban";
+        }
+        return tinhTrangUI != null ? tinhTrangUI.toLowerCase() : "";
     }
 }

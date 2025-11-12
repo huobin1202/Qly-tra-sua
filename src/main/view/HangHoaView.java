@@ -4,15 +4,17 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import database.DBUtil;
-import dto.MonDTO;
-import dto.NguyenLieuDTO;
-import dto.LoaiMonDTO;
-import dto.MonNguyenLieuDTO;
+import dao.MonDAO;
+import dao.LoaiMonDAO;
+import dao.NguyenLieuDAO;
 import dao.HangHoaDAO;
+import dto.MonDTO;
+import dto.MonNguyenLieuDTO;
+import dto.MonViewDTO;
+import dto.LoaiMonDTO;
+import dto.NguyenLieuDTO;
 
 public class HangHoaView extends JPanel {
     private JTable table;
@@ -25,6 +27,10 @@ public class HangHoaView extends JPanel {
     private JComboBox<String> tinhTrangFilterCombo;
     // Thêm biến toàn cục cho searchPanel
     private JPanel searchPanel;
+    private final MonDAO monDAO = new MonDAO();
+    private final LoaiMonDAO loaiMonDAO = new LoaiMonDAO();
+    private final NguyenLieuDAO nguyenLieuDAO = new NguyenLieuDAO();
+    private final HangHoaDAO hangHoaDAO = new HangHoaDAO();
     
     public void setCurrentView(String view) {
         // Chỉ load lại nếu view thay đổi
@@ -85,15 +91,9 @@ public class HangHoaView extends JPanel {
         searchField = new JTextField(20);
         loaiMonFilterCombo = new JComboBox<>();
         loaiMonFilterCombo.addItem("Tất cả loại");
-        // Tải loại món từ DB để đưa vào filter
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT TenLoai FROM loaimon ORDER BY MaLoai")) {
-            while (rs.next()) {
-                loaiMonFilterCombo.addItem(rs.getString("TenLoai"));
-            }
-        } catch (SQLException e) {
-            // Nếu lỗi thôi không thêm gì
+        List<String> tenLoaiList = loaiMonDAO.layDanhSachTenLoaiMon();
+        for (String tenLoai : tenLoaiList) {
+            loaiMonFilterCombo.addItem(tenLoai);
         }
         
         // Combo box lọc theo tình trạng
@@ -207,122 +207,50 @@ public class HangHoaView extends JPanel {
     }
     
     private void loadData() {
-        // Clear table trước
         tableModel.setRowCount(0);
-        
-        // Load dữ liệu trực tiếp trên EDT để đảm bảo hiển thị ngay lập tức
-        // Tối ưu bằng cách batch load và update UI một lần
-        try (Connection conn = DBUtil.getConnection()) {
-            List<Object[]> rows = new ArrayList<>();
-            
-            if (currentView.equals("MON")) {
-                String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
-                String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
-                rows = loadMonDataBatch(conn, tenLoaiSelected, tinhTrangSelected);
-            } else if (currentView.equals("LOAIMON")) {
-                rows = loadLoaiMonDataBatch(conn);
-            } else {
-                rows = loadNguyenLieuDataBatch(conn);
-            }
-            
-            // Batch add rows để tối ưu hiệu suất
-            for (Object[] row : rows) {
+
+        if (currentView.equals("MON")) {
+            String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
+            String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
+            List<MonViewDTO> danhSach = monDAO.layDanhSachMon(tenLoaiSelected, tinhTrangSelected);
+            for (MonViewDTO mon : danhSach) {
+                Object[] row = {
+                    mon.getMaMon(),
+                    mon.getTenMon(),
+                    String.format("%,d", mon.getGia()) + " VNĐ",
+                    convertTinhTrangToUI(mon.getTinhTrang()),
+                    mon.getTenLoai(),
+                    mon.getAnh()
+                };
                 tableModel.addRow(row);
             }
-            
-            // Set renderer after data is loaded
-            if (currentView.equals("MON") && table.getColumnCount() > 5) {
-                table.getColumnModel().getColumn(5).setCellRenderer(new ImageCellRenderer());
-            }
-            
-            // Refresh table để hiển thị dữ liệu ngay lập tức
-            table.revalidate();
-            table.repaint();
-        } catch (SQLException e) {
-            e.printStackTrace(); // Debug
-            JOptionPane.showMessageDialog(this, 
-                "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-        }
-    }
-    
-    // Batch load methods - trả về List<Object[]> thay vì add trực tiếp vào tableModel
-    private List<Object[]> loadMonDataBatch(Connection conn, String tenLoaiSelected, String tinhTrangSelected) throws SQLException {
-        List<Object[]> rows = new ArrayList<>();
-        String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai";
-        List<String> whereConditions = new ArrayList<>();
-        List<Object> params = new ArrayList<>();
-        
-        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
-            whereConditions.add("l.TenLoai = ?");
-            params.add(tenLoaiSelected);
-        }
-        
-        if (tinhTrangSelected != null && !tinhTrangSelected.equals("Tất cả tình trạng")) {
-            String tinhTrangDB = convertTinhTrangToDatabase(tinhTrangSelected);
-            whereConditions.add("m.TinhTrang = ?");
-            params.add(tinhTrangDB);
-        }
-        
-        if (!whereConditions.isEmpty()) {
-            sql += " WHERE " + String.join(" AND ", whereConditions);
-        }
-        sql += " ORDER BY m.MaMon";
-        
-        PreparedStatement ps = conn.prepareStatement(sql);
-        for (int i = 0; i < params.size(); i++) {
-            ps.setObject(i + 1, params.get(i));
-        }
-        
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Object[] row = {
-                rs.getInt("MaMon"),
-                rs.getString("TenMon"),
-                String.format("%,d", rs.getLong("Gia")) + " VNĐ",
-                convertTinhTrangToUI(rs.getString("TinhTrang")),
-                rs.getString("TenLoai"),
-                rs.getString("Anh")
-            };
-            rows.add(row);
-        }
-        rs.close();
-        ps.close();
-        return rows;
-    }
-    
-    private List<Object[]> loadLoaiMonDataBatch(Connection conn) throws SQLException {
-        List<Object[]> rows = new ArrayList<>();
-        String sql = "SELECT MaLoai, TenLoai FROM loaimon ORDER BY MaLoai";
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
+        } else if (currentView.equals("LOAIMON")) {
+            List<LoaiMonDTO> danhSach = loaiMonDAO.layTatCaLoaiMon();
+            for (LoaiMonDTO loaiMon : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaLoai"),
-                    rs.getString("TenLoai"),
+                    loaiMon.getMaLoai(),
+                    loaiMon.getTenLoai()
                 };
-                rows.add(row);
+                tableModel.addRow(row);
             }
-        }
-        return rows;
-    }
-    
-    private List<Object[]> loadNguyenLieuDataBatch(Connection conn) throws SQLException {
-        List<Object[]> rows = new ArrayList<>();
-        String sql = "SELECT * FROM nguyenlieu ORDER BY MaNL";
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
+        } else {
+            List<NguyenLieuDTO> danhSach = nguyenLieuDAO.layTatCaNguyenLieu();
+            for (NguyenLieuDTO nl : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaNL"),
-                    rs.getString("TenNL"),
-                    rs.getString("DonVi")
+                    nl.getMaNL(),
+                    nl.getTenNL(),
+                    nl.getDonVi()
                 };
-                rows.add(row);
+                tableModel.addRow(row);
             }
         }
-        return rows;
+
+        if (currentView.equals("MON") && table.getColumnCount() > 5) {
+            table.getColumnModel().getColumn(5).setCellRenderer(new ImageCellRenderer());
+        }
+
+        table.revalidate();
+        table.repaint();
     }
     
     private void performSearch() {
@@ -330,136 +258,74 @@ public class HangHoaView extends JPanel {
         String searchType = (String) searchCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection()) {
-            if (currentView.equals("MON")) {
-                searchMonData(conn, searchText, searchType);
-            } else if (currentView.equals("LOAIMON")) {
-                searchLoaiMonData(conn, searchText, searchType);
+        if (currentView.equals("MON")) {
+            String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
+            String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
+            List<MonViewDTO> danhSach = monDAO.timKiemMon(searchType, searchText, tenLoaiSelected, tinhTrangSelected);
+            for (MonViewDTO mon : danhSach) {
+                Object[] row = {
+                    mon.getMaMon(),
+                    mon.getTenMon(),
+                    String.format("%,d", mon.getGia()) + " VNĐ",
+                    convertTinhTrangToUI(mon.getTinhTrang()),
+                    mon.getTenLoai(),
+                    mon.getAnh()
+                };
+                tableModel.addRow(row);
+            }
+        } else if (currentView.equals("LOAIMON")) {
+            List<LoaiMonDTO> danhSach;
+            if (searchType != null && searchType.equals("ID") && !searchText.isEmpty()) {
+                try {
+                    LoaiMonDTO loai = loaiMonDAO.layLoaiMonTheoMa(Integer.parseInt(searchText));
+                    danhSach = new ArrayList<>();
+                    if (loai != null) {
+                        danhSach.add(loai);
+                    }
+                } catch (NumberFormatException e) {
+                    danhSach = new ArrayList<>();
+                }
+            } else if (searchText.isEmpty()) {
+                danhSach = loaiMonDAO.layTatCaLoaiMon();
             } else {
-                searchNguyenLieuData(conn, searchText, searchType);
+                danhSach = loaiMonDAO.timKiemLoaiMonTheoTen(searchText);
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-        } catch (NumberFormatException e) {
-            JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-        }
-        
-        // Set renderer after search is completed
-        if (currentView.equals("MON") && table.getColumnCount() > 6) {
-            table.getColumnModel().getColumn(6).setCellRenderer(new ImageCellRenderer());
-        }
-    }
-    
-    private void searchLoaiMonData(Connection conn, String searchText, String searchType) throws SQLException {
-        String sql = "SELECT MaLoai, TenLoai FROM loaimon WHERE ";
-        PreparedStatement ps;
-        
-        if (searchType.equals("ID")) {
-            sql += "MaLoai = ? ORDER BY MaLoai";
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, Integer.parseInt(searchText));
-        } else {
-            sql += "TenLoai LIKE ? ORDER BY MaLoai";
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, "%" + searchText + "%");
-        }
-        
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Object[] row = {
-                rs.getInt("MaLoai"),
-                rs.getString("TenLoai")
-            };
-            tableModel.addRow(row);
-        }
-    }
-    
-    private void searchMonData(Connection conn, String searchText, String searchType) throws SQLException {
-        String sql = "SELECT m.MaMon, m.TenMon, m.Gia, m.TinhTrang, l.TenLoai, m.Anh FROM mon m LEFT JOIN loaimon l ON m.MaLoai = l.MaLoai WHERE ";
-        List<String> whereConditions = new ArrayList<>();
-        List<Object> params = new ArrayList<>();
-        PreparedStatement ps;
-        
-        // Thêm điều kiện search
-        if (searchType.equals("ID")) {
-            whereConditions.add("m.MaMon = ?");
-            params.add(Integer.parseInt(searchText));
-        } else if (searchType.equals("Tên")) {
-            whereConditions.add("m.TenMon LIKE ?");
-            params.add("%" + searchText + "%");
-        } else {
-            // Tìm kiếm theo trạng thái: chuyển đổi từ UI sang database nếu cần
-            String tinhTrangSearch = searchText;
-            // Kiểm tra nếu là tiếng Việt thì chuyển sang database
-            if ("Đang bán".equals(searchText) || searchText.contains("Đang bán")) {
-                tinhTrangSearch = "dangban";
-            } else if ("Tạm ngừng".equals(searchText) || searchText.contains("Tạm ngừng")) {
-                tinhTrangSearch = "ngungban";
+            for (LoaiMonDTO loaiMon : danhSach) {
+                Object[] row = {
+                    loaiMon.getMaLoai(),
+                    loaiMon.getTenLoai()
+                };
+                tableModel.addRow(row);
             }
-            whereConditions.add("m.TinhTrang LIKE ?");
-            params.add("%" + tinhTrangSearch + "%");
-        }
-        
-        // Thêm điều kiện filter từ combo (nếu có)
-        String tenLoaiSelected = (String) loaiMonFilterCombo.getSelectedItem();
-        if (tenLoaiSelected != null && !tenLoaiSelected.equals("Tất cả loại")) {
-            whereConditions.add("l.TenLoai = ?");
-            params.add(tenLoaiSelected);
-        }
-        
-        String tinhTrangSelected = (String) tinhTrangFilterCombo.getSelectedItem();
-        if (tinhTrangSelected != null && !tinhTrangSelected.equals("Tất cả tình trạng")) {
-            String tinhTrangDB = convertTinhTrangToDatabase(tinhTrangSelected);
-            whereConditions.add("m.TinhTrang = ?");
-            params.add(tinhTrangDB);
-        }
-        
-        // Xây dựng SQL với tất cả điều kiện
-        sql += String.join(" AND ", whereConditions);
-        sql += " ORDER BY m.MaMon";
-        
-        ps = conn.prepareStatement(sql);
-        for (int i = 0; i < params.size(); i++) {
-            ps.setObject(i + 1, params.get(i));
-        }
-        
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Object[] row = {
-                rs.getInt("MaMon"),
-                rs.getString("TenMon"),
-                String.format("%,d", rs.getLong("Gia")) + " VNĐ",
-                convertTinhTrangToUI(rs.getString("TinhTrang")), // Chuyển đổi trạng thái sang tiếng Việt
-                rs.getString("TenLoai"),
-                rs.getString("Anh")
-            };
-            tableModel.addRow(row);
-        }
-    }
-    
-    private void searchNguyenLieuData(Connection conn, String searchText, String searchType) throws SQLException {
-        String sql = "SELECT * FROM nguyenlieu WHERE ";
-        PreparedStatement ps;
-        
-        if (searchType.equals("ID")) {
-            sql += "MaNL = ? ORDER BY MaNL";
-            ps = conn.prepareStatement(sql);
-            ps.setInt(1, Integer.parseInt(searchText));
         } else {
-            sql += "TenNL LIKE ? ORDER BY MaNL";
-            ps = conn.prepareStatement(sql);
-            ps.setString(1, "%" + searchText + "%");
+            List<NguyenLieuDTO> danhSach;
+            if (searchType != null && searchType.equals("ID") && !searchText.isEmpty()) {
+                try {
+                    NguyenLieuDTO nl = nguyenLieuDAO.layNguyenLieuTheoMa(Integer.parseInt(searchText));
+                    danhSach = new ArrayList<>();
+                    if (nl != null) {
+                        danhSach.add(nl);
+                    }
+                } catch (NumberFormatException e) {
+                    danhSach = new ArrayList<>();
+                }
+            } else if (searchText.isEmpty()) {
+                danhSach = nguyenLieuDAO.layTatCaNguyenLieu();
+            } else {
+                danhSach = nguyenLieuDAO.timKiemNguyenLieu(searchType != null ? searchType : "Tên", searchText);
+            }
+            for (NguyenLieuDTO nl : danhSach) {
+                Object[] row = {
+                    nl.getMaNL(),
+                    nl.getTenNL(),
+                    nl.getDonVi()
+                };
+                tableModel.addRow(row);
+            }
         }
-        
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            Object[] row = {
-                rs.getInt("MaNL"),
-                rs.getString("TenNL"),
-                rs.getString("DonVi"),
-                "", "", "", ""
-            };
-            tableModel.addRow(row);
+
+        if (currentView.equals("MON") && table.getColumnCount() > 5) {
+            table.getColumnModel().getColumn(5).setCellRenderer(new ImageCellRenderer());
         }
     }
     
@@ -514,18 +380,10 @@ public class HangHoaView extends JPanel {
                 }
             }
             
-            // Get MaLoai from TenLoai
-            int maLoai = 1;
-            try (Connection conn = DBUtil.getConnection()) {
-                try (PreparedStatement ps = conn.prepareStatement("SELECT MaLoai FROM loaimon WHERE TenLoai = ?")) {
-                    ps.setString(1, loai);
-                    ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
-                        maLoai = rs.getInt("MaLoai");
-                    }
-                }
-            } catch (SQLException e) {
-                // Use default value
+            int maLoai = loaiMonDAO.layMaLoaiMonTheoTen(loai);
+            if (maLoai == -1) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy loại món: " + loai, "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
             
             MonDTO mon = new MonDTO(id, ten, gia, tinhTrang, maLoai, anh);
@@ -579,89 +437,25 @@ public class HangHoaView extends JPanel {
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         
         // Kiểm tra khóa ngoại trước khi xóa
-        try (Connection conn = DBUtil.getConnection()) {
-            if (currentView.equals("MON")) {
-                // Kiểm tra món có được sử dụng trong chi tiết đơn hàng không
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM chitietdonhang WHERE MaMon=?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next() && rs.getInt(1) > 0) {
-                            JOptionPane.showMessageDialog(this, 
-                                "Không thể xóa món này vì đã được sử dụng trong đơn hàng!", 
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                }
-                
-                // Kiểm tra món có được sử dụng làm topping trong chi tiết đơn hàng không
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM chitietdonhang WHERE MaTopping=?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next() && rs.getInt(1) > 0) {
-                            JOptionPane.showMessageDialog(this, 
-                                "Không thể xóa món này vì đã được sử dụng làm topping trong đơn hàng!", 
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                }
-            } else if (currentView.equals("LOAIMON")) {
-                // Kiểm tra loại món có được sử dụng trong bảng mon không
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM mon WHERE MaLoai=?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next() && rs.getInt(1) > 0) {
-                            JOptionPane.showMessageDialog(this, 
-                                "Không thể xóa loại món này vì đã có món sử dụng loại này!", 
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                }
-            } else {
-                // Kiểm tra nguyên liệu có được sử dụng trong chi tiết nhập hàng không
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM chitietnhap_nl WHERE MaNL=?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next() && rs.getInt(1) > 0) {
-                            JOptionPane.showMessageDialog(this, 
-                                "Không thể xóa nguyên liệu này vì đã được sử dụng trong phiếu nhập hàng!", 
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                }
-                
-                // Kiểm tra nguyên liệu có được sử dụng trong kho không
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM khohang WHERE MaNL=?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next() && rs.getInt(1) > 0) {
-                            JOptionPane.showMessageDialog(this, 
-                                "Không thể xóa nguyên liệu này vì đã có trong kho!", 
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                }
-                
-                // Kiểm tra nguyên liệu có được sử dụng trong nhà cung cấp không
-                try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM ncc_nguyenlieu WHERE MaNL=?")) {
-                    ps.setInt(1, id);
-                    try (ResultSet rs = ps.executeQuery()) {
-                        if (rs.next() && rs.getInt(1) > 0) {
-                            JOptionPane.showMessageDialog(this, 
-                                "Không thể xóa nguyên liệu này vì đã được nhà cung cấp cung cấp!", 
-                                "Lỗi", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                }
+        if (currentView.equals("MON")) {
+            String message = hangHoaDAO.kiemTraRangBuocXoaMon(id);
+            if (message != null) {
+                JOptionPane.showMessageDialog(this, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi kiểm tra ràng buộc: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            return;
+        } else if (currentView.equals("LOAIMON")) {
+            if (loaiMonDAO.kiemTraRangBuocXoa(id)) {
+                JOptionPane.showMessageDialog(this,
+                    "Không thể xóa loại món này vì đã có món sử dụng loại này!",
+                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        } else {
+            String message = nguyenLieuDAO.kiemTraRangBuocXoa(id);
+            if (message != null) {
+                JOptionPane.showMessageDialog(this, message, "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
         
         int result = JOptionPane.showConfirmDialog(this, 
@@ -669,28 +463,20 @@ public class HangHoaView extends JPanel {
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection()) {
-                String tableName;
-                String idColumn;
-                
-                if (currentView.equals("MON")) {
-                    tableName = "mon";
-                    idColumn = "MaMon";
-                } else if (currentView.equals("LOAIMON")) {
-                    tableName = "loaimon";
-                    idColumn = "MaLoai";
-                } else {
-                    tableName = "nguyenlieu";
-                    idColumn = "MaNL";
-                }
-                
-                PreparedStatement ps = conn.prepareStatement("DELETE FROM " + tableName + " WHERE " + idColumn + "=?");
-                ps.setInt(1, id);
-                ps.executeUpdate();
+            boolean success;
+            if (currentView.equals("MON")) {
+                success = hangHoaDAO.xoaMon(id);
+            } else if (currentView.equals("LOAIMON")) {
+                success = loaiMonDAO.xoaLoaiMon(id);
+            } else {
+                success = nguyenLieuDAO.xoaNguyenLieu(id);
+            }
+            
+            if (success) {
                 JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 loadData();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Không thể xóa bản ghi!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
         if (currentView.equals("LOAIMON")) {
@@ -822,15 +608,10 @@ public class HangHoaView extends JPanel {
         }
         
         private void loadLoaiMon() {
-            try (Connection conn = DBUtil.getConnection();
-                 Statement stmt = conn.createStatement();
-                 ResultSet rs = stmt.executeQuery("SELECT * FROM loaimon ORDER BY MaLoai")) {
-                
-                while (rs.next()) {
-                    loaiCombo.addItem(rs.getString("TenLoai"));
-                }
-            } catch (SQLException e) {
-                // Ignore error
+            loaiCombo.removeAllItems();
+            List<LoaiMonDTO> danhSach = loaiMonDAO.layTatCaLoaiMon();
+            for (LoaiMonDTO loaiMonDTO : danhSach) {
+                loaiCombo.addItem(loaiMonDTO.getTenLoai());
             }
         }
         
@@ -1107,100 +888,51 @@ public class HangHoaView extends JPanel {
                 return;
             }
             
-            Connection conn = null;
-            try {
-                conn = DBUtil.getConnection();
-                conn.setAutoCommit(false);
-                
-                // Get MaLoai from TenLoai
-                int maLoai = 1;
-                try (PreparedStatement ps = conn.prepareStatement("SELECT MaLoai FROM loaimon WHERE TenLoai = ?")) {
-                    ps.setString(1, loai);
-                    ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
-                        maLoai = rs.getInt("MaLoai");
-                    } else {
-                        if (conn != null) conn.rollback();
-                        JOptionPane.showMessageDialog(this, "Không tìm thấy loại món: " + loai, "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-                
-                String anh = anhField.getText().trim();
-                int maMon;
-                
-                if (mon == null) {
-                    // Thêm mới
-                    try (PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO mon (TenMon, Gia, TinhTrang, MaLoai, Anh) VALUES (?, ?, ?, ?, ?)",
-                        Statement.RETURN_GENERATED_KEYS)) {
-                        ps.setString(1, ten);
-                        ps.setLong(2, gia);
-                        ps.setString(3, tinhTrang);
-                        ps.setInt(4, maLoai);
-                        ps.setString(5, anh);
-                        ps.executeUpdate();
-                        
-                        ResultSet rs = ps.getGeneratedKeys();
-                        if (rs.next()) {
-                            maMon = rs.getInt(1);
-                        } else {
-                            if (conn != null) conn.rollback();
-                            JOptionPane.showMessageDialog(this, "Lỗi khi lấy mã món!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-                            return;
-                        }
-                    }
-                    JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    // Sửa
-                    maMon = mon.getMaMon();
-                    try (PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE mon SET TenMon=?, Gia=?, TinhTrang=?, MaLoai=?, Anh=? WHERE MaMon=?")) {
-                        ps.setString(1, ten);
-                        ps.setLong(2, gia);
-                        ps.setString(3, tinhTrang);
-                        ps.setInt(4, maLoai);
-                        ps.setString(5, anh);
-                        ps.setInt(6, maMon);
-                        ps.executeUpdate();
-                    }
-                    JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                }
-                
-                // Save ingredients - sử dụng batch insert để tối ưu hiệu suất
-                if (mon != null) {
-                    // Xóa tất cả nguyên liệu cũ (sử dụng connection hiện tại)
-                    try (PreparedStatement ps = conn.prepareStatement("DELETE FROM mon_nguyenlieu WHERE MaMon = ?")) {
-                        ps.setInt(1, maMon);
-                        ps.executeUpdate();
-                    }
-                }
-                if (!ingredientsList.isEmpty()) {
-                    hangHoaDAO.themNhieuNguyenLieuVaoMon(conn, maMon, ingredientsList);
-                }
-                
-                conn.commit();
-                dataChanged = true;
-                dispose();
-            } catch (SQLException e) {
-                if (conn != null) {
-                    try {
-                        conn.rollback();
-                    } catch (SQLException rollbackEx) {
-                        // Ignore rollback errors
-                    }
-                }
-                JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            } finally {
-                if (conn != null) {
-                    try {
-                        conn.setAutoCommit(true);
-                        conn.close();
-                    } catch (SQLException e) {
-                        // Ignore close errors
-                    }
-                }
+            int maLoai = loaiMonDAO.layMaLoaiMonTheoTen(loai);
+            if (maLoai == -1) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy loại món: " + loai, "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
+            
+            String anh = anhField.getText().trim();
+            boolean isInsert = (mon == null);
+            int maMon;
+            
+            if (isInsert) {
+                MonDTO newMon = new MonDTO(0, ten, gia, tinhTrang, maLoai, anh);
+                if (!monDAO.themMon(newMon)) {
+                    JOptionPane.showMessageDialog(this, "Không thể thêm món mới!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                maMon = newMon.getMaMon();
+                mon = newMon;
+                JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                mon.setTenMon(ten);
+                mon.setGia(gia);
+                mon.setTinhTrang(tinhTrang);
+                mon.setMaLoai(maLoai);
+                mon.setAnh(anh);
+                if (!monDAO.capNhatMon(mon)) {
+                    JOptionPane.showMessageDialog(this, "Không thể cập nhật món!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                maMon = mon.getMaMon();
+                JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            
+            // Gán MaMon cho danh sách nguyên liệu trước khi cập nhật
+            for (MonNguyenLieuDTO dto : ingredientsList) {
+                dto.setMaMon(maMon);
+            }
+            
+            if (!hangHoaDAO.capNhatNguyenLieuChoMon(maMon, ingredientsList)) {
+                JOptionPane.showMessageDialog(this, "Không thể cập nhật nguyên liệu cho món!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            dataChanged = true;
+            dispose();
         }
         
         public boolean isDataChanged() {
@@ -1388,27 +1120,27 @@ public class HangHoaView extends JPanel {
                 JOptionPane.showMessageDialog(this, "Vui lòng nhập tên loại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-          
-            
-            try (Connection conn = DBUtil.getConnection()) {
-                if (loaiMon == null) {
-                    // Thêm mới
-                    PreparedStatement ps = conn.prepareStatement("INSERT INTO loaimon (TenLoai) VALUES (?)");
-                    ps.setString(1, ten);
-                    ps.executeUpdate();
+            boolean success;
+            if (loaiMon == null) {
+                LoaiMonDTO newLoai = new LoaiMonDTO();
+                newLoai.setTenLoai(ten);
+                success = loaiMonDAO.themLoaiMon(newLoai);
+                if (success) {
                     JOptionPane.showMessageDialog(this, "Thêm loại món thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    // Cập nhật
-                    PreparedStatement ps = conn.prepareStatement("UPDATE loaimon SET TenLoai=? WHERE MaLoai=?");
-                    ps.setString(1, ten);
-                    ps.setInt(2, loaiMon.getMaLoai());
-                    ps.executeUpdate();
+                }
+            } else {
+                loaiMon.setTenLoai(ten);
+                success = loaiMonDAO.capNhatLoaiMon(loaiMon);
+                if (success) {
                     JOptionPane.showMessageDialog(this, "Cập nhật loại món thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
+            }
+            
+            if (success) {
                 dataChanged = true;
                 dispose();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Không thể lưu loại món!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
         
@@ -1524,29 +1256,29 @@ public class HangHoaView extends JPanel {
                 return;
             }
             
-            try (Connection conn = DBUtil.getConnection()) {
-                if (nl == null) {
-                    // Thêm mới
-                    PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO nguyenlieu (TenNL, DonVi) VALUES (?, ?)");
-                    ps.setString(1, ten);
-                    ps.setString(2, donVi);
-                    ps.executeUpdate();
+            boolean success;
+            if (nl == null) {
+                NguyenLieuDTO dto = new NguyenLieuDTO();
+                dto.setTenNL(ten);
+                dto.setDonVi(donVi);
+                success = nguyenLieuDAO.themNguyenLieu(dto);
+                if (success) {
                     JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    // Sửa
-                    PreparedStatement ps = conn.prepareStatement(
-                        "UPDATE nguyenlieu SET TenNL=?, DonVi=? WHERE MaNL=?");
-                    ps.setString(1, ten);
-                    ps.setString(2, donVi);
-                    ps.setInt(3, nl.getMaNL());
-                    ps.executeUpdate();
+                }
+            } else {
+                nl.setTenNL(ten);
+                nl.setDonVi(donVi);
+                success = nguyenLieuDAO.capNhatNguyenLieu(nl);
+                if (success) {
                     JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
                 }
+            }
+            
+            if (success) {
                 dataChanged = true;
                 dispose();
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this, "Không thể lưu nguyên liệu!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
         
@@ -1657,13 +1389,10 @@ public class HangHoaView extends JPanel {
     private void reloadLoaiMonFilterCombo() {
         loaiMonFilterCombo.removeAllItems();
         loaiMonFilterCombo.addItem("Tất cả loại");
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT TenLoai FROM loaimon ORDER BY MaLoai")) {
-            while (rs.next()) {
-                loaiMonFilterCombo.addItem(rs.getString("TenLoai"));
-            }
-        } catch (SQLException e) {}
+        List<String> tenLoaiList = loaiMonDAO.layDanhSachTenLoaiMon();
+        for (String tenLoai : tenLoaiList) {
+            loaiMonFilterCombo.addItem(tenLoai);
+        }
     }
 
     private void refreshSearchPanel() {

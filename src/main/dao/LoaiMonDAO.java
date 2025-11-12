@@ -204,5 +204,27 @@ public class LoaiMonDAO {
         }
         return danhSach;
     }
+
+    public List<LoaiMonDTO> timKiemLoaiMonTheoTen(String searchText) {
+        List<LoaiMonDTO> danhSach = new ArrayList<>();
+        String sql = "SELECT * FROM loaimon WHERE TenLoai LIKE ? ORDER BY MaLoai";
+
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, "%" + searchText + "%");
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    LoaiMonDTO loaiMon = new LoaiMonDTO();
+                    loaiMon.setMaLoai(rs.getInt("MaLoai"));
+                    loaiMon.setTenLoai(rs.getString("TenLoai"));
+                    danhSach.add(loaiMon);
+                }
+            }
+        } catch (SQLException e) {
+        }
+        return danhSach;
+    }
 }
 
