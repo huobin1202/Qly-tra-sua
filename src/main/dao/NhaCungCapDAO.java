@@ -205,7 +205,6 @@ public class NhaCungCapDAO {
         return danhSach;
     }
     
-    
     // Thêm sản phẩm cho nhà cung cấp
     public boolean themSanPhamNCC(int maNCC, int maNL, int soLuong, long donGia) {
         String sql = "INSERT INTO ncc_nguyenlieu (MaNCC, MaNL, SoLuong, DonGia) VALUES (?, ?, ?, ?) " +

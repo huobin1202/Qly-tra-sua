@@ -306,8 +306,6 @@ public class NhanVienDAO {
         return false;
     }
     
-   
-    
     // Method để chuẩn hóa chức vụ nhân viên trong database
     public boolean chuanHoaChucVuNhanVien() {
         String sql1 = "UPDATE nhanvien SET ChucVu = 'nhanvien' WHERE ChucVu = 'Nhân viên'";

@@ -50,8 +50,6 @@ public class LoaiMonDAO {
         return null;
     }
     
-  
-    
     // Lấy mã loại món theo tên
     public int layMaLoaiMonTheoTen(String tenLoai) {
         String sql = "SELECT MaLoai FROM loaimon WHERE TenLoai = ?";

@@ -252,10 +252,7 @@ public class MonDAO {
                     "WHERE mnl.MaMon = ? " +
                     "ORDER BY nl.TenNL";
         
-        try (Connection conn = DBUtil.getConnection()) {
-            // Đảm bảo bảng tồn tại
-            createMonNguyenLieuTableIfNotExists(conn);
-            
+        try (Connection conn = DBUtil.getConnection()) {            
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setInt(1, maMon);
                 
@@ -280,10 +277,7 @@ public class MonDAO {
     public boolean themNhieuNguyenLieuVaoMon(Connection conn, int maMon, List<MonNguyenLieuDTO> ingredientsList) throws SQLException {
         String sql = "INSERT INTO mon_nguyenlieu (MaMon, MaNL, SoLuong) VALUES (?, ?, ?) " +
                     "ON DUPLICATE KEY UPDATE SoLuong = ?";
-        
-        // Đảm bảo bảng tồn tại
-        createMonNguyenLieuTableIfNotExists(conn);
-        
+
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             for (MonNguyenLieuDTO dto : ingredientsList) {
                 ps.setInt(1, maMon);
@@ -307,7 +301,6 @@ public class MonDAO {
     // Cập nhật danh sách nguyên liệu của món (xóa cũ, thêm mới)
     public boolean capNhatNguyenLieuChoMon(int maMon, List<MonNguyenLieuDTO> ingredientsList) {
         try (Connection conn = DBUtil.getConnection()) {
-            createMonNguyenLieuTableIfNotExists(conn);
             
             try (PreparedStatement deletePs = conn.prepareStatement("DELETE FROM mon_nguyenlieu WHERE MaMon = ?")) {
                 deletePs.setInt(1, maMon);
@@ -322,24 +315,6 @@ public class MonDAO {
         } catch (SQLException e) {
         }
         return false;
-    }
-
-    // Tạo bảng mon_nguyenlieu nếu chưa tồn tại
-    private void createMonNguyenLieuTableIfNotExists(Connection conn) {
-        String sql = "CREATE TABLE IF NOT EXISTS mon_nguyenlieu (" +
-                    "MaMon INT NOT NULL, " +
-                    "MaNL INT NOT NULL, " +
-                    "SoLuong INT NOT NULL DEFAULT 0, " +
-                    "PRIMARY KEY (MaMon, MaNL), " +
-                    "FOREIGN KEY (MaMon) REFERENCES mon(MaMon) ON DELETE CASCADE, " +
-                    "FOREIGN KEY (MaNL) REFERENCES nguyenlieu(MaNL) ON DELETE CASCADE" +
-                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci";
-        
-        try (Statement stmt = conn.createStatement()) {
-            stmt.execute(sql);
-        } catch (SQLException e) {
-            // Ignore if table already exists or other errors
-        }
     }
 
     public boolean chuanHoaTrangThaiMon() {

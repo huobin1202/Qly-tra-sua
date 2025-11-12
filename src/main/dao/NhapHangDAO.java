@@ -10,7 +10,7 @@ import dto.NhapHangDTO;
 import dto.ChiTietNhapHangDTO;
 
 public class NhapHangDAO implements IQuanLyPhieuNhap {
-    
+    // ========== PHIẾU NHẬP ==========
     // Tạo phiếu nhập mới với kiểm tra ràng buộc trong Java
     @Override
     public boolean taoPhieuNhap(NhapHangDTO phieuNhap) {
@@ -138,11 +138,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         return danhSach;
     }
     
-    // Tìm kiếm phiếu nhập theo trạng thái
-   
-    
-    // Tìm kiếm phiếu nhập theo nhà cung cấp
-   
     // Cập nhật phiếu nhập (chỉ khi chưa xác nhận)
     @Override
     public boolean capNhatPhieuNhap(NhapHangDTO phieuNhap) {
@@ -291,10 +286,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         }
     }
     
-
-    
-  
-    
     // Thêm chi tiết phiếu nhập với kiểm tra ràng buộc trong Java
     @Override
     public boolean themChiTietPhieuNhap(int maPN, int maNL, int soLuong, long donGia, String donVi) {
@@ -382,8 +373,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         }
     }
     
-  
-    
     // Cập nhật tổng tiền phiếu nhập
     private void capNhatTongTienPhieuNhap(int maPN, long thanhTien) {
         String sql = "UPDATE phieunhap SET ThanhTien = ThanhTien + ? WHERE MaPN = ?";
@@ -432,7 +421,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // ========== CHI TIẾT PHIẾU NHẬP ==========
-    
     // Lấy tất cả chi tiết phiếu nhập theo mã phiếu
     @Override
     public List<ChiTietNhapHangDTO> layChiTietPhieuNhap(int maPN) {
@@ -611,7 +599,5 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
         }
         return null;
     }
-    
-
     
 }

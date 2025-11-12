@@ -148,7 +148,6 @@ public class KhoHangDAO {
         return false;
     }
     
-   
     // Lấy danh sách nguyên liệu sắp hết (LEFT JOIN để lấy cả nguyên liệu chưa có trong kho)
     public List<KhoHangDTO> layNguyenLieuSapHetVoiNguyenLieu(int nguong) {
         List<KhoHangDTO> danhSach = new ArrayList<>();

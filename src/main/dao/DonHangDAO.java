@@ -404,10 +404,7 @@ public class DonHangDAO {
         return danhSach;
     }
     
-    // Cập nhật trạng thái đơn hàng với enum
-    
     // ========== CHI TIẾT ĐƠN HÀNG ==========
-    
     // Lấy chi tiết đơn hàng
     public List<ChiTietDonHangDTO> layChiTietDonHang(int maDon) {
         try (Connection conn = DBUtil.getConnection()) {
@@ -447,7 +444,6 @@ public class DonHangDAO {
         return danhSach;
     }
 
-    
     // Lấy thông tin đơn hàng với tên nhân viên và tên khách hàng
     public DonHangDTO layDonHangVoiTenNV(int maDon) {
         String sql = "SELECT dh.*, nv.HoTen AS TenNV, kh.HoTen AS TenKH, kh.SDT AS SoDienThoai " +
