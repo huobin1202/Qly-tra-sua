@@ -885,6 +885,10 @@ public class HangHoaView extends JPanel {
                 JOptionPane.showMessageDialog(this, "Giá phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
+            if (gia < 0) {
+                JOptionPane.showMessageDialog(this, "Giá phải lớn hơn 0!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             
             int maLoai = loaiMonDAO.layMaLoaiMonTheoTen(loai);
             if (maLoai == -1) {

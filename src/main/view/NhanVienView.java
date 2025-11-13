@@ -453,7 +453,6 @@ public class NhanVienView extends JPanel {
                 JOptionPane.showMessageDialog(this, "Lương phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
             // Validation số điện thoại
             // Kiểm tra chỉ chứa số
             if (!sdtStr.matches("\\d+")) {

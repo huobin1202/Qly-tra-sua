@@ -42,7 +42,6 @@ public class ThongKeView extends JPanel {
         createNhanVienTab();
         createKhachHangTab();
         createNhapHangTab();
-        createKhoHangTab();
         createBaoCaoTab();
         
         // Tạo panel điều khiển
@@ -482,45 +481,7 @@ public class ThongKeView extends JPanel {
         tabbedPane.addTab("Nhập hàng", nhapHangPanel);
     }
     
-    private void createKhoHangTab() {
-        JPanel khoHangPanel = new JPanel(new BorderLayout());
-        khoHangPanel.setBackground(new Color(240, 248, 255));
-        
-        // Header
-        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        headerPanel.setBackground(new Color(240, 248, 255));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JLabel titleLabel = new JLabel("THỐNG KÊ KHO HÀNG");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
-        titleLabel.setForeground(new Color(70, 130, 180));
-        headerPanel.add(titleLabel);
-        
-        khoHangPanel.add(headerPanel, BorderLayout.NORTH);
-        
-        // Table
-        String[] columns = {"STT", "Tên nguyên liệu", "Số lượng", "Đơn vị"};
-        DefaultTableModel tableModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        
-        JTable table = new JTable(tableModel);
-        table.setFont(new Font("Arial", Font.PLAIN, 12));
-        table.setRowHeight(25);
-        table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
-        table.getTableHeader().setBackground(new Color(70, 130, 180));
-        table.getTableHeader().setForeground(Color.BLACK);
-        
-        JScrollPane scrollPane = new JScrollPane(table);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        khoHangPanel.add(scrollPane, BorderLayout.CENTER);
-        
-        tabbedPane.addTab("Kho hàng", khoHangPanel);
-    }
+    
     
     private void createBaoCaoTab() {
         BaoCaoView baoCaoView = new BaoCaoView();
@@ -531,7 +492,6 @@ public class ThongKeView extends JPanel {
         // Chỉ load dữ liệu không cần ngày (tổng quan, kho hàng)
         try {
             loadTongQuanData();
-            loadKhoHangData();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -541,7 +501,6 @@ public class ThongKeView extends JPanel {
         // Load data không cần ngày (tổng quan, kho hàng)
         try {
             loadTongQuanData();
-            loadKhoHangData();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -849,35 +808,6 @@ public class ThongKeView extends JPanel {
         }
     }
     
-    private void loadKhoHangData() {
-        // Load nguyên liệu sắp hết
-        List<ThongKeDTO> nguyenLieuData = thongKeDAO.thongKeNguyenLieuSapHet(50);
-        
-        JPanel khoHangPanel = (JPanel) tabbedPane.getComponentAt(6);
-        JScrollPane scrollPane = null;
-        for (Component comp : khoHangPanel.getComponents()) {
-            if (comp instanceof JScrollPane) {
-                scrollPane = (JScrollPane) comp;
-                break;
-            }
-        }
-        if (scrollPane == null) return;
-        
-        JTable table = (JTable) scrollPane.getViewport().getView();
-        DefaultTableModel model = (DefaultTableModel) table.getModel();
-        
-        model.setRowCount(0);
-        int stt = 1;
-        for (ThongKeDTO item : nguyenLieuData) {
-            Object[] row = {
-                stt++,
-                item.getTenMon(),
-                item.getSoLuongBan(),
-                item.getTenLoaiMon()
-            };
-            model.addRow(row);
-        }
-    }
     
     private String convertTrangThaiToUI(String trangThaiDB) {
         switch (trangThaiDB) {

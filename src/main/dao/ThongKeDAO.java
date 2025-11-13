@@ -623,8 +623,6 @@ public class ThongKeDAO {
         return result;
     }
     
-   
-    
     // Lấy tổng giá trị tồn kho
     public long layTongGiaTriTonKho() {
         String sql = "SELECT COALESCE(SUM(kh.SoLuong * nccnl.DonGia), 0) as TongGiaTri " +

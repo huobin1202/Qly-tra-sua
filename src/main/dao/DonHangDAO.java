@@ -44,7 +44,6 @@ public class DonHangDAO {
         return danhSach;
     }
     
-    
     // Tìm kiếm đơn hàng với điều kiện (không có ngày)
     public List<DonHangDTO> timKiemDonHang(String searchType, String searchText, String trangThai, String ngayTim) {
         // Tham số ngayTim được giữ lại để tương thích nhưng không sử dụng
