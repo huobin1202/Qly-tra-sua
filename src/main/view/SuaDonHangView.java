@@ -629,7 +629,6 @@ public class SuaDonHangView extends JDialog {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT * FROM khachhang WHERE SDT = ?")) {
             
@@ -1347,7 +1346,6 @@ public class SuaDonHangView extends JDialog {
                     suggestedDiscount = 0;
                 }
                 // Đảm bảo không vượt quá 30%
-                if (suggestedDiscount > 30) suggestedDiscount = 30;
             } catch (NumberFormatException ignore) {
                 // Bỏ qua nếu không parse được điểm
                 suggestedDiscount = 0;
@@ -1437,6 +1435,8 @@ public class SuaDonHangView extends JDialog {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
+      
+        
         
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);

@@ -1338,7 +1338,6 @@ public class ThemDonHangView extends JDialog {
                     suggestedDiscount = 0;
                 }
                 // Đảm bảo không vượt quá 30%
-                if (suggestedDiscount > 30) suggestedDiscount = 30;
             } catch (NumberFormatException ignore) {
                 // Không làm gì nếu không parse được điểm
                 suggestedDiscount = 0;

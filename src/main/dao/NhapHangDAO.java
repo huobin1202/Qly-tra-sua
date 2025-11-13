@@ -4,15 +4,13 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import controller.IQuanLyPhieuNhap;
 import database.DBUtil;
 import dto.NhapHangDTO;
 import dto.ChiTietNhapHangDTO;
 
-public class NhapHangDAO implements IQuanLyPhieuNhap {
+public class NhapHangDAO {
     // ========== PHIẾU NHẬP ==========
     // Tạo phiếu nhập mới với kiểm tra ràng buộc trong Java
-    @Override
     public boolean taoPhieuNhap(NhapHangDTO phieuNhap) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -87,7 +85,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Lấy phiếu nhập theo mã
-    @Override
     public NhapHangDTO layPhieuNhapTheoMa(int maPN) {
         String sql = "SELECT * FROM phieunhap WHERE MaPN = ?";
         
@@ -114,7 +111,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Lấy tất cả phiếu nhập
-    @Override
     public List<NhapHangDTO> layTatCaPhieuNhap() {
         List<NhapHangDTO> danhSach = new ArrayList<>();
         String sql = "SELECT * FROM phieunhap ORDER BY Ngay DESC";
@@ -139,7 +135,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Cập nhật phiếu nhập (chỉ khi chưa xác nhận)
-    @Override
     public boolean capNhatPhieuNhap(NhapHangDTO phieuNhap) {
         // Kiểm tra trạng thái trước khi cập nhật
         NhapHangDTO phieuHienTai = layPhieuNhapTheoMa(phieuNhap.getMaPN());
@@ -164,7 +159,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Xác nhận phiếu nhập với kiểm tra ràng buộc trong Java
-    @Override
     public boolean xacNhanPhieuNhap(int maPN) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -207,7 +201,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Xóa phiếu nhập với kiểm tra ràng buộc trong Java
-    @Override
     public boolean xoaPhieuNhap(int maPN) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -287,7 +280,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Thêm chi tiết phiếu nhập với kiểm tra ràng buộc trong Java
-    @Override
     public boolean themChiTietPhieuNhap(int maPN, int maNL, int soLuong, long donGia, String donVi) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -422,7 +414,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     
     // ========== CHI TIẾT PHIẾU NHẬP ==========
     // Lấy tất cả chi tiết phiếu nhập theo mã phiếu
-    @Override
     public List<ChiTietNhapHangDTO> layChiTietPhieuNhap(int maPN) {
         List<ChiTietNhapHangDTO> danhSach = new ArrayList<>();
         String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, nl.DonVi " +
@@ -454,7 +445,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Cập nhật chi tiết phiếu nhập
-    @Override
     public boolean capNhatChiTietPhieuNhap(ChiTietNhapHangDTO chiTiet) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -519,7 +509,6 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Xóa chi tiết phiếu nhập
-    @Override
     public boolean xoaChiTietPhieuNhap(int maPN, int maNL) {
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -571,7 +560,7 @@ public class NhapHangDAO implements IQuanLyPhieuNhap {
     }
     
     // Lấy chi tiết phiếu nhập theo mã phiếu và mã nguyên liệu
-    @Override
+
     public ChiTietNhapHangDTO layChiTietPhieuNhapTheoMa(int maPN, int maNL) {
         String sql = "SELECT ctn.MaPN, ctn.MaNL, nl.TenNL, ctn.SoLuong, ctn.DonGia, nl.DonVi " +
                     "FROM chitietnhap_nl ctn " +
