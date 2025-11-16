@@ -340,8 +340,8 @@ public class KhachHangView extends JPanel {
                 return;
             }
             
-            if (sdtStr.length() < 9 || sdtStr.length() > 11) {
-                JOptionPane.showMessageDialog(this, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            if (sdtStr.length() > 11) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại tối đa 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             

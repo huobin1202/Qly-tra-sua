@@ -99,6 +99,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         //add(rightSidebar, BorderLayout.EAST);
         
         // Hiển thị dashboard mặc định khi đăng nhập
+     
         cardLayout.show(mainPanel, "DEFAULT");
     }
     
@@ -510,11 +511,12 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     
     private void createChildViews() {
         // Tạo các view con và thêm vào mainPanel
-        mainPanel.add(createDefaultView(), "DEFAULT");
-        mainPanel.add(new NhaCungCapView(this), "NHA_CUNG_CAP");
+        if ("quanly".equals(Session.currentChucVu)) {
+            mainPanel.add(createDefaultView(), "DEFAULT");
+        }
+        mainPanel.add(new DonHangView(this), "DON_HANG");        
         mainPanel.add(new KhachHangView(this), "KHACH_HANG");
         mainPanel.add(new NhanVienView(this), "NHAN_VIEN");
-        mainPanel.add(new DonHangView(this), "DON_HANG");
         mainPanel.add(new KhoHangView(this), "KHO_HANG");
         mainPanel.add(new NhapHangView(this), "NHAP_HANG");
         mainPanel.add(new ThongKeView(), "THONG_KE");
@@ -767,26 +769,6 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
     
     // Menu handler phải đảm bảo mỗi lần chuyển sang layout "MON", "LOAIMON", "NGUYENLIEU" đều hiển thị đúng panel con với trạng thái currentView chuẩn
     private void handleMenuSelection(String menuText) {
-        // "Tổng quan" chỉ dành cho quản lý
-        if ("Tổng quan".equals(menuText)) {
-            if (!"quanly".equals(Session.currentChucVu)) {
-                JOptionPane.showMessageDialog(this, 
-                    "Bạn không có quyền truy cập chức năng này!", 
-                    "Không có quyền", 
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            cardLayout.show(mainPanel, "DEFAULT");
-            return;
-        }
-        
-        if (!hasPermission(menuText)) {
-            JOptionPane.showMessageDialog(this, 
-                "Bạn không có quyền truy cập chức năng này!", 
-                "Không có quyền", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
         switch (menuText) {
             case "Quản lý nhân viên":
                 cardLayout.show(mainPanel, "NHAN_VIEN");

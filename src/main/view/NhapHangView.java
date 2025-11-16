@@ -405,9 +405,6 @@ public class NhapHangView extends JPanel {
         
         // Kiểm tra trạng thái phiếu nhập
         if ("Đã xác nhận".equalsIgnoreCase(trangThai)) {
-            JOptionPane.showMessageDialog(this, 
-                "Phiếu nhập đã được xác nhận, không thể chỉnh sửa!\nChỉ có thể xem chi tiết.", 
-                "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             showDetailsDialog(id);
             return;
         }
@@ -608,15 +605,8 @@ public class NhapHangView extends JPanel {
             printButton.setForeground(Color.BLACK);
             printButton.setFocusPainted(false);
             printButton.addActionListener(e -> printPhieuNhap(detail.toString(), id));
-            
-            JButton exportButton = new JButton("💾 Xuất file");
-            exportButton.setBackground(new Color(34, 139, 34));
-            exportButton.setForeground(Color.BLACK);
-            exportButton.setFocusPainted(false);
-            exportButton.addActionListener(e -> exportPhieuNhap(detail.toString(), id));
-            
+        
             buttonPanel.add(printButton);
-            buttonPanel.add(exportButton);
             
             mainPanel.add(buttonPanel, BorderLayout.SOUTH);
             
@@ -632,30 +622,17 @@ public class NhapHangView extends JPanel {
             // Tạo một JTextArea để in
             JTextArea printArea = new JTextArea(content);
             printArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-            printArea.print();
+            boolean printSuccess = printArea.print();
             
-            JOptionPane.showMessageDialog(this, "In phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            if (printSuccess) {
+                JOptionPane.showMessageDialog(this, "In phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            // Nếu printSuccess = false, người dùng đã hủy, không hiển thị thông báo
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi khi in phiếu nhập: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    private void exportPhieuNhap(String content, int maPN) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Xuất phiếu nhập");
-        fileChooser.setSelectedFile(new java.io.File("PhieuNhap_" + maPN + "_" + 
-            new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".txt"));
-        
-        int result = fileChooser.showSaveDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            try (java.io.FileWriter writer = new java.io.FileWriter(fileChooser.getSelectedFile())) {
-                writer.write(content);
-                JOptionPane.showMessageDialog(this, "Xuất phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            } catch (java.io.IOException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
     
     
     // Inner class for Add/Edit dialog
@@ -933,10 +910,6 @@ public class NhapHangView extends JPanel {
             printButton.setForeground(Color.BLACK);
             printButton.setFocusPainted(false);
             
-            JButton exportButton = new JButton("💾 Xuất file");
-            exportButton.setBackground(new Color(34, 139, 34));
-            exportButton.setForeground(Color.BLACK);
-            exportButton.setFocusPainted(false);
             
             JButton closeButton = new JButton("❌ Đóng");
             closeButton.setBackground(new Color(128, 128, 128));
@@ -947,7 +920,6 @@ public class NhapHangView extends JPanel {
             buttonPanel.add(editChiTietButton);
             buttonPanel.add(deleteChiTietButton);
             buttonPanel.add(printButton);
-            buttonPanel.add(exportButton);
             buttonPanel.add(closeButton);
             
             // Footer panel
@@ -966,7 +938,6 @@ public class NhapHangView extends JPanel {
             editChiTietButton.addActionListener(e -> showEditChiTietDialog());
             deleteChiTietButton.addActionListener(e -> performDeleteChiTiet());
             printButton.addActionListener(e -> printPhieuNhap());
-            exportButton.addActionListener(e -> exportPhieuNhap());
             closeButton.addActionListener(e -> dispose());
         }
         
@@ -1088,9 +1059,12 @@ public class NhapHangView extends JPanel {
                 printButton.setFocusPainted(false);
                 printButton.addActionListener(e -> {
                     try {
-                        previewArea.print();
-                        JOptionPane.showMessageDialog(previewDialog, "In phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                        previewDialog.dispose();
+                        boolean printSuccess = previewArea.print();
+                        if (printSuccess) {
+                            JOptionPane.showMessageDialog(previewDialog, "In phiếu nhập thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                            previewDialog.dispose();
+                        }
+                        // Nếu printSuccess = false, người dùng đã hủy, không hiển thị thông báo và không đóng dialog
                     } catch (Exception ex) {
                         JOptionPane.showMessageDialog(previewDialog, "Lỗi khi in: " + ex.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
                     }
@@ -1195,224 +1169,8 @@ public class NhapHangView extends JPanel {
             return content.toString();
         }
         
-        private void exportPhieuNhap() {
-            // Tạo dialog chọn định dạng xuất
-            String[] formats = {"TXT (Text)", "CSV (Excel)", "HTML"};
-            String selectedFormat = (String) JOptionPane.showInputDialog(
-                this,
-                "Chọn định dạng xuất file:",
-                "Xuất phiếu nhập",
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                formats,
-                formats[0]
-            );
-            
-            if (selectedFormat == null) {
-                return;
-            }
-            
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Xuất phiếu nhập");
-            
-            String extension = ".txt";
-            if (selectedFormat.contains("CSV")) {
-                extension = ".csv";
-            } else if (selectedFormat.contains("HTML")) {
-                extension = ".html";
-            }
-            
-            fileChooser.setSelectedFile(new java.io.File("PhieuNhap_" + maPN + "_" + 
-                new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + extension));
-            
-            int result = fileChooser.showSaveDialog(this);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                try {
-                    java.io.File selectedFile = fileChooser.getSelectedFile();
-                    String filePath = selectedFile.getAbsolutePath();
-                    
-                    // Đảm bảo có extension đúng
-                    if (!filePath.toLowerCase().endsWith(extension)) {
-                        filePath += extension;
-                        selectedFile = new java.io.File(filePath);
-                    }
-                    
-                    if (selectedFormat.contains("CSV")) {
-                        exportToCSV(selectedFile);
-                    } else if (selectedFormat.contains("HTML")) {
-                        exportToHTML(selectedFile);
-                    } else {
-                        exportToTXT(selectedFile);
-                    }
-                    
-                    JOptionPane.showMessageDialog(this, 
-                        "Xuất phiếu nhập thành công!\nFile đã được lưu tại:\n" + selectedFile.getAbsolutePath(), 
-                        "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                    
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        }
-        
-        private void exportToTXT(java.io.File file) throws Exception {
-            try (java.io.FileWriter writer = new java.io.FileWriter(file)) {
-                writer.write(generatePhieuNhapContent());
-            }
-        }
-        
-        private void exportToCSV(java.io.File file) throws Exception {
-            try (java.io.FileWriter writer = new java.io.FileWriter(file)) {
-                // Header CSV
-                writer.write("PHIẾU NHẬP HÀNG #" + maPN + "\n");
-                writer.write("\n");
-                
-                // Thông tin phiếu nhập
-                try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
-                               "FROM phieunhap p " +
-                               "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
-                               "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
-                               "WHERE p.MaPN = ?";
-                    PreparedStatement ps = conn.prepareStatement(sql);
-                    ps.setInt(1, maPN);
-                    ResultSet rs = ps.executeQuery();
-                    
-                    if (rs.next()) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                        String ngayNhap = rs.getTimestamp("Ngay") != null ? dateFormat.format(rs.getTimestamp("Ngay")) : "N/A";
-                        writer.write("Mã phiếu nhập," + rs.getInt("MaPN") + "\n");
-                        writer.write("Ngày nhập," + ngayNhap + "\n");
-                        writer.write("Nhân viên," + (rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A") + "\n");
-                        writer.write("Nhà cung cấp," + (rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A") + "\n");
-                        writer.write("Trạng thái," + convertTrangThaiToUI(rs.getString("TrangThai")) + "\n");
-                    }
-                    rs.close();
-                    ps.close();
-                }
-                
-                writer.write("\n");
-                writer.write("CHI TIẾT NGUYÊN LIỆU\n");
-                writer.write("STT,Mã NL,Tên nguyên liệu,Số lượng,Đơn giá,Đơn vị,Thành tiền\n");
-                
-                // Chi tiết
-                try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT ct.*, nl.TenNL, nl.DonVi " +
-                               "FROM chitietnhap_nl ct " +
-                               "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
-                               "WHERE ct.MaPN = ?";
-                    PreparedStatement ps = conn.prepareStatement(sql);
-                    ps.setInt(1, maPN);
-                    ResultSet rs = ps.executeQuery();
-                    
-                    long tongTien = 0;
-                    int stt = 1;
-                    while (rs.next()) {
-                        long thanhTien = rs.getLong("SoLuong") * rs.getLong("DonGia");
-                        tongTien += thanhTien;
-                        
-                        writer.write(String.format("%d,%d,\"%s\",%d,%d,\"%s\",%d\n",
-                            stt++,
-                            rs.getInt("MaNL"),
-                            rs.getString("TenNL"),
-                            rs.getInt("SoLuong"),
-                            rs.getLong("DonGia"),
-                            rs.getString("DonVi"),
-                            thanhTien
-                        ));
-                    }
-                    rs.close();
-                    ps.close();
-                    
-                    writer.write("\n");
-                    writer.write("TỔNG TIỀN," + tongTien + "\n");
-                }
-            }
-        }
-        
-        private void exportToHTML(java.io.File file) throws Exception {
-            try (java.io.FileWriter writer = new java.io.FileWriter(file)) {
-                writer.write("<!DOCTYPE html>\n");
-                writer.write("<html><head><meta charset='UTF-8'>\n");
-                writer.write("<title>Phiếu nhập hàng #" + maPN + "</title>\n");
-                writer.write("<style>\n");
-                writer.write("body { font-family: Arial, sans-serif; margin: 20px; }\n");
-                writer.write("h1 { text-align: center; color: #4682B4; }\n");
-                writer.write("table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n");
-                writer.write("th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }\n");
-                writer.write("th { background-color: #4682B4; color: white; }\n");
-                writer.write(".total { font-weight: bold; font-size: 18px; text-align: right; }\n");
-                writer.write(".info { margin: 10px 0; }\n");
-                writer.write("</style>\n</head><body>\n");
-                
-                writer.write("<h1>PHIẾU NHẬP HÀNG #" + maPN + "</h1>\n");
-                
-                // Thông tin phiếu nhập
-                try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT p.*, nv.HoTen as TenNV, ncc.TenNCC " +
-                               "FROM phieunhap p " +
-                               "LEFT JOIN nhanvien nv ON p.MaNV = nv.MaNV " +
-                               "LEFT JOIN nhacungcap ncc ON p.MaNCC = ncc.MaNCC " +
-                               "WHERE p.MaPN = ?";
-                    PreparedStatement ps = conn.prepareStatement(sql);
-                    ps.setInt(1, maPN);
-                    ResultSet rs = ps.executeQuery();
-                    
-                    if (rs.next()) {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                        String ngayNhap = rs.getTimestamp("Ngay") != null ? dateFormat.format(rs.getTimestamp("Ngay")) : "N/A";
-                        writer.write("<div class='info'>\n");
-                        writer.write("<p><strong>Mã phiếu nhập:</strong> " + rs.getInt("MaPN") + "</p>\n");
-                        writer.write("<p><strong>Ngày nhập:</strong> " + ngayNhap + "</p>\n");
-                        writer.write("<p><strong>Nhân viên:</strong> " + (rs.getString("TenNV") != null ? rs.getString("TenNV") : "N/A") + "</p>\n");
-                        writer.write("<p><strong>Nhà cung cấp:</strong> " + (rs.getString("TenNCC") != null ? rs.getString("TenNCC") : "N/A") + "</p>\n");
-                        writer.write("<p><strong>Trạng thái:</strong> " + convertTrangThaiToUI(rs.getString("TrangThai")) + "</p>\n");
-                        writer.write("</div>\n");
-                    }
-                    rs.close();
-                    ps.close();
-                }
-                
-                writer.write("<h2>CHI TIẾT NGUYÊN LIỆU</h2>\n");
-                writer.write("<table>\n");
-                writer.write("<tr><th>STT</th><th>Mã NL</th><th>Tên nguyên liệu</th><th>Số lượng</th><th>Đơn giá</th><th>Đơn vị</th><th>Thành tiền</th></tr>\n");
-                
-                // Chi tiết
-                try (Connection conn = DBUtil.getConnection()) {
-                    String sql = "SELECT ct.*, nl.TenNL, nl.DonVi " +
-                               "FROM chitietnhap_nl ct " +
-                               "JOIN nguyenlieu nl ON ct.MaNL = nl.MaNL " +
-                               "WHERE ct.MaPN = ?";
-                    PreparedStatement ps = conn.prepareStatement(sql);
-                    ps.setInt(1, maPN);
-                    ResultSet rs = ps.executeQuery();
-                    
-                    long tongTien = 0;
-                    int stt = 1;
-                    while (rs.next()) {
-                        long thanhTien = rs.getLong("SoLuong") * rs.getLong("DonGia");
-                        tongTien += thanhTien;
-                        
-                        writer.write("<tr>");
-                        writer.write("<td>" + stt++ + "</td>");
-                        writer.write("<td>" + rs.getInt("MaNL") + "</td>");
-                        writer.write("<td>" + rs.getString("TenNL") + "</td>");
-                        writer.write("<td>" + rs.getInt("SoLuong") + "</td>");
-                        writer.write("<td>" + String.format("%,d", rs.getLong("DonGia")) + " VNĐ</td>");
-                        writer.write("<td>" + rs.getString("DonVi") + "</td>");
-                        writer.write("<td>" + String.format("%,d", thanhTien) + " VNĐ</td>");
-                        writer.write("</tr>\n");
-                    }
-                    rs.close();
-                    ps.close();
-                    
-                    writer.write("<tr class='total'><td colspan='6'>TỔNG TIỀN</td><td>" + String.format("%,d", tongTien) + " VNĐ</td></tr>\n");
-                }
-                
-                writer.write("</table>\n");
-                writer.write("</body></html>");
-            }
-        }
+      
+      
         
         public boolean isDataChanged() {
             return false; // ChiTietPhieuNhapDialog không cần theo dõi thay đổi

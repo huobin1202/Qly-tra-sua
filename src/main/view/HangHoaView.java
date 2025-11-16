@@ -569,8 +569,17 @@ public class HangHoaView extends JPanel {
                 
                 // Set loại món
                 try {
-                    if (mon.getMaLoai() > 0 && mon.getMaLoai() <= loaiCombo.getItemCount()) {
-                        loaiCombo.setSelectedIndex(mon.getMaLoai() - 1);
+                    // Lấy thông tin loại món từ MaLoai
+                    LoaiMonDTO loaiMon = loaiMonDAO.layLoaiMonTheoMa(mon.getMaLoai());
+                    if (loaiMon != null) {
+                        String tenLoai = loaiMon.getTenLoai();
+                        // Tìm item trong combo box có tên khớp
+                        for (int i = 0; i < loaiCombo.getItemCount(); i++) {
+                            if (tenLoai.equals(loaiCombo.getItemAt(i))) {
+                                loaiCombo.setSelectedIndex(i);
+                                break;
+                            }
+                        }
                     }
                 } catch (Exception e) {
                 }
@@ -943,7 +952,8 @@ public class HangHoaView extends JPanel {
         
         private void chooseImage() {
             JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setCurrentDirectory(new java.io.File("src/images"));
+            // Cho phép chọn ảnh từ bất kỳ đâu, không giới hạn thư mục
+            // fileChooser sẽ mở ở thư mục mặc định (thường là thư mục người dùng hoặc thư mục gần đây)
             fileChooser.setDialogTitle("Chọn ảnh món");
             fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
                 @Override
@@ -962,9 +972,9 @@ public class HangHoaView extends JPanel {
             
             if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 java.io.File selectedFile = fileChooser.getSelectedFile();
-                String relativePath = getRelativePath(selectedFile);
-                anhField.setText(relativePath);
-                loadImagePreview(relativePath);
+                String imagePath = getRelativePath(selectedFile);
+                anhField.setText(imagePath);
+                loadImagePreview(imagePath);
             }
         }
         
@@ -972,10 +982,47 @@ public class HangHoaView extends JPanel {
             String fullPath = file.getAbsolutePath();
             String srcPath = new java.io.File("src").getAbsolutePath();
             
+            // Nếu file nằm trong thư mục src, trả về đường dẫn tương đối
             if (fullPath.startsWith(srcPath)) {
                 return fullPath.substring(srcPath.length() + 1).replace("\\", "/");
             }
-            return file.getName();
+            
+            // Nếu file nằm ngoài thư mục src, copy vào src/images và trả về đường dẫn tương đối
+            try {
+                java.io.File imagesDir = new java.io.File("src/images");
+                if (!imagesDir.exists()) {
+                    imagesDir.mkdirs();
+                }
+                
+                String fileName = file.getName();
+                java.io.File destFile = new java.io.File(imagesDir, fileName);
+                
+                // Nếu file đã tồn tại, thêm số vào tên để tránh ghi đè
+                int counter = 1;
+                int lastDotIndex = fileName.lastIndexOf('.');
+                String baseName, extension;
+                if (lastDotIndex > 0) {
+                    baseName = fileName.substring(0, lastDotIndex);
+                    extension = fileName.substring(lastDotIndex);
+                } else {
+                    // File không có extension
+                    baseName = fileName;
+                    extension = "";
+                }
+                while (destFile.exists()) {
+                    destFile = new java.io.File(imagesDir, baseName + "_" + counter + extension);
+                    counter++;
+                }
+                
+                // Copy file
+                java.nio.file.Files.copy(file.toPath(), destFile.toPath(), 
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                
+                return "images/" + destFile.getName();
+            } catch (Exception e) {
+                // Nếu không copy được, trả về đường dẫn đầy đủ
+                return fullPath.replace("\\", "/");
+            }
         }
         
         private void loadImagePreview(String imagePath) {
@@ -986,7 +1033,17 @@ public class HangHoaView extends JPanel {
             }
             
             try {
-                String fullPath = "src/" + imagePath;
+                // Xác định đường dẫn đầy đủ: nếu là đường dẫn tuyệt đối thì dùng trực tiếp, nếu không thì thêm "src/"
+                String fullPath;
+                java.io.File testFile = new java.io.File(imagePath);
+                if (testFile.isAbsolute()) {
+                    // Đường dẫn tuyệt đối (ví dụ: C:\Users\... hoặc /home/...)
+                    fullPath = imagePath;
+                } else {
+                    // Đường dẫn tương đối, thêm "src/" vào đầu
+                    fullPath = "src/" + imagePath;
+                }
+                
                 java.io.File imageFile = new java.io.File(fullPath);
                 
                 if (imageFile.exists()) {
