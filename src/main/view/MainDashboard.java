@@ -514,6 +514,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         if ("quanly".equals(Session.currentChucVu)) {
             mainPanel.add(createDefaultView(), "DEFAULT");
         }
+        mainPanel.add(new NhaCungCapView(this), "NHA_CUNG_CAP");
         mainPanel.add(new DonHangView(this), "DON_HANG");        
         mainPanel.add(new KhachHangView(this), "KHACH_HANG");
         mainPanel.add(new NhanVienView(this), "NHAN_VIEN");
