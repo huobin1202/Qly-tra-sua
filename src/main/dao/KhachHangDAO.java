@@ -45,11 +45,11 @@ public class KhachHangDAO {
                 ps = conn.prepareStatement(sql);
                 ps.setInt(1, Integer.parseInt(searchText));
             } else if (searchType.equals("Số điện thoại")) {
-                sql += "SoDienThoai LIKE ? ORDER BY MaKH";
+                sql += "SDT LIKE ? ORDER BY SDT";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
             } else {
-                sql += "HoTen LIKE ? ORDER BY MaKH";
+                sql += "HoTen LIKE ? ORDER BY HoTen";
                 ps = conn.prepareStatement(sql);
                 ps.setString(1, "%" + searchText + "%");
             }
