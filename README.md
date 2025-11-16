@@ -9,8 +9,8 @@
 | ------------- | ------------- | ------------- | ------------- |
 | Hồ Phạm Hữu Bình  | 3123411033  | 25 | Code chính |
 | Nguyễn Văn Phát  | 3123411220  | 25 | Vẽ báo cáo |
-| Nguyễn Minh  | 3123411---  | 25 | Code phụ |
-| Võ Lê Chí Dũng  | 3123411---  | 25 | Vẽ báo cáo + Code phụ |
+| Nguyễn Minh  | 3123411188  | 25 | Code phụ |
+| Võ Lê Chí Dũng  | 3123411051  | 25 | Vẽ báo cáo + Code phụ |
 
 # Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
@@ -30,6 +30,8 @@
    ```bash
    git clone https://github.com/huobin1202/Qly-tra-sua.git
    ```
-2. Mở xampp và vào trang http://localhost/phpmyadmin/ tạo 1 database mới có tên là bants và import cơ sở dữ liệu trong folder db trong source code.
+2. Mở xampp và vào trang http://localhost/phpmyadmin/ tạo 1 database mới có tên là bants và import cơ sở dữ liệu bants.sql trong folder sql trong source code.
+
+3. Vào src chạy Runner.java
 
 
