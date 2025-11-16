@@ -9,8 +9,8 @@
 | ------------- | ------------- | ------------- | ------------- |
 | Hồ Phạm Hữu Bình  | 3123411033  | 25 | Code chính |
 | Nguyễn Văn Phát  | 3123411220  | 25 | Vẽ báo cáo |
-| Nguyễn Minh  | 3123411---  | 25 | Code phụ + Vẽ |
-| Võ Lê Chí Dũng  | 3123411---  | 25 | Tester |
+| Nguyễn Minh  | 3123411188  | 25 | Code phụ + Vẽ |
+| Võ Lê Chí Dũng  | 3123411051  | 25 | Tester |
 
 # Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
