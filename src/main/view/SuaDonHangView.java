@@ -561,6 +561,7 @@ public class SuaDonHangView extends JDialog {
     private void updateUIStateByStatus(String trangThai) {
         // Kiểm tra nếu trạng thái là "đã thanh toán" hoặc "bị hủy"
         boolean isReadOnly = "dathanhtoan".equals(trangThai) || "bihuy".equals(trangThai);
+        boolean isCancelled = "bihuy".equals(trangThai);
         
         // Vô hiệu hóa các field chỉnh sửa
         giamGiaSpinner.setEnabled(!isReadOnly);
@@ -571,9 +572,9 @@ public class SuaDonHangView extends JDialog {
         // Vô hiệu hóa các nút sửa/cập nhật
         capNhatButton.setEnabled(!isReadOnly);
         thanhToanButton.setEnabled(!isReadOnly && !"dathanhtoan".equals(trangThai));
-        huyHoaDonButton.setEnabled(!isReadOnly && !"bihuy".equals(trangThai));
-        // Chỉ cho phép in hóa đơn khi đã thanh toán
-        inHoaDonButton.setEnabled("dathanhtoan".equals(trangThai));
+        huyHoaDonButton.setEnabled(!isReadOnly && !isCancelled);
+        // Cho phép in hóa đơn khi đã thanh toán hoặc bị hủy
+        inHoaDonButton.setEnabled("dathanhtoan".equals(trangThai) || isCancelled);
         
         // Vô hiệu hóa khả năng thêm/sửa/xóa sản phẩm (buttons trong product panels)
         if (productGridPanel != null) {
@@ -617,8 +618,8 @@ public class SuaDonHangView extends JDialog {
         }
         
         // Tooltip cho nút in hóa đơn
-        if (!"dathanhtoan".equals(trangThai)) {
-            inHoaDonButton.setToolTipText("Chỉ có thể in hóa đơn sau khi đơn hàng đã được thanh toán!");
+        if (!"dathanhtoan".equals(trangThai) && !isCancelled) {
+            inHoaDonButton.setToolTipText("Chỉ có thể in hóa đơn sau khi đơn hàng đã được thanh toán hoặc bị hủy!");
         } else {
             inHoaDonButton.setToolTipText(null);
         }
@@ -1745,10 +1746,10 @@ public class SuaDonHangView extends JDialog {
     }
     private void printInvoice() {
         try {
-            // Kiểm tra trạng thái đơn hàng - chỉ cho phép in sau khi thanh toán
+            // Kiểm tra trạng thái đơn hàng - cho phép in khi đã thanh toán hoặc bị hủy
             String trangThai = currentOrder.getTrangThai();
-            if (trangThai == null || !"dathanhtoan".equals(trangThai)) {
-                JOptionPane.showMessageDialog(this, "Chỉ có thể in hóa đơn sau khi đơn hàng đã được thanh toán!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            if (trangThai == null || (!"dathanhtoan".equals(trangThai) && !"bihuy".equals(trangThai))) {
+                JOptionPane.showMessageDialog(this, "Chỉ có thể in hóa đơn sau khi đơn hàng đã được thanh toán hoặc bị hủy!", "Thông báo", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             
@@ -1880,6 +1881,9 @@ public class SuaDonHangView extends JDialog {
                 currentOrder.setTrangThai("bihuy");
                 trangThaiLabel.setText("Bị hủy");
                 trangThaiLabel.setForeground(Color.RED);
+                
+                // Cập nhật trạng thái UI sau khi hủy (vô hiệu hóa thanh toán/cập nhật/hủy, cho phép in)
+                updateUIStateByStatus("bihuy");
                 
                 JOptionPane.showMessageDialog(this, "Hủy đơn hàng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException e) {
