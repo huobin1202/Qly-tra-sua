@@ -517,6 +517,7 @@ public class MainDashboard extends JFrame implements MainFrameInterface {
         mainPanel.add(new DonHangView(this), "DON_HANG");        
         mainPanel.add(new KhachHangView(this), "KHACH_HANG");
         mainPanel.add(new NhanVienView(this), "NHAN_VIEN");
+        mainPanel.add(new NhaCungCapView(this), "NHA_CUNG_CAP");
         mainPanel.add(new KhoHangView(this), "KHO_HANG");
         mainPanel.add(new NhapHangView(this), "NHAP_HANG");
         mainPanel.add(new ThongKeView(), "THONG_KE");
