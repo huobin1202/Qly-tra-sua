@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 18, 2025 at 07:50 AM
+-- Generation Time: Nov 16, 2025 at 10:34 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -51,13 +51,10 @@ INSERT INTO `chitietdonhang` (`MaDon`, `MaMon`, `MaTopping`, `SoLuong`, `GiaMon`
 (9, 5, 2, 5, 50000, 10000),
 (9, 6, 3, 3, 45000, 10000),
 (9, 7, 1, 2, 50000, 0),
-(11, 18, 2, 4, 45000, 10000),
 (11, 8, 1, 2, 45000, 0),
+(11, 18, 2, 4, 45000, 10000),
 (13, 7, 2, 3, 50000, 10000),
 (13, 15, 1, 1, 40000, 0),
-(15, 5, 2, 4, 50000, 10000),
-(15, 6, 3, 2, 45000, 10000),
-(15, 7, 1, 1, 50000, 0),
 (16, 5, 1, 1, 50000, 0),
 (16, 9, 1, 1, 10000, 0),
 (18, 7, 3, 3, 50000, 10000),
@@ -66,8 +63,8 @@ INSERT INTO `chitietdonhang` (`MaDon`, `MaMon`, `MaTopping`, `SoLuong`, `GiaMon`
 (19, 11, 1, 2, 35000, 0),
 (20, 5, 4, 4, 50000, 10000),
 (20, 16, 1, 1, 50000, 0),
-(22, 18, 2, 2, 45000, 10000),
 (22, 9, 1, 2, 10000, 0),
+(22, 18, 2, 2, 45000, 10000),
 (23, 7, 3, 3, 50000, 10000),
 (23, 8, 1, 1, 45000, 0),
 (25, 11, 1, 3, 35000, 0),
@@ -75,45 +72,19 @@ INSERT INTO `chitietdonhang` (`MaDon`, `MaMon`, `MaTopping`, `SoLuong`, `GiaMon`
 (26, 7, 3, 2, 50000, 10000),
 (27, 8, 1, 2, 45000, 0),
 (27, 9, 1, 1, 10000, 0),
-(28, 16, 1, 3, 50000, 0),
 (28, 14, 1, 1, 20000, 0),
+(28, 16, 1, 3, 50000, 0),
 (30, 7, 4, 4, 50000, 10000),
 (30, 18, 2, 2, 45000, 10000),
 (32, 8, 3, 3, 45000, 10000),
 (32, 9, 1, 2, 10000, 0),
 (33, 5, 2, 3, 50000, 10000),
 (33, 6, 3, 2, 45000, 10000),
-(34, 7, 4, 6, 50000, 10000),
-(34, 16, 1, 2, 50000, 0),
-(35, 11, 1, 4, 35000, 0),
-(35, 14, 1, 1, 20000, 0),
-(36, 5, 2, 4, 50000, 10000),
-(36, 18, 2, 2, 45000, 10000),
-(37, 6, 1, 2, 45000, 0),
-(37, 9, 1, 1, 10000, 0),
-(39, 8, 3, 4, 45000, 10000),
-(39, 9, 1, 1, 10000, 0),
-(40, 5, 2, 6, 50000, 10000),
-(40, 7, 4, 3, 50000, 10000),
-(40, 16, 1, 2, 50000, 0),
-(41, 12, 1, 2, 45000, 0),
-(41, 9, 1, 1, 10000, 0),
-(42, 15, 3, 3, 40000, 10000),
-(42, 14, 1, 1, 20000, 0),
-(44, 5, 4, 5, 50000, 10000),
-(44, 18, 2, 3, 45000, 10000),
-(45, 6, 3, 4, 45000, 10000),
-(45, 11, 1, 1, 35000, 0),
-(46, 7, 2, 7, 50000, 10000),
-(46, 16, 1, 1, 50000, 0),
-(47, 8, 1, 2, 45000, 0),
-(47, 9, 1, 1, 10000, 0),
-(48, 5, 2, 5, 50000, 10000),
-(48, 6, 3, 1, 45000, 10000),
-(49, 12, 1, 3, 45000, 0),
-(49, 14, 1, 1, 20000, 0),
-(50, 7, 4, 8, 50000, 10000),
-(50, 18, 2, 2, 45000, 10000);
+(51, 7, 4, 2, 50000, 10000),
+(52, 7, 4, 1, 50000, 10000),
+(53, 13, 28, 1, 25000, 5000),
+(54, 7, 1, 1, 50000, 0),
+(55, 6, 1, 1, 45000, 0);
 
 -- --------------------------------------------------------
 
@@ -164,7 +135,8 @@ INSERT INTO `chitietnhap_nl` (`MaPN`, `MaNL`, `SoLuong`, `DonGia`) VALUES
 (16, 3, 2000, 45),
 (17, 2, 5000, 55),
 (17, 3, 1800, 45),
-(18, 3, 3500, 50);
+(18, 3, 3500, 50),
+(19, 3, 200, 45);
 
 -- --------------------------------------------------------
 
@@ -193,7 +165,6 @@ INSERT INTO `donhang` (`MaDon`, `MaNV`, `MaKH`, `TrangThai`, `NgayDat`, `TongTie
 (9, 6, 5, 'dathanhtoan', '2025-10-21 19:15:00', 300000, 15),
 (11, 1, 6, 'dathanhtoan', '2025-10-22 20:45:00', 250000, 0),
 (13, 2, 7, 'dathanhtoan', '2025-10-23 18:00:00', 190000, 8),
-(15, 6, 8, 'bihuy', '2025-10-24 21:30:00', 280000, 12),
 (16, 1, 11, 'dathanhtoan', '2025-10-25 08:15:00', 95000, 0),
 (18, 5, 12, 'dathanhtoan', '2025-10-25 10:45:00', 180000, 5),
 (19, 6, 13, 'dathanhtoan', '2025-10-25 11:20:00', 220000, 0),
@@ -203,25 +174,15 @@ INSERT INTO `donhang` (`MaDon`, `MaNV`, `MaKH`, `TrangThai`, `NgayDat`, `TongTie
 (25, 2, 17, 'dathanhtoan', '2025-10-25 17:30:00', 105000, 5),
 (26, 5, 18, 'dathanhtoan', '2025-10-26 08:00:00', 320000, 12),
 (27, 6, 19, 'dathanhtoan', '2025-10-26 09:15:00', 145000, 0),
-(28, 1, 20, 'chuathanhtoan', '2025-10-26 10:30:00', 260000, 10),
+(28, 1, 20, 'bihuy', '2025-10-26 10:30:00', 260000, 10),
 (30, 5, 21, 'dathanhtoan', '2025-10-26 12:20:00', 310000, 8),
 (32, 1, 23, 'dathanhtoan', '2025-10-26 14:15:00', 205000, 5),
 (33, 2, 24, 'dathanhtoan', '2025-10-26 15:30:00', 240000, 0),
-(34, 5, 25, 'chuathanhtoan', '2025-10-26 16:45:00', 380000, 15),
-(35, 6, 26, 'dathanhtoan', '2025-10-26 17:20:00', 175000, 8),
-(36, 1, 27, 'dathanhtoan', '2025-10-27 08:30:00', 290000, 10),
-(37, 2, 28, 'dathanhtoan', '2025-10-27 09:45:00', 115000, 0),
-(39, 6, 29, 'dathanhtoan', '2025-10-27 11:00:00', 215000, 5),
-(40, 1, 30, 'dathanhtoan', '2025-10-27 12:30:00', 460000, 20),
-(41, 2, 31, 'dathanhtoan', '2025-10-27 13:45:00', 100000, 0),
-(42, 5, 32, 'chuathanhtoan', '2025-10-27 14:20:00', 165000, 5),
-(44, 1, 34, 'dathanhtoan', '2025-10-27 16:15:00', 340000, 12),
-(45, 2, 35, 'bihuy', '2025-10-27 17:30:00', 200000, 0),
-(46, 5, 36, 'dathanhtoan', '2025-10-28 08:00:00', 395000, 15),
-(47, 6, 37, 'dathanhtoan', '2025-10-28 09:30:00', 105000, 5),
-(48, 1, 38, 'chuathanhtoan', '2025-10-28 10:45:00', 285000, 8),
-(49, 2, 39, 'dathanhtoan', '2025-10-28 11:20:00', 145000, 0),
-(50, 5, 40, 'dathanhtoan', '2025-10-28 12:00:00', 420000, 18);
+(51, 1, 41, 'dathanhtoan', '2025-11-16 09:09:01', 114000, 5),
+(52, 1, 41, 'dathanhtoan', '2025-11-16 09:10:46', 60000, 0),
+(53, 1, 41, 'dathanhtoan', '2025-11-16 09:16:32', 30000, 0),
+(54, 1, 41, 'dathanhtoan', '2025-11-16 09:17:31', 50000, 0),
+(55, 1, 41, 'bihuy', '2025-11-16 09:31:02', 45000, 0);
 
 -- --------------------------------------------------------
 
@@ -248,37 +209,22 @@ INSERT INTO `khachhang` (`MaKH`, `SDT`, `HoTen`, `DiemTichLuy`) VALUES
 (5, '965432109', 'Phạm Thị Hoa', 500),
 (6, '934567890', 'Lê Minh Tuấn', 280),
 (7, '976543210', 'Hoàng Thị Lan', 180),
-(8, '945678901', 'Vũ Đức Anh', 420),
 (9, '923456789', 'Đặng Thị Nga', 95),
 (10, '956789012', 'Bùi Văn Hùng', 310),
 (11, '901234567', 'Nguyễn Văn A', 75),
 (12, '902345678', 'Trần Thị B', 125),
 (13, '903456789', 'Lê Văn C', 200),
 (14, '904567890', 'Phạm Thị D', 300),
-(15, '905678901', 'Hoàng Văn E', 180),
-(16, '906789012', 'Vũ Thị F', 250),
+(15, '905678901', 'Hoàng Văn E', 23),
+(16, '1', 'Vũ Thị F', 12),
 (17, '907890123', 'Đặng Văn G', 95),
 (18, '908901234', 'Bùi Thị H', 420),
 (19, '909012345', 'Ngô Văn I', 150),
-(20, '910123456', 'Đỗ Thị K', 275),
-(21, '911234567', 'Dương Văn L', 320),
-(23, '913456789', 'Võ Văn N', 195),
-(24, '914567890', 'Lý Thị O', 240),
-(25, '915678901', 'Trịnh Văn P', 380),
-(26, '916789012', 'Chu Thị Q', 165),
-(27, '917890123', 'Mai Văn R', 290),
-(28, '918901234', 'Đinh Thị S', 135),
-(29, '919012345', 'Phan Văn T', 205),
-(30, '920123456', 'Nguyễn Thị U', 450),
-(31, '921234567', 'Trần Văn V', 90),
-(32, '922345678', 'Lê Thị X', 175),
-(34, '924567890', 'Hoàng Thị Z', 340),
-(35, '925678901', 'Vũ Văn AA', 220),
-(36, '926789012', 'Đặng Thị BB', 395),
-(37, '927890123', 'Bùi Văn CC', 115),
-(38, '928901234', 'Ngô Thị DD', 285),
-(39, '929012345', 'Đỗ Văn EE', 155),
-(40, '930123456', 'Dương Thị FF', 410);
+(20, '910123456', 'Đỗ Thị K', 12),
+(21, '9112345675', 'Dương Văn L', 5),
+(23, '913456789', 'Võ Văn N', 42),
+(24, '914567890', 'Lý Thị O', 24),
+(41, '0908447742', 'BinhHuu', 5);
 
 -- --------------------------------------------------------
 
@@ -297,18 +243,20 @@ CREATE TABLE `khohang` (
 --
 
 INSERT INTO `khohang` (`MaNL`, `SoLuong`, `CapNhat`) VALUES
-(1, 53499, '2025-10-29 16:00:00'),
-(2, 23300, '2025-10-29 16:00:00'),
-(3, 20800, '2025-10-29 16:00:00'),
-(4, 15000, '2025-10-29 16:00:00'),
+(1, 53354, '2025-11-16 09:17:31'),
+(2, 23205, '2025-11-16 09:17:31'),
+(3, 19940, '2025-11-16 09:17:31'),
+(4, 14760, '2025-11-16 09:17:31'),
 (5, 8000, '2025-10-29 16:00:00'),
 (6, 12000, '2025-10-29 16:00:00'),
 (7, 10000, '2025-10-29 16:00:00'),
-(8, 9500, '2025-10-29 16:00:00'),
+(8, 1333, '2025-11-16 08:54:19'),
 (9, 25000, '2025-10-29 16:00:00'),
-(10, 30000, '2025-10-29 16:00:00'),
+(10, 10, '2025-11-16 09:11:40'),
 (11, 18000, '2025-10-29 16:00:00'),
-(12, 22000, '2025-10-29 16:00:00');
+(12, 22000, '2025-10-29 16:00:00'),
+(14, 12312, '2025-11-16 08:53:50'),
+(15, 500, '2025-11-16 08:54:09');
 
 -- --------------------------------------------------------
 
@@ -326,10 +274,9 @@ CREATE TABLE `loaimon` (
 --
 
 INSERT INTO `loaimon` (`MaLoai`, `TenLoai`) VALUES
-(1, 'Đồ Ăn'),
-(2, 'Trà Sữa'),
 (3, 'Cà Phê'),
-(4, 'Topping');
+(4, 'Topping'),
+(2, 'Trà Sữa');
 
 -- --------------------------------------------------------
 
@@ -351,17 +298,16 @@ CREATE TABLE `mon` (
 --
 
 INSERT INTO `mon` (`MaMon`, `TenMon`, `Gia`, `TinhTrang`, `MaLoai`, `Anh`) VALUES
-(1, 'No Topping', 0, 'dangban', 4, 'images/no_topping.jpg'),
+(1, 'No Topping', 0, 'dangban', 4, 'images/tran_chau_tuyet_soi.jpg'),
 (2, 'Trân Châu Tuyết Sợi', 10000, 'dangban', 4, 'images/tran_chau_tuyet_soi.jpg'),
-(3, 'Trân Châu Đen', 10000, 'dangban', 4, 'images/tran_chau_den.jpg'),
-(4, 'Trân Châu Trắng', 10000, 'dangban', 4, 'images/tran_chau_trang.jpg'),
+(3, 'Trân Châu Đen', 10000, 'dangban', 4, 'images/tran_chau_tuyet_soi.jpg'),
+(4, 'Trân Châu Trắng', 10000, 'dangban', 4, 'erdplus(2).png'),
 (5, 'Trà Sữa Trân Châu', 50000, 'dangban', 2, 'images/tra_sua_tran_chau.jpg'),
 (6, 'Trà Sữa Sương Sáo', 45000, 'dangban', 2, 'images/tra_sua_suong_sao.jpg'),
 (7, 'Trà Sữa Matcha(L)', 50000, 'dangban', 2, 'images/tra_sua_matcha_l.jpg'),
 (8, 'Sữa Tươi Trân Châu Đường Đen', 45000, 'dangban', 2, 'images/sua_tuoi_tran_chau_duong_den.jpg'),
 (9, 'Bánh Flan', 10000, 'dangban', 2, 'images/Đang bánh_flan.jpg'),
-(10, 'Hướng dương', 10000, 'dangban', 1, 'images/huong_duong.jpg'),
-(11, 'Cafe truyền thống', 35000, 'dangban', 3, 'images/cafe_truyen_thong.jpg'),
+(11, 'Cafe truyền thống', 35000, 'dangban', 3, 'images/Screenshot 2025-11-06 160004.png'),
 (12, 'Espresso', 45000, 'dangban', 3, 'images/espresso.jpg'),
 (13, 'Trà Sữa Matcha(XL)', 25000, 'dangban', 2, 'images/tra_sua_matcha_xl.jpg'),
 (14, 'Trà Sữa Ô Long', 20000, 'dangban', 2, 'images/tra_sua_o_long.jpg'),
@@ -374,11 +320,7 @@ INSERT INTO `mon` (`MaMon`, `TenMon`, `Gia`, `TinhTrang`, `MaLoai`, `Anh`) VALUE
 (22, 'Trà Sữa Dâu', 48000, 'dangban', 2, 'images/tra_sua_dau.jpg'),
 (23, 'Trà Sữa Vani', 46000, 'dangban', 2, 'images/tra_sua_vani.jpg'),
 (24, 'Trà Sữa Socola', 50000, 'dangban', 2, 'images/tra_sua_socola.jpg'),
-(25, 'Khoai tây chiên', 25000, 'dangban', 1, 'images/khoai_tay_chien.jpg'),
-(26, 'Gà rán', 55000, 'dangban', 1, 'images/ga_ran.jpg'),
-(27, 'Bánh mì nướng', 30000, 'dangban', 1, 'images/banh_mi_nuong.jpg'),
-(28, 'Thạch dừa', 8000, 'dangban', 4, 'images/thach_dua.jpg'),
-(29, 'Pudding', 12000, 'dangban', 4, 'images/pudding.jpg'),
+(28, 'Thạch dừa', 5000, 'dangban', 4, 'images/thach_dua.jpg'),
 (30, 'Macchiato', 48000, 'dangban', 3, 'images/macchiato.jpg');
 
 -- --------------------------------------------------------
@@ -390,10 +332,7 @@ INSERT INTO `mon` (`MaMon`, `TenMon`, `Gia`, `TinhTrang`, `MaLoai`, `Anh`) VALUE
 CREATE TABLE `mon_nguyenlieu` (
   `MaMon` int(11) NOT NULL,
   `MaNL` int(11) NOT NULL,
-  `SoLuong` int(11) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`MaMon`, `MaNL`),
-  KEY `fk_monnl_mon` (`MaMon`),
-  KEY `fk_monnl_nl` (`MaNL`)
+  `SoLuong` int(11) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -401,84 +340,69 @@ CREATE TABLE `mon_nguyenlieu` (
 --
 
 INSERT INTO `mon_nguyenlieu` (`MaMon`, `MaNL`, `SoLuong`) VALUES
--- Trà Sữa Trân Châu (5)
+(2, 10, 100),
+(3, 14, 100),
+(5, 1, 30),
 (5, 2, 20),
 (5, 3, 200),
-(5, 1, 30),
 (5, 10, 50),
--- Trà Sữa Sương Sáo (6)
+(6, 1, 25),
 (6, 2, 20),
 (6, 3, 180),
-(6, 1, 25),
--- Trà Sữa Matcha(L) (7)
-(7, 2, 20),
-(7, 4, 50),
-(7, 3, 220),
 (7, 1, 30),
--- Sữa Tươi Trân Châu Đường Đen (8)
-(8, 3, 250),
+(7, 2, 20),
+(7, 3, 220),
+(7, 4, 50),
 (8, 1, 40),
+(8, 3, 250),
 (8, 10, 60),
--- Trà Sữa Matcha(XL) (13)
-(13, 2, 15),
-(13, 4, 40),
-(13, 3, 180),
+(11, 1, 25),
+(11, 3, 150),
+(11, 5, 30),
+(12, 3, 100),
+(12, 5, 40),
 (13, 1, 25),
--- Trà Sữa Ô Long (14)
+(13, 2, 15),
+(13, 3, 180),
+(13, 4, 40),
+(14, 1, 35),
 (14, 2, 25),
 (14, 3, 200),
-(14, 1, 35),
--- Trà Đào (15)
-(15, 2, 20),
-(15, 12, 80),
-(15, 3, 200),
 (15, 1, 30),
--- Trà Đào(L) (16)
-(16, 2, 25),
-(16, 12, 100),
-(16, 3, 250),
+(15, 2, 20),
+(15, 3, 200),
+(15, 12, 80),
 (16, 1, 35),
--- Trà Nhãn - Sen (18)
+(16, 2, 25),
+(16, 3, 250),
+(16, 12, 100),
+(18, 1, 32),
 (18, 2, 22),
 (18, 3, 210),
-(18, 1, 32),
--- Cafe truyền thống (11)
-(11, 5, 30),
-(11, 3, 150),
-(11, 1, 25),
--- Espresso (12)
-(12, 5, 40),
-(12, 3, 100),
--- Latte (19)
-(19, 5, 30),
-(19, 3, 200),
 (19, 1, 20),
--- Cappuccino (20)
-(20, 5, 35),
-(20, 3, 180),
+(19, 3, 200),
+(19, 5, 30),
 (20, 1, 25),
--- Americano (21)
-(21, 5, 35),
+(20, 3, 180),
+(20, 5, 35),
 (21, 3, 150),
--- Trà Sữa Dâu (22)
-(22, 2, 20),
-(22, 6, 50),
-(22, 3, 200),
+(21, 5, 35),
 (22, 1, 30),
--- Trà Sữa Vani (23)
-(23, 2, 20),
-(23, 7, 50),
-(23, 3, 200),
+(22, 2, 20),
+(22, 3, 200),
+(22, 6, 50),
 (23, 1, 30),
--- Trà Sữa Socola (24)
-(24, 2, 20),
-(24, 8, 50),
-(24, 3, 200),
+(23, 2, 20),
+(23, 3, 200),
+(23, 7, 50),
 (24, 1, 30),
--- Macchiato (30)
-(30, 5, 30),
+(24, 2, 20),
+(24, 3, 200),
+(24, 8, 50),
+(28, 11, 100),
+(30, 1, 20),
 (30, 3, 180),
-(30, 1, 20);
+(30, 5, 30);
 
 -- --------------------------------------------------------
 
@@ -507,7 +431,7 @@ INSERT INTO `ncc_nguyenlieu` (`MaNCC`, `MaNL`, `SoLuong`, `DonGia`) VALUES
 (2, 5, 10000, 120),
 (3, 1, 50000, 25),
 (3, 2, 25000, 60),
-(3, 3, 10000, 45),
+(3, 3, 9800, 45),
 (3, 5, 8000, 125),
 (4, 2, 30000, 55),
 (4, 3, 15000, 45),
@@ -551,9 +475,11 @@ INSERT INTO `nguyenlieu` (`MaNL`, `TenNL`, `DonVi`) VALUES
 (7, 'Siro vani', 'ml'),
 (8, 'Siro socola', 'ml'),
 (9, 'Sữa đặc', 'ml'),
-(10, 'Trân châu', 'gram'),
+(10, 'Trân châu tuyết sợi', 'gram'),
 (11, 'Thạch dừa', 'gram'),
-(12, 'Đào ngâm', 'gram');
+(12, 'Đào ngâm', 'gram'),
+(14, 'Trân châu đen', 'gram'),
+(15, 'Trân châu trắng', 'gram');
 
 -- --------------------------------------------------------
 
@@ -603,13 +529,13 @@ CREATE TABLE `nhanvien` (
 -- Dumping data for table `nhanvien`
 --
 
-INSERT INTO `nhanvien` (`MaNV`, `TaiKhoan`, `MatKhau`, `HoTen`, `SDT`, `NgayVaoLam`, `ChucVu`, `Luong`) VALUES
-(1, 'admin', 'admin', 'Admin', '0911175581', '2020-11-23 17:00:00', 'quanly', 10600000),
-(2, 'nhanvien', '3', 'Tea', '0911175581', '2020-11-24 05:15:08', 'nhanvien', 0),
-(5, 'cuong', 'cuong12345', 'Trần Đức Cường', '0911175582', '2020-12-16 14:11:54', 'quanly', 0),
-(6, 'anh', 'anh12345', 'Đỗ Tuấn Anh', '12324123', '2020-12-16 14:21:20', 'quanly', 0),
-(7, 'son', 'son12345', 'Nguyễn Lam Sơn', '123', '2020-12-16 14:22:12', 'quanly', 0),
-(27, 'karma', '1', 'Milk', '1', '2020-12-23 16:52:39', 'nhanvien', 0);
+INSERT INTO `nhanvien` (`MaNV`, `TaiKhoan`, `MatKhau`, `HoTen`, `SDT`, `NgayVaoLam`, `ChucVu`, `Luong`, `TrangThai`) VALUES
+(1, 'admin', 'admin', 'Super Admin', '0911175581', '2025-11-16 08:44:54', 'quanly', 10600000, 'danglam'),
+(2, 'nhanvien', '3', 'Tea', '2', '2025-11-16 08:51:16', 'nhanvien', 0, 'danglam'),
+(5, 'cuong', 'cuong12345', 'Trần Đức Cường', '0911175582', '2020-12-16 14:11:54', 'quanly', 0, 'danglam'),
+(6, 'anh', 'anh12345', 'Đỗ Tuấn Anh', '12324123', '2020-12-16 14:21:20', 'quanly', 0, 'danglam'),
+(7, 'son', 'son12345', 'Nguyễn Lam Sơn', '123', '2020-12-16 14:22:12', 'quanly', 0, 'danglam'),
+(27, 'karma', '1', 'Milk', '1', '2020-12-23 16:52:39', 'nhanvien', 0, 'danglam');
 
 -- --------------------------------------------------------
 
@@ -631,23 +557,24 @@ CREATE TABLE `phieunhap` (
 --
 
 INSERT INTO `phieunhap` (`MaPN`, `MaNV`, `MaNCC`, `Ngay`, `ThanhTien`, `TrangThai`) VALUES
-(2, 1, 1, '2025-10-18 05:42:10',  197980, 'chuaxacnhan'),
-(3, 1, 3, '2025-10-19 08:30:00',  450000, 'chuaxacnhan'),
-(4, 5, 4, '2025-10-20 14:15:00',  320000, 'chuaxacnhan'),
-(5, 1, 5, '2025-10-21 09:45:00',  180000, 'chuaxacnhan'),
-(6, 6, 6, '2025-10-22 16:20:00',  250000, 'daxacnhan'),
-(7, 1, 7, '2025-10-23 11:10:00',  120000, 'daxacnhan'),
-(8, 5, 2, '2025-10-24 13:30:00',  380000, 'chuaxacnhan'),
-(9, 2, 1, '2025-10-25 08:15:00',  220000, 'daxacnhan'),
-(10, 5, 3, '2025-10-25 10:30:00',  350000, 'chuaxacnhan'),
-(11, 6, 4, '2025-10-26 09:00:00',  280000, 'daxacnhan'),
-(12, 1, 5, '2025-10-26 14:20:00',  150000, 'chuaxacnhan'),
-(13, 2, 6, '2025-10-27 11:45:00',  310000, 'daxacnhan'),
-(14, 5, 7, '2025-10-27 15:30:00',  190000, 'chuaxacnhan'),
-(15, 6, 1, '2025-10-28 08:00:00',  240000, 'daxacnhan'),
-(16, 1, 3, '2025-10-28 13:15:00',  420000, 'chuaxacnhan'),
-(17, 2, 4, '2025-10-29 09:30:00',  295000, 'daxacnhan'),
-(18, 5, 5, '2025-10-29 16:00:00',  175000, 'chuaxacnhan');
+(2, 1, 1, '2025-10-18 05:42:10', 197980, 'chuaxacnhan'),
+(3, 1, 3, '2025-10-19 08:30:00', 450000, 'chuaxacnhan'),
+(4, 5, 4, '2025-10-20 14:15:00', 320000, 'chuaxacnhan'),
+(5, 1, 5, '2025-10-21 09:45:00', 180000, 'chuaxacnhan'),
+(6, 6, 6, '2025-10-22 16:20:00', 250000, 'daxacnhan'),
+(7, 1, 7, '2025-10-23 11:10:00', 120000, 'daxacnhan'),
+(8, 5, 2, '2025-10-24 13:30:00', 380000, 'chuaxacnhan'),
+(9, 2, 1, '2025-10-25 08:15:00', 220000, 'daxacnhan'),
+(10, 5, 3, '2025-10-25 10:30:00', 350000, 'chuaxacnhan'),
+(11, 6, 4, '2025-10-26 09:00:00', 280000, 'daxacnhan'),
+(12, 1, 5, '2025-10-26 14:20:00', 150000, 'chuaxacnhan'),
+(13, 2, 6, '2025-10-27 11:45:00', 310000, 'daxacnhan'),
+(14, 5, 7, '2025-10-27 15:30:00', 190000, 'chuaxacnhan'),
+(15, 6, 1, '2025-10-28 08:00:00', 240000, 'daxacnhan'),
+(16, 1, 3, '2025-10-28 13:15:00', 420000, 'chuaxacnhan'),
+(17, 2, 4, '2025-10-29 09:30:00', 295000, 'daxacnhan'),
+(18, 5, 5, '2025-10-29 16:00:00', 175000, 'chuaxacnhan'),
+(19, 1, 3, '2025-11-16 08:55:52', 9000, 'daxacnhan');
 
 --
 -- Indexes for dumped tables
@@ -705,6 +632,14 @@ ALTER TABLE `mon`
   ADD KEY `fk_mon_loai` (`MaLoai`);
 
 --
+-- Indexes for table `mon_nguyenlieu`
+--
+ALTER TABLE `mon_nguyenlieu`
+  ADD PRIMARY KEY (`MaMon`,`MaNL`),
+  ADD KEY `fk_monnl_mon` (`MaMon`),
+  ADD KEY `fk_monnl_nl` (`MaNL`);
+
+--
 -- Indexes for table `ncc_nguyenlieu`
 --
 ALTER TABLE `ncc_nguyenlieu`
@@ -747,13 +682,13 @@ ALTER TABLE `phieunhap`
 -- AUTO_INCREMENT for table `donhang`
 --
 ALTER TABLE `donhang`
-  MODIFY `MaDon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
+  MODIFY `MaDon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
 
 --
 -- AUTO_INCREMENT for table `khachhang`
 --
 ALTER TABLE `khachhang`
-  MODIFY `MaKH` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `MaKH` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `loaimon`
@@ -765,13 +700,13 @@ ALTER TABLE `loaimon`
 -- AUTO_INCREMENT for table `mon`
 --
 ALTER TABLE `mon`
-  MODIFY `MaMon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `MaMon` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `nguyenlieu`
 --
 ALTER TABLE `nguyenlieu`
-  MODIFY `MaNL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `MaNL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `nhacungcap`
@@ -783,13 +718,13 @@ ALTER TABLE `nhacungcap`
 -- AUTO_INCREMENT for table `nhanvien`
 --
 ALTER TABLE `nhanvien`
-  MODIFY `MaNV` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `MaNV` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `phieunhap`
 --
 ALTER TABLE `phieunhap`
-  MODIFY `MaPN` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `MaPN` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- Constraints for dumped tables
@@ -814,8 +749,8 @@ ALTER TABLE `chitietnhap_nl`
 -- Constraints for table `donhang`
 --
 ALTER TABLE `donhang`
-  ADD CONSTRAINT `fk_nhanvien_don` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`),
-  ADD CONSTRAINT `fk_donhang_khachhang` FOREIGN KEY (`MaKH`) REFERENCES `khachhang` (`MaKH`) ON DELETE SET NULL ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_donhang_khachhang` FOREIGN KEY (`MaKH`) REFERENCES `khachhang` (`MaKH`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_nhanvien_don` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`);
 
 --
 -- Constraints for table `khohang`
@@ -849,9 +784,6 @@ ALTER TABLE `ncc_nguyenlieu`
 ALTER TABLE `phieunhap`
   ADD CONSTRAINT `fk_pn_ncc` FOREIGN KEY (`MaNCC`) REFERENCES `nhacungcap` (`MaNCC`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_pn_nv` FOREIGN KEY (`MaNV`) REFERENCES `nhanvien` (`MaNV`) ON UPDATE CASCADE;
-
-
-
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

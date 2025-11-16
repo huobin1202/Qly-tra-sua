@@ -5,8 +5,9 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
-import database.DBUtil;
+import java.util.List;
 import dto.NhanVienDTO;
+import dao.NhanVienDAO;
 import utils.DateChooserComponent;
 
 public class NhanVienView extends JPanel {
@@ -15,9 +16,11 @@ public class NhanVienView extends JPanel {
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
+    private NhanVienDAO nhanVienDAO;
     
     public NhanVienView(MainFrameInterface parent) {
         this.parent = parent;
+        this.nhanVienDAO = new NhanVienDAO();
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -133,26 +136,24 @@ public class NhanVienView extends JPanel {
     
     private void loadData() {
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery("SELECT * FROM nhanvien ORDER BY MaNV")) {
-            
+        try {
+            List<NhanVienDTO> danhSach = nhanVienDAO.layTatCaNhanVien();
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            while (rs.next()) {
+            for (NhanVienDTO nv : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaNV"),
-                    rs.getString("TaiKhoan"),
-                    rs.getString("MatKhau"),
-                    rs.getString("HoTen"),
-                    rs.getString("SDT"),
-                    rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
-                    rs.getString("ChucVu"),
-                    String.format("%,d", rs.getLong("Luong")) + " VNĐ",
-                    convertTrangThaiToUI(rs.getString("TrangThai"))
+                    nv.getMaNV(),
+                    nv.getTaiKhoan(),
+                    nv.getMatKhau(),
+                    nv.getHoTen(),
+                    nv.getSoDienThoai(),
+                    nv.getNgayVaoLam() != null ? dateFormat.format(nv.getNgayVaoLam()) : "",
+                    convertChucVuToUI(nv.getChucVu()),
+                    String.format("%,d", nv.getLuong()) + " VNĐ",
+                    convertTrangThaiToUI(nv.getTrangThai())
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -162,48 +163,38 @@ public class NhanVienView extends JPanel {
         String searchType = (String) searchCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT * FROM nhanvien WHERE ";
-            PreparedStatement ps;
-            
-            if (searchText.isEmpty()) {
-                sql = "SELECT * FROM nhanvien ORDER BY MaNV";
-                ps = conn.prepareStatement(sql);
-            } else if (searchType.equals("ID")) {
-                sql += "MaNV = ? ORDER BY MaNV";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else if (searchType.equals("Tài khoản")) {
-                sql += "TaiKhoan LIKE ? ORDER BY MaNV";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            } else {
-                sql += "HoTen LIKE ? ORDER BY MaNV";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            } 
-            
-            ResultSet rs = ps.executeQuery();
+        try {
+            List<NhanVienDTO> danhSach = nhanVienDAO.timKiemNhanVien(searchType, searchText);
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-            while (rs.next()) {
+            for (NhanVienDTO nv : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaNV"),
-                    rs.getString("TaiKhoan"),
-                    rs.getString("MatKhau"),
-                    rs.getString("HoTen"),
-                    rs.getString("SDT"),
-                    rs.getTimestamp("NgayVaoLam") != null ? dateFormat.format(rs.getTimestamp("NgayVaoLam")) : "",
-                    rs.getString("ChucVu"),
-                    String.format("%,d", rs.getLong("Luong")) + " VNĐ",
-                    convertTrangThaiToUI(rs.getString("TrangThai"))
+                    nv.getMaNV(),
+                    nv.getTaiKhoan(),
+                    nv.getMatKhau(),
+                    nv.getHoTen(),
+                    nv.getSoDienThoai(),
+                    nv.getNgayVaoLam() != null ? dateFormat.format(nv.getNgayVaoLam()) : "",
+                    convertChucVuToUI(nv.getChucVu()),
+                    String.format("%,d", nv.getLuong()) + " VNĐ",
+                    convertTrangThaiToUI(nv.getTrangThai())
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "ID phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    // Method chuyển đổi chức vụ từ database sang giao diện
+    private String convertChucVuToUI(String chucVuDB) {
+        if ("nhanvien".equals(chucVuDB)) {
+            return "Nhân viên";
+        } else if ("quanly".equals(chucVuDB)) {
+            return "Quản lý";
+        }
+        return "Nhân viên"; // Mặc định
     }
     
     private void showAddDialog() {
@@ -222,45 +213,22 @@ public class NhanVienView extends JPanel {
         }
         
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String taiKhoan = (String) tableModel.getValueAt(selectedRow, 1);
-        String matKhau = (String) tableModel.getValueAt(selectedRow, 2);
-        String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
-        String sdt = (String) tableModel.getValueAt(selectedRow, 4);
-        String ngayVaoLamStr = (String) tableModel.getValueAt(selectedRow, 5);
-        String chucVu = (String) tableModel.getValueAt(selectedRow, 6);
-        String luongStr = (String) tableModel.getValueAt(selectedRow, 7);
-        String trangThai = (selectedRow < tableModel.getColumnCount()) ? (String) tableModel.getValueAt(selectedRow, 8) : "Đang làm";
         
-        Timestamp ngayVaoLam = null;
-        if (!ngayVaoLamStr.isEmpty()) {
-            try {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-                ngayVaoLam = new Timestamp(dateFormat.parse(ngayVaoLamStr).getTime());
-            } catch (Exception e) {
-                // Ignore parsing error
+        // Lấy dữ liệu từ DAO
+        try {
+            NhanVienDTO nv = nhanVienDAO.layNhanVienTheoMa(id);
+            if (nv == null) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy nhân viên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-        }
-        
-        long luong = 0;
-        if (!luongStr.isEmpty()) {
-            try {
-                luong = Long.parseLong(luongStr.replaceAll("[^0-9]", "")); // Cho phép số thực
-            } catch (Exception e) {
-                // Ignore parsing error
+            
+            NhanVienDialog dialog = new NhanVienDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhân viên", nv);
+            dialog.setVisible(true);
+            if (dialog.isDataChanged()) {
+                loadData();
             }
-        }
-        
-        NhanVienDTO nv;
-        // Truyền ID và trạng thái vào constructor mới chuẩn hóa (các file DTO đã sửa nhận thêm trạng thái)
-        if (chucVu != null && chucVu.trim().equalsIgnoreCase("quanly")) {
-            nv = new dto.NhanVienQuanLyDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, luong, convertTrangThaiToDatabase(trangThai));
-        } else {
-            nv = new dto.NhanVienThuongDTO(id, taiKhoan, matKhau, hoTen, sdt, ngayVaoLam, luong, convertTrangThaiToDatabase(trangThai));
-        }
-        NhanVienDialog dialog = new NhanVienDialog(SwingUtilities.getWindowAncestor(this), "Sửa thông tin nhân viên", nv);
-        dialog.setVisible(true);
-        if (dialog.isDataChanged()) {
-            loadData();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -274,34 +242,14 @@ public class NhanVienView extends JPanel {
         int id = (Integer) tableModel.getValueAt(selectedRow, 0);
         String hoTen = (String) tableModel.getValueAt(selectedRow, 3);
         
-        // Kiểm tra khóa ngoại trước khi xóa
-        try (Connection conn = DBUtil.getConnection()) {
-            // Kiểm tra nhân viên có được sử dụng trong đơn đặt hàng không
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM donhang WHERE MaNV=?")) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Không thể xóa nhân viên này vì đã có đơn đặt hàng liên quan!", 
-                            "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
+        // Kiểm tra ràng buộc trước khi xóa
+        try {
+            String rangBuocMsg = nhanVienDAO.kiemTraRangBuocXoa(id);
+            if (rangBuocMsg != null) {
+                JOptionPane.showMessageDialog(this, rangBuocMsg, "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
             }
-            
-            // Kiểm tra nhân viên có được sử dụng trong phiếu nhập không
-            try (PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) FROM phieunhap WHERE MaNV=?")) {
-                ps.setInt(1, id);
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next() && rs.getInt(1) > 0) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Không thể xóa nhân viên này vì đã có phiếu nhập liên quan!", 
-                            "Lỗi", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                }
-            }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi kiểm tra ràng buộc: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -311,13 +259,14 @@ public class NhanVienView extends JPanel {
             "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
         
         if (result == JOptionPane.YES_OPTION) {
-            try (Connection conn = DBUtil.getConnection();
-                 PreparedStatement ps = conn.prepareStatement("DELETE FROM nhanvien WHERE MaNV=?")) {
-                ps.setInt(1, id);
-                ps.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                loadData();
-            } catch (SQLException e) {
+            try {
+                if (nhanVienDAO.xoaNhanVien(id)) {
+                    JOptionPane.showMessageDialog(this, "Xóa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    loadData();
+                } else {
+                    JOptionPane.showMessageDialog(this, "Không thể xóa nhân viên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Lỗi xóa dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -363,9 +312,11 @@ public class NhanVienView extends JPanel {
                 if (nv.getNgayVaoLam() != null) {
                     ngayVaoLamPicker.setDate(nv.getNgayVaoLam());
                 }
-                chucVuCombo.setSelectedItem(convertChucVuToUI(nv.getChucVu()));
+                // Chuyển đổi chức vụ từ DB sang UI
+                String chucVuUI = nv.getChucVu() != null && nv.getChucVu().equalsIgnoreCase("quanly") ? "Quản lý" : "Nhân viên";
+                chucVuCombo.setSelectedItem(chucVuUI);
                 luongField.setText(String.valueOf(nv.getLuong()));
-                String trangThaiUi = convertTrangThaiToUI(nv.getTrangThai());
+                String trangThaiUi = nv.getTrangThai() != null && nv.getTrangThai().equalsIgnoreCase("nghiviec") ? "Nghỉ việc" : "Đang làm";
                 trangThaiCombo.setSelectedItem(trangThaiUi);
             } else {
                 // Thêm nhân viên mới - tự động set ngày hiện tại
@@ -502,7 +453,6 @@ public class NhanVienView extends JPanel {
                 JOptionPane.showMessageDialog(this, "Lương phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            
             // Validation số điện thoại
             // Kiểm tra chỉ chứa số
             if (!sdtStr.matches("\\d+")) {
@@ -511,12 +461,12 @@ public class NhanVienView extends JPanel {
             }
             
             // Kiểm tra độ dài
-            if (sdtStr.length() < 9 || sdtStr.length() > 11) {
-                JOptionPane.showMessageDialog(this, "Số điện thoại phải có từ 9 đến 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+            if (sdtStr.length() > 11) {
+                JOptionPane.showMessageDialog(this, "Số điện thoại có tối đa 11 chữ số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            try (Connection conn = DBUtil.getConnection()) {
+            try {
                 if (nv == null) {
                     // Thêm mới
                     if (matKhau.isEmpty()) {
@@ -525,90 +475,64 @@ public class NhanVienView extends JPanel {
                     }
                     
                     // Kiểm tra tài khoản trùng
-                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE TaiKhoan = ?")) {
-                        checkPs.setString(1, taiKhoan);
-                        try (ResultSet rs = checkPs.executeQuery()) {
-                            if (rs.next() && rs.getInt(1) > 0) {
-                                JOptionPane.showMessageDialog(this, 
-                                    "Tài khoản '" + taiKhoan + "' đã tồn tại! Vui lòng chọn tài khoản khác.", 
-                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                return;
-                            }
-                        }
+                    if (nhanVienDAO.kiemTraTaiKhoanTonTai(taiKhoan, null)) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Tài khoản '" + taiKhoan + "' đã tồn tại! Vui lòng chọn tài khoản khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
                     // Kiểm tra số điện thoại trùng
-                    try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE SDT = ?")) {
-                        checkPs.setString(1, sdtStr);
-                        try (ResultSet rs = checkPs.executeQuery()) {
-                            if (rs.next() && rs.getInt(1) > 0) {
-                                JOptionPane.showMessageDialog(this, 
-                                    "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
-                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                return;
-                            }
-                        }
+                    if (nhanVienDAO.kiemTraSDTTonTai(sdtStr, null)) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
-                    PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO nhanvien (TaiKhoan, MatKhau, HoTen, SDT, NgayVaoLam, ChucVu, Luong, TrangThai) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                        Statement.RETURN_GENERATED_KEYS);
-                    ps.setString(1, taiKhoan);
-                    ps.setString(2, matKhau);
-                    ps.setString(3, hoTen);
-                    ps.setString(4, sdtStr);
-                    
+                    // Tạo DTO
+                    NhanVienDTO newNv;
+                    Timestamp ngayVaoLam = null;
                     if (!ngayVaoLamStr.isEmpty()) {
-                        ps.setString(5, ngayVaoLamStr );
-                    } else {
-                        ps.setNull(5, Types.TIMESTAMP);
-                    }
-                    
-                    ps.setString(6, convertChucVuToDatabase(chucVu));
-                    ps.setLong(7, luong);
-                    ps.setString(8, convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
-                    ps.executeUpdate();
-                    
-                    // Lấy MaNV được tạo tự động (nếu có)
-                    try (ResultSet rs = ps.getGeneratedKeys()) {
-                        if (rs.next()) {
-                            // MaNV đã được tạo tự động
+                        try {
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                            ngayVaoLam = new Timestamp(dateFormat.parse(ngayVaoLamStr).getTime());
+                        } catch (Exception e) {
+                            // Ignore parsing error
                         }
                     }
                     
-                    JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    String chucVuDB = convertChucVuToDatabase(chucVu);
+                    if ("Quản lý".equals(chucVu)) {
+                        newNv = new dto.NhanVienQuanLyDTO(0, taiKhoan, matKhau, hoTen, sdtStr, ngayVaoLam, luong, 
+                            convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
+                    } else {
+                        newNv = new dto.NhanVienThuongDTO(0, taiKhoan, matKhau, hoTen, sdtStr, ngayVaoLam, luong, 
+                            convertTrangThaiToDatabase((String)trangThaiCombo.getSelectedItem()));
+                    }
+                    
+                    if (nhanVienDAO.themNhanVien(newNv)) {
+                        JOptionPane.showMessageDialog(this, "Thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Không thể thêm nhân viên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                 } else {
                     // Sửa
                     // Kiểm tra tài khoản trùng (nếu đổi tài khoản)
-                    if (!taiKhoan.equals(nv.getTaiKhoan())) {
-                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE TaiKhoan = ? AND MaNV != ?")) {
-                            checkPs.setString(1, taiKhoan);
-                            checkPs.setInt(2, nv.getMaNV());
-                            try (ResultSet rs = checkPs.executeQuery()) {
-                                if (rs.next() && rs.getInt(1) > 0) {
-                                    JOptionPane.showMessageDialog(this, 
-                                        "Tài khoản '" + taiKhoan + "' đã tồn tại! Vui lòng chọn tài khoản khác.", 
-                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                    return;
-                                }
-                            }
-                        }
+                    if (!taiKhoan.equals(nv.getTaiKhoan()) && nhanVienDAO.kiemTraTaiKhoanTonTai(taiKhoan, nv.getMaNV())) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Tài khoản '" + taiKhoan + "' đã tồn tại! Vui lòng chọn tài khoản khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
                     // Kiểm tra số điện thoại trùng (nếu đổi số điện thoại)
-                    if (!sdtStr.equals(String.valueOf(nv.getSoDienThoai()))) {
-                        try (PreparedStatement checkPs = conn.prepareStatement("SELECT COUNT(*) FROM nhanvien WHERE SDT = ? AND MaNV != ?")) {
-                            checkPs.setString(1, sdtStr);
-                            checkPs.setInt(2, nv.getMaNV());
-                            try (ResultSet rs = checkPs.executeQuery()) {
-                                if (rs.next() && rs.getInt(1) > 0) {
-                                    JOptionPane.showMessageDialog(this, 
-                                        "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
-                                        "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                    return;
-                                }
-                            }
-                        }
+                    if (!sdtStr.equals(nv.getSoDienThoai()) && nhanVienDAO.kiemTraSDTTonTai(sdtStr, nv.getMaNV())) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Số điện thoại '" + sdtStr + "' đã được sử dụng! Vui lòng chọn số điện thoại khác.", 
+                            "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
                     }
                     
                     // Kiểm tra logic vô hiệu hóa tài khoản và đảm bảo ít nhất 1 quản lý
@@ -624,18 +548,11 @@ public class NhanVienView extends JPanel {
                     if (chuyenChucVu || nghiViec) {
                         // Kiểm tra nếu nhân viên này là quản lý, cần đảm bảo còn ít nhất 1 quản lý khác
                         if (chucVuCu != null && chucVuCu.equalsIgnoreCase("quanly")) {
-                            // Đếm số quản lý còn lại (trừ nhân viên hiện tại và những người nghỉ việc)
-                            try (PreparedStatement checkPs = conn.prepareStatement(
-                                "SELECT COUNT(*) FROM nhanvien WHERE ChucVu = 'quanly' AND MaNV != ? AND TrangThai != 'nghiviec'")) {
-                                checkPs.setInt(1, nv.getMaNV());
-                                try (ResultSet rs = checkPs.executeQuery()) {
-                                    if (rs.next() && rs.getInt(1) == 0) {
-                                        JOptionPane.showMessageDialog(this, 
-                                            "Không thể thực hiện thao tác này! Hệ thống cần ít nhất 1 quản lý đang làm việc.", 
-                                            "Lỗi", JOptionPane.ERROR_MESSAGE);
-                                        return;
-                                    }
-                                }
+                            if (!nhanVienDAO.kiemTraItNhatMotQuanLy(nv.getMaNV())) {
+                                JOptionPane.showMessageDialog(this, 
+                                    "Không thể thực hiện thao tác này! Hệ thống cần ít nhất 1 quản lý đang làm việc.", 
+                                    "Lỗi", JOptionPane.ERROR_MESSAGE);
+                                return;
                             }
                         }
                         
@@ -643,50 +560,39 @@ public class NhanVienView extends JPanel {
                         trangThaiMoi = "nghiviec";
                     }
                     
-                    PreparedStatement ps;
+                    // Cập nhật DTO
+                    nv.setTaiKhoan(taiKhoan);
                     if (!matKhau.isEmpty()) {
-                        ps = conn.prepareStatement(
-                            "UPDATE nhanvien SET TaiKhoan=?, MatKhau=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=?, TrangThai=? WHERE MaNV=?");
-                        ps.setString(1, taiKhoan);
-                        ps.setString(2, matKhau);
-                        ps.setString(3, hoTen);
-                        ps.setString(4, sdtStr);
-                        
-                        if (!ngayVaoLamStr.isEmpty()) {
-                            ps.setString(5, ngayVaoLamStr );
-                        } else {
-                            ps.setNull(5, Types.TIMESTAMP);
-                        }
-                        
-                        ps.setString(6, chucVuDB);
-                        ps.setLong(7, luong);
-                        ps.setString(8, trangThaiMoi);
-                        ps.setInt(9, nv.getMaNV());
-                    } else {
-                        ps = conn.prepareStatement(
-                            "UPDATE nhanvien SET TaiKhoan=?, HoTen=?, SDT=?, NgayVaoLam=?, ChucVu=?, Luong=?, TrangThai=? WHERE MaNV=?");
-                        ps.setString(1, taiKhoan);
-                        ps.setString(2, hoTen);
-                        ps.setString(3, sdtStr);
-                        
-                        if (!ngayVaoLamStr.isEmpty()) {
-                            ps.setString(4, ngayVaoLamStr );
-                        } else {
-                            ps.setNull(4, Types.TIMESTAMP);
-                        }
-                        
-                        ps.setString(5, chucVuDB);
-                        ps.setLong(6, luong);
-                        ps.setString(7, trangThaiMoi);
-                        ps.setInt(8, nv.getMaNV());
+                        nv.setMatKhau(matKhau);
                     }
+                    nv.setHoTen(hoTen);
+                    nv.setSoDienThoai(sdtStr);
+                    Timestamp ngayVaoLam = null;
+                    if (!ngayVaoLamStr.isEmpty()) {
+                        try {
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+                            ngayVaoLam = new Timestamp(dateFormat.parse(ngayVaoLamStr).getTime());
+                        } catch (Exception e) {
+                            // Ignore parsing error
+                        }
+                    }
+                    nv.setNgayVaoLam(ngayVaoLam);
+                    nv.setChucVu(chucVuDB);
+                    nv.setLuong(luong);
+                    nv.setTrangThai(trangThaiMoi);
                     
-                    ps.executeUpdate();
-                    JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    // Cập nhật (có hoặc không có mật khẩu)
+                    boolean capNhatMatKhau = !matKhau.isEmpty();
+                    if (nhanVienDAO.capNhatNhanVienVoiMatKhau(nv, capNhatMatKhau)) {
+                        JOptionPane.showMessageDialog(this, "Sửa thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Không thể cập nhật nhân viên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
                 }
                 dataChanged = true;
                 dispose();
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, "Lỗi lưu dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -703,16 +609,6 @@ public class NhanVienView extends JPanel {
                 return "quanly";
             }
             return "nhanvien"; // Mặc định
-        }
-        
-        // Method chuyển đổi chức vụ từ database sang giao diện
-        private String convertChucVuToUI(String chucVuDB) {
-            if ("nhanvien".equals(chucVuDB)) {
-                return "Nhân viên";
-            } else if ("quanly".equals(chucVuDB)) {
-                return "Quản lý";
-            }
-            return "Nhân viên"; // Mặc định
         }
     }
 

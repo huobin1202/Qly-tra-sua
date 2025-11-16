@@ -1,24 +1,16 @@
 package dto;
 
 public class MonDTO {
-    int maMon;
-    String tenMon;
-    long gia;
-    String tinhTrang;
-    int maLoai;
-    String anh;
+int maMon;
+String tenMon;
+long gia;
+String tinhTrang;
+int maLoai;
+String anh;
+String tenLoai;
 
     // Constructor mặc định
     public MonDTO() {}
-
-    public MonDTO(int maMon, String tenMon, long gia, String tinhTrang, int maLoai) {
-        this.maMon = maMon;
-        this.tenMon = tenMon;
-        this.gia = gia;
-        this.tinhTrang = tinhTrang;
-        this.maLoai = maLoai;
-        this.anh = "";
-    }
 
     public MonDTO(int maMon, String tenMon, long gia, String tinhTrang, int maLoai, String anh) {
         this.maMon = maMon;
@@ -27,6 +19,17 @@ public class MonDTO {
         this.tinhTrang = tinhTrang;
         this.maLoai = maLoai;
         this.anh = anh;
+        this.tenLoai = "";
+    }
+    
+    public MonDTO(int maMon, String tenMon, long gia, String tinhTrang, int maLoai, String anh, String tenLoai) {
+        this.maMon = maMon;
+        this.tenMon = tenMon;
+        this.gia = gia;
+        this.tinhTrang = tinhTrang;
+        this.maLoai = maLoai;
+        this.anh = anh;
+        this.tenLoai = tenLoai;
     }
     public int getMaMon() {
         return maMon;
@@ -65,6 +68,10 @@ public class MonDTO {
     public void setAnh(String anh) {
         this.anh = anh;
     }
-
-
+    public String getTenLoai() {
+        return tenLoai;
+    }
+    public void setTenLoai(String tenLoai) {
+        this.tenLoai = tenLoai;
+    }
 }

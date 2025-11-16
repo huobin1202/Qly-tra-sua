@@ -783,7 +783,7 @@ public class ThemNhapHangView extends JPanel {
     private List<SanPhamChonNhapDTO> getOldReceiptDetails(Connection conn) throws SQLException {
         List<SanPhamChonNhapDTO> oldProducts = new ArrayList<>();
         
-        String sql = "SELECT ctnh.*, nl.TenNL " +
+        String sql = "SELECT ctnh.*, nl.TenNL, nl.DonVi " +
                     "FROM chitietnhap_nl ctnh " +
                     "JOIN nguyenlieu nl ON ctnh.MaNL = nl.MaNL " +
                     "WHERE ctnh.MaPN = ?";

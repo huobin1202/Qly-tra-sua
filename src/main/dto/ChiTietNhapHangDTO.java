@@ -23,17 +23,6 @@ public class ChiTietNhapHangDTO {
         this.donVi = donVi;
         this.thanhTien = soLuong * donGia;
     }
-
-    // Constructor không có tên nguyên liệu (để tương thích với database)
-    public ChiTietNhapHangDTO(int maPN, int maNL, int soLuong, long donGia, String donVi) {
-        this.maPN = maPN;
-        this.maNL = maNL;
-        this.soLuong = soLuong;
-        this.donGia = donGia;
-        this.donVi = donVi;
-        this.thanhTien = soLuong * donGia;
-    }
-
     // Getters và Setters
     public int getMaPN() {
         return maPN;

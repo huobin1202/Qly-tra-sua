@@ -2,6 +2,7 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
+
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +12,7 @@ import dto.ChiTietDonHangDTO;
 import dto.MonDTO;
 import dto.LoaiMonDTO;
 import dao.DonHangDAO;
-import dao.HangHoaDAO;
+import dao.MonDAO;
 import dao.KhoHangDAO;
 import dto.MonNguyenLieuDTO;
 
@@ -56,6 +57,7 @@ public class SuaDonHangView extends JDialog {
     // Điều khiển giảm giá tự động / thủ công
     private boolean isSettingDiscountProgrammatically = false;
     private boolean isDiscountManuallyEdited = false;
+    private boolean isInitialLoad = true; // Đánh dấu lần đầu tiên load dữ liệu
     
     public SuaDonHangView(Window parent, int maDon) {
         super(parent, "Cập nhật hóa đơn", ModalityType.APPLICATION_MODAL);
@@ -71,6 +73,8 @@ public class SuaDonHangView extends JDialog {
         loadProducts();
         loadOrderedItems();
         updateOrderSummary();
+        // Đánh dấu đã hoàn tất lần load đầu tiên
+        isInitialLoad = false;
         // Cập nhật trạng thái button danh mục sau khi đã load xong
         if (categoryButtons != null) {
             updateCategoryButtons();
@@ -92,7 +96,7 @@ public class SuaDonHangView extends JDialog {
         nhanVienField = new JTextField(15);
         nhanVienField.setEditable(false);
         
-        giamGiaSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 30, 1)); // Tối đa 30%
+        giamGiaSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1)); // Tối đa 30%
         giamGiaSpinner.setPreferredSize(new Dimension(80, 25));
         
         // Khởi tạo các component thông tin khách hàng
@@ -456,6 +460,7 @@ public class SuaDonHangView extends JDialog {
             updateOrderSummary();
         });
         
+        
         // Event handler cho nút tìm kiếm khách hàng
         timKiemKhachHangButton.addActionListener(e -> timKiemKhachHangTheoSDT());
     }
@@ -478,7 +483,12 @@ public class SuaDonHangView extends JDialog {
                     currentOrder.setTrangThai(rs.getString("TrangThai"));
                     currentOrder.setNgayDat(rs.getTimestamp("NgayDat"));
                     currentOrder.setTongTien(rs.getLong("TongTien"));
-                    currentOrder.setGiamGia(rs.getInt("GiamGia"));
+                    // Xử lý giá trị NULL cho GiamGia
+                    int giamGia = rs.getInt("GiamGia");
+                    if (rs.wasNull()) {
+                        giamGia = 0; // Mặc định là 0 nếu NULL
+                    }
+                    currentOrder.setGiamGia(giamGia);
                     
                     // Load MaKH nếu có
                     int maKH = rs.getInt("MaKH");
@@ -499,9 +509,9 @@ public class SuaDonHangView extends JDialog {
                     isSettingDiscountProgrammatically = true;
                     giamGiaSpinner.setValue(currentOrder.getGiamGia());
                     isSettingDiscountProgrammatically = false;
-                    isDiscountManuallyEdited = false; // mặc định theo tự động cho tới khi người dùng sửa
                     
                     // Cập nhật khách hàng nếu có
+                    int diemTichLuy = 0;
                     if (selectedKhachHangId > 0) {
                         // Load thông tin khách hàng từ database để hiển thị
                         String khSql = "SELECT * FROM khachhang WHERE MaKH = ?";
@@ -511,11 +521,17 @@ public class SuaDonHangView extends JDialog {
                                 if (khRs.next()) {
                                     khachHangTenField.setText(khRs.getString("HoTen"));
                                     khachHangSDTField.setText(khRs.getString("SDT"));
-                                    khachHangDiemTichLuyField.setText(String.valueOf(khRs.getInt("DiemTichLuy")));
+                                    diemTichLuy = khRs.getInt("DiemTichLuy");
+                                    khachHangDiemTichLuyField.setText(String.valueOf(diemTichLuy));
                                 }
                             }
                         }
                     }
+                    
+                    // Khởi tạo isDiscountManuallyEdited = false
+                    // Sẽ được kiểm tra lại sau khi load xong orderedItems
+                    // để xác định chính xác xem có phải đã được chỉnh sửa thủ công không
+                    isDiscountManuallyEdited = false;
                     
                     // Cập nhật trạng thái
                     String trangThai = currentOrder.getTrangThai();
@@ -545,6 +561,7 @@ public class SuaDonHangView extends JDialog {
     private void updateUIStateByStatus(String trangThai) {
         // Kiểm tra nếu trạng thái là "đã thanh toán" hoặc "bị hủy"
         boolean isReadOnly = "dathanhtoan".equals(trangThai) || "bihuy".equals(trangThai);
+        boolean isCancelled = "bihuy".equals(trangThai);
         
         // Vô hiệu hóa các field chỉnh sửa
         giamGiaSpinner.setEnabled(!isReadOnly);
@@ -555,7 +572,9 @@ public class SuaDonHangView extends JDialog {
         // Vô hiệu hóa các nút sửa/cập nhật
         capNhatButton.setEnabled(!isReadOnly);
         thanhToanButton.setEnabled(!isReadOnly && !"dathanhtoan".equals(trangThai));
-        huyHoaDonButton.setEnabled(!isReadOnly && !"bihuy".equals(trangThai));
+        huyHoaDonButton.setEnabled(!isReadOnly && !isCancelled);
+        // Cho phép in hóa đơn khi đã thanh toán hoặc bị hủy
+        inHoaDonButton.setEnabled("dathanhtoan".equals(trangThai) || isCancelled);
         
         // Vô hiệu hóa khả năng thêm/sửa/xóa sản phẩm (buttons trong product panels)
         if (productGridPanel != null) {
@@ -597,6 +616,13 @@ public class SuaDonHangView extends JDialog {
             thanhToanButton.setToolTipText(null);
             huyHoaDonButton.setToolTipText(null);
         }
+        
+        // Tooltip cho nút in hóa đơn
+        if (!"dathanhtoan".equals(trangThai) && !isCancelled) {
+            inHoaDonButton.setToolTipText("Chỉ có thể in hóa đơn sau khi đơn hàng đã được thanh toán hoặc bị hủy!");
+        } else {
+            inHoaDonButton.setToolTipText(null);
+        }
     }
     
     private void disableProductButtons(JPanel panel, boolean disable) {
@@ -629,7 +655,6 @@ public class SuaDonHangView extends JDialog {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement("SELECT * FROM khachhang WHERE SDT = ?")) {
             
@@ -907,11 +932,11 @@ public class SuaDonHangView extends JDialog {
     
     // Kiểm tra xem có đủ nguyên liệu cho món với số lượng cho trước không
     private String kiemTraNguyenLieu(int maMon, int soLuong, int maMonCheck, String tenTopping) {
-        HangHoaDAO hangHoaDAO = new HangHoaDAO();
+        MonDAO monDAO = new MonDAO();
         KhoHangDAO khoHangDAO = new KhoHangDAO();
         
         // Lấy danh sách nguyên liệu cần cho món
-        List<MonNguyenLieuDTO> nguyenLieuList = hangHoaDAO.layNguyenLieuCuaMon(maMon);
+        List<MonNguyenLieuDTO> nguyenLieuList = monDAO.layNguyenLieuCuaMon(maMon);
         
         // Tính tổng nguyên liệu cần cho tất cả món trong đơn hàng (bao gồm món mới)
         java.util.Map<Integer, Integer> tongNguyenLieuCan = new java.util.HashMap<>();
@@ -928,7 +953,7 @@ public class SuaDonHangView extends JDialog {
             }
             
             // Nguyên liệu của món chính
-            List<MonNguyenLieuDTO> nguyenLieuItem = hangHoaDAO.layNguyenLieuCuaMon(item.getMaMon());
+            List<MonNguyenLieuDTO> nguyenLieuItem = monDAO.layNguyenLieuCuaMon(item.getMaMon());
             if (nguyenLieuItem != null) {
                 for (MonNguyenLieuDTO nl : nguyenLieuItem) {
                     int tongSoLuong = nl.getSoLuong() * item.getSoLuong();
@@ -942,7 +967,7 @@ public class SuaDonHangView extends JDialog {
             // Nguyên liệu của topping (nếu có)
             if (item.getTenTopping() != null && !item.getTenTopping().equals("No Topping")) {
                 int maTopping = findToppingId(item.getTenTopping());
-                List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+                List<MonNguyenLieuDTO> nguyenLieuTopping = monDAO.layNguyenLieuCuaMon(maTopping);
                 if (nguyenLieuTopping != null) {
                     for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
                         int tongSoLuong = nl.getSoLuong() * item.getSoLuong();
@@ -969,7 +994,7 @@ public class SuaDonHangView extends JDialog {
         // Cộng thêm nguyên liệu của topping mới (nếu có)
         if (tenTopping != null && !tenTopping.equals("No Topping")) {
             int maTopping = findToppingId(tenTopping);
-            List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+            List<MonNguyenLieuDTO> nguyenLieuTopping = monDAO.layNguyenLieuCuaMon(maTopping);
             if (nguyenLieuTopping != null && !nguyenLieuTopping.isEmpty()) {
                 for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
                     int tongSoLuong = nl.getSoLuong() * soLuong;
@@ -997,7 +1022,7 @@ public class SuaDonHangView extends JDialog {
                 String nguonThieu = "";
                 if (tenTopping != null && !tenTopping.equals("No Topping")) {
                     int maTopping = findToppingId(tenTopping);
-                    List<MonNguyenLieuDTO> nguyenLieuTopping = hangHoaDAO.layNguyenLieuCuaMon(maTopping);
+                    List<MonNguyenLieuDTO> nguyenLieuTopping = monDAO.layNguyenLieuCuaMon(maTopping);
                     boolean laTuTopping = false;
                     if (nguyenLieuTopping != null) {
                         for (MonNguyenLieuDTO nl : nguyenLieuTopping) {
@@ -1107,6 +1132,88 @@ public class SuaDonHangView extends JDialog {
         }
         
         updateOrderedItemsTable();
+        
+        // Kiểm tra lại giá trị giảm giá sau khi đã load xong orderedItems
+        // để xác định xem có phải đã được chỉnh sửa thủ công không
+        checkAndMarkManualDiscount();
+    }
+    
+    // Kiểm tra xem giá trị giảm giá đã lưu có khác với giá trị tự động đề xuất không
+    private void checkAndMarkManualDiscount() {
+        int savedDiscount = currentOrder.getGiamGia();
+        int autoSuggestedDiscount = calculateAutoSuggestedDiscount();
+        
+        // Nếu giá trị đã lưu khác với giá trị tự động, đánh dấu là đã chỉnh sửa thủ công
+        if (savedDiscount != autoSuggestedDiscount) {
+            isDiscountManuallyEdited = true;
+        }
+    }
+    
+    // Tính giá trị giảm giá tự động đề xuất (bao gồm cả trường hợp đơn đầu tiên với số ly)
+    private int calculateAutoSuggestedDiscount() {
+        int suggestedDiscount = 0;
+        
+        // Tính tổng số ly
+        int totalLy = 0;
+        for (ChiTietDonHangDTO item : orderedItems) {
+            totalLy += item.getSoLuong();
+        }
+        
+        // Kiểm tra đơn đầu tiên của khách hàng (không tính đơn hiện tại)
+        boolean isFirstOrder = false;
+        Integer maKH = currentOrder.getMaKH();
+        if (maKH != null && maKH > 0) {
+            try (Connection conn = DBUtil.getConnection()) {
+                try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM donhang WHERE MaKH = ? AND TrangThai = 'dathanhtoan' AND MaDon != ?")) {
+                    ps.setInt(1, maKH);
+                    ps.setInt(2, currentOrder.getMaDon());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next() && rs.getInt(1) == 0) {
+                            isFirstOrder = true;
+                        }
+                    }
+                }
+            } catch (SQLException ignore) {
+                // Không xử lý lỗi ở đây
+            }
+        }
+        
+        // Nếu là đơn đầu tiên và đủ số ly, tính giảm giá đề xuất
+        if (isFirstOrder && totalLy > 0) {
+            if (totalLy >= 30) {
+                suggestedDiscount = 30; // 30 ly trở lên = 30%
+            } else if (totalLy >= 20) {
+                suggestedDiscount = 20;
+            } else if (totalLy >= 10) {
+                suggestedDiscount = 10;
+            } else {
+                suggestedDiscount = 0;
+            }
+        } else {
+            // Tự động tính giảm giá đề xuất theo điểm tích lũy hiện có của khách hàng (tối đa 30%)
+            try {
+                int availablePoints = 0;
+                if (khachHangDiemTichLuyField != null && !khachHangDiemTichLuyField.getText().trim().isEmpty()) {
+                    availablePoints = Integer.parseInt(khachHangDiemTichLuyField.getText().trim());
+                }
+                // Tính giảm giá theo điểm tích lũy (tối đa 30%)
+                if (availablePoints >= 30) {
+                    suggestedDiscount = 30; // 30 điểm = 30% (tối đa)
+                } else if (availablePoints >= 20) {
+                    suggestedDiscount = 20; // 20 điểm = 20%
+                } else if (availablePoints >= 10) {
+                    suggestedDiscount = 10; // 10 điểm = 10%
+                } else {
+                    suggestedDiscount = 0;
+                }
+            } catch (NumberFormatException ignore) {
+                // Bỏ qua nếu không parse được điểm
+                suggestedDiscount = 0;
+            }
+        }
+        
+        return suggestedDiscount;
     }
     
     private void updateOrderedItemsTable() {
@@ -1326,8 +1433,8 @@ public class SuaDonHangView extends JDialog {
                 suggestedDiscount = 20;
             } else if (totalLy >= 10) {
                 suggestedDiscount = 10;
-            } else if (totalLy >= 5) {
-                suggestedDiscount = 5;
+            } else {
+                suggestedDiscount = 0;
             }
         } else {
             // Tự động tính giảm giá đề xuất theo điểm tích lũy hiện có của khách hàng (tối đa 30%)
@@ -1345,9 +1452,8 @@ public class SuaDonHangView extends JDialog {
                     suggestedDiscount = 10; // 30 điểm = 10%
                 } else {
                     suggestedDiscount = 0;
-                }
+                }   
                 // Đảm bảo không vượt quá 30%
-                if (suggestedDiscount > 30) suggestedDiscount = 30;
             } catch (NumberFormatException ignore) {
                 // Bỏ qua nếu không parse được điểm
                 suggestedDiscount = 0;
@@ -1356,7 +1462,8 @@ public class SuaDonHangView extends JDialog {
         
         // Chỉ tự động cập nhật nếu người dùng chưa chỉnh tay hoặc giá trị đề xuất khác với giá trị hiện tại
         // Nhưng vẫn cho phép người dùng chỉnh sửa sau đó
-        if (!isDiscountManuallyEdited && suggestedDiscount != giamGia) {
+        // KHÔNG ghi đè giá trị giảm giá trong lần đầu tiên load dữ liệu (để giữ nguyên giá trị từ database)
+        if (!isInitialLoad && !isDiscountManuallyEdited && suggestedDiscount != giamGia) {
             giamGia = suggestedDiscount;
             isSettingDiscountProgrammatically = true;
             giamGiaSpinner.setValue(giamGia);
@@ -1371,7 +1478,7 @@ public class SuaDonHangView extends JDialog {
         phaiTraLabel.setText(String.format("%,d", phaiTra) + " VND");
         
         // Cập nhật tổng tiền trong đối tượng đơn hàng
-        currentOrder.setTongTien(tongTien);
+        currentOrder.setTongTien(phaiTra);
         currentOrder.setGiamGia(giamGia);
     }
     
@@ -1437,6 +1544,8 @@ public class SuaDonHangView extends JDialog {
             JOptionPane.showMessageDialog(this, "Vui lòng nhập số điện thoại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
             return;
         }
+      
+        
         
         try (Connection conn = DBUtil.getConnection()) {
             conn.setAutoCommit(false);
@@ -1591,6 +1700,9 @@ public class SuaDonHangView extends JDialog {
                 currentOrder.setTrangThai("dathanhtoan");
                 trangThaiLabel.setText("Đã thanh toán");
                 trangThaiLabel.setForeground(Color.GREEN);
+                
+                // Cập nhật trạng thái UI (vô hiệu hóa nút cập nhật/hủy, kích hoạt nút in)
+                updateUIStateByStatus("dathanhtoan");
 
                 // Cập nhật điểm tích lũy của khách hàng (nếu có)
                 try (Connection conn = DBUtil.getConnection()) {
@@ -1605,23 +1717,13 @@ public class SuaDonHangView extends JDialog {
                             }
                         }
 
-                        // Tính toán số điểm dùng và điểm nhận được
-                        int giamGia = currentOrder.getGiamGia();
-
-                        // Tính điểm đã dùng dựa trên giảm giá (tối đa 30%)
-                        int pointsUsed = 0;
-                        if (giamGia >= 30) pointsUsed = 1000; // 30% = 1000 điểm (tối đa)
-                        else if (giamGia >= 20) pointsUsed = 500; // 20% = 500 điểm
-                        else if (giamGia >= 10) pointsUsed = 200; // 10% = 200 điểm
-                        else if (giamGia >= 5) pointsUsed = 100; // 5% = 100 điểm
-
                         // Tính điểm nhận được: 1 ly = 1 điểm
                         int earnedPoints = 0;
                         for (ChiTietDonHangDTO item : orderedItems) {
                             earnedPoints += item.getSoLuong();
                         }
 
-                        int newPoints = Math.max(0, currentPoints - pointsUsed) + earnedPoints;
+                        int newPoints = currentPoints + earnedPoints;
                         try (PreparedStatement ps = conn.prepareStatement("UPDATE khachhang SET DiemTichLuy=? WHERE MaKH=?")) {
                             ps.setInt(1, newPoints);
                             ps.setInt(2, maKH);
@@ -1642,11 +1744,125 @@ public class SuaDonHangView extends JDialog {
             }
         }
     }
-    
     private void printInvoice() {
-        JOptionPane.showMessageDialog(this, "Chức năng in hóa đơn đang được phát triển!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+        try {
+            // Kiểm tra trạng thái đơn hàng - cho phép in khi đã thanh toán hoặc bị hủy
+            String trangThai = currentOrder.getTrangThai();
+            if (trangThai == null || (!"dathanhtoan".equals(trangThai) && !"bihuy".equals(trangThai))) {
+                JOptionPane.showMessageDialog(this, "Chỉ có thể in hóa đơn sau khi đơn hàng đã được thanh toán hoặc bị hủy!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
+            String content = generateInvoiceContent();
+            if (content == null) {
+                return;
+            }
+            
+            // Tạo một JTextArea để in
+            JTextArea printArea = new JTextArea(content);
+            printArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+            
+            // Sử dụng PrinterJob để kiểm tra xem người dùng có hủy in hay không
+            java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
+            java.awt.print.PageFormat pageFormat = job.defaultPage();
+            job.setPrintable(printArea.getPrintable(null, null), pageFormat);
+            
+            if (job.printDialog()) {
+                // Người dùng đã chọn in và không hủy
+                job.print();
+                JOptionPane.showMessageDialog(this, "In hóa đơn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            // Nếu người dùng hủy, không hiển thị thông báo gì
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi khi in hóa đơn: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
     
+    private String generateInvoiceContent() {
+        try {
+            int maDon = currentOrder.getMaDon();
+            
+            // Lấy thông tin đơn hàng từ database
+            DonHangDAO donHangDAO = new DonHangDAO();
+            DonHangDTO donHang = donHangDAO.layDonHangVoiTenNV(maDon);
+            if (donHang == null) {
+                JOptionPane.showMessageDialog(this, "Không tìm thấy đơn hàng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
+            
+            // Lấy chi tiết đơn hàng
+            List<ChiTietDonHangDTO> chiTietList = donHangDAO.layChiTietDonHang(maDon);
+            
+            StringBuilder detail = new StringBuilder();
+            
+            // Header
+            detail.append("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
+            detail.append("║                                        HÓA ĐƠN                                          ║\n");
+            detail.append("║                                        #").append(String.format("%-6d", maDon)).append("                                        ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            
+            // Format ngày đặt
+            String ngayDatStr = "";
+            if (donHang.getNgayDat() != null) {
+                java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+                ngayDatStr = dateFormat.format(donHang.getNgayDat());
+            }
+            
+            // Thông tin đơn hàng
+            detail.append("║ Mã đơn hàng: ").append(String.format("%-20s", donHang.getMaDon())).append(" Ngày đặt: ").append(String.format("%-20s", ngayDatStr)).append(" ║\n");
+            detail.append("║ Nhân viên: ").append(String.format("%-20s", donHang.getTenNV() != null ? donHang.getTenNV() : "N/A")).append(" ║\n");
+            if (donHang.getTenKH() != null && !donHang.getTenKH().isEmpty()) {
+                detail.append("║ Khách hàng: ").append(String.format("%-20s", donHang.getTenKH())).append(" Mã KH: ").append(String.format("%-20s", donHang.getMaKH())).append(" ║\n");
+            }
+            detail.append("║ Trạng thái: ").append(String.format("%-20s", convertTrangThaiToUI(donHang.getTrangThai()))).append(" Giảm giá: ").append(String.format("%-20s", donHang.getGiamGia() + "%")).append(" ║\n");
+            
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            detail.append("║                                    CHI TIẾT MÓN ĂN                                    ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            detail.append("║ STT │ Tên món ăn              │ Topping           │ Số lượng │ Đơn giá      ║\n");
+            detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+            
+            // Chi tiết món
+            if (chiTietList.isEmpty()) {
+                detail.append("║ ").append("                                ").append("Không có chi tiết món").append("                                ").append(" ║\n");
+            } else {
+                int stt = 1;
+                long tongTien = donHang.getTongTien();
+                for (ChiTietDonHangDTO chiTiet : chiTietList) {
+                    String tenMon = chiTiet.getTenMon();
+                    if (tenMon != null && tenMon.length() > 20) {
+                        tenMon = tenMon.substring(0, 17) + "...";
+                    }
+                    
+                    String toppingName = chiTiet.getTenTopping();
+                    if (toppingName == null || toppingName.isEmpty()) {
+                        toppingName = "Không";
+                    } else if (toppingName.length() > 15) {
+                        toppingName = toppingName.substring(0, 12) + "...";
+                    }
+                    
+                    detail.append(String.format("║ %-3d │ %-22s │ %-17s │ %-8d │ %-12s ║\n",
+                        stt++,
+                        tenMon != null ? tenMon : "",
+                        toppingName,
+                        chiTiet.getSoLuong(),
+                        String.format("%,d VNĐ", chiTiet.getGiaMon() + chiTiet.getGiaTopping())
+                    ));
+                }
+                
+                detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
+                detail.append("║ ").append("                         ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                        ").append(" ║\n");
+            }
+            
+            detail.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
+            
+            return detail.toString();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tạo nội dung hóa đơn: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+    }
+
     private void cancelOrder() {
         int result = JOptionPane.showConfirmDialog(this, 
             "Bạn có chắc chắn muốn hủy đơn hàng #" + currentOrder.getMaDon() + "?", 
@@ -1665,6 +1881,9 @@ public class SuaDonHangView extends JDialog {
                 currentOrder.setTrangThai("bihuy");
                 trangThaiLabel.setText("Bị hủy");
                 trangThaiLabel.setForeground(Color.RED);
+                
+                // Cập nhật trạng thái UI sau khi hủy (vô hiệu hóa thanh toán/cập nhật/hủy, cho phép in)
+                updateUIStateByStatus("bihuy");
                 
                 JOptionPane.showMessageDialog(this, "Hủy đơn hàng thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException e) {

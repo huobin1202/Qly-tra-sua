@@ -68,55 +68,7 @@ public class KhachHangDAO {
         }
         return danhSach;
     }
-    
-    // Lấy khách hàng theo mã
-    public KhachHangDTO layKhachHangTheoMa(int maKH) {
-        String sql = "SELECT * FROM khachhang WHERE MaKH = ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setInt(1, maKH);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    KhachHangDTO khachHang = new KhachHangDTO();
-                    khachHang.setMaKH(rs.getInt("MaKH"));
-                    khachHang.setSoDienThoai(rs.getString("SDT"));
-                    khachHang.setHoTen(rs.getString("HoTen"));
-                    khachHang.setDiemTichLuy(rs.getInt("DiemTichLuy"));
-                    return khachHang;
-                }
-            }
-        } catch (SQLException e) {
-        }
-        return null;
-    }
-    
-    // Lấy khách hàng theo số điện thoại
-    public KhachHangDTO layKhachHangTheoSDT(String soDienThoai) {
-        String sql = "SELECT * FROM khachhang WHERE SoDienThoai = ?";
-        
-        try (Connection conn = DBUtil.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            
-            ps.setString(1, soDienThoai);
-            
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    KhachHangDTO khachHang = new KhachHangDTO();
-                    khachHang.setMaKH(rs.getInt("MaKH"));
-                    khachHang.setSoDienThoai(rs.getString("SDT"));
-                    khachHang.setHoTen(rs.getString("HoTen"));
-                    khachHang.setDiemTichLuy(rs.getInt("DiemTichLuy"));
-                    return khachHang;
-                }
-            }
-        } catch (SQLException e) {
-        }
-        return null;
-    }
-    
+
     // Thêm khách hàng mới
     public boolean themKhachHang(KhachHangDTO khachHang) {
         String sql = "INSERT INTO khachhang (SDT, HoTen, DiemTichLuy) VALUES (?, ?, ?)";
@@ -194,26 +146,5 @@ public class KhachHangDAO {
         } catch (SQLException e) {
         }
         return false;
-    }
-    
-    // Lấy danh sách khách hàng cho combo box
-    public List<KhachHangDTO> layDanhSachKhachHangChoCombo() {
-        List<KhachHangDTO> danhSach = new ArrayList<>();
-        String sql = "SELECT MaKH, HoTen, SoDienThoai FROM khachhang ORDER BY HoTen";
-        
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            
-            while (rs.next()) {
-                KhachHangDTO khachHang = new KhachHangDTO();
-                khachHang.setMaKH(rs.getInt("MaKH"));
-                khachHang.setHoTen(rs.getString("HoTen"));
-                khachHang.setSoDienThoai(rs.getString("SDT"));
-                danhSach.add(khachHang);
-            }
-        } catch (SQLException e) {
-        }
-        return danhSach;
-    }
+    }  
 }

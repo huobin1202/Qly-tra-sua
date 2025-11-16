@@ -483,7 +483,7 @@ public class DonHangView extends JPanel {
             detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
             detail.append("║                                    CHI TIẾT MÓN ĂN                                    ║\n");
             detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-            detail.append("║ STT │ Tên món ăn              │ Topping           │ Số lượng │ Đơn giá      │ Thành tiền    ║\n");
+            detail.append("║ STT │ Tên món ăn              │ Topping           │ Số lượng │ Đơn giá      ║\n");
             detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
             
             // Chi tiết món
@@ -491,11 +491,8 @@ public class DonHangView extends JPanel {
                 detail.append("║ ").append("                                ").append("Không có chi tiết món").append("                                ").append(" ║\n");
             } else {
                 int stt = 1;
-                long tongTien = 0;
-                for (ChiTietDonHangDTO chiTiet : chiTietList) {
-                    long thanhTien = (chiTiet.getGiaMon() + chiTiet.getGiaTopping()) * chiTiet.getSoLuong();
-                    tongTien += thanhTien;
-                    
+                long tongTien = donHang.getTongTien()                ;
+                for (ChiTietDonHangDTO chiTiet : chiTietList) {                    
                     String tenMon = chiTiet.getTenMon();
                     if (tenMon.length() > 20) {
                         tenMon = tenMon.substring(0, 17) + "...";
@@ -508,18 +505,17 @@ public class DonHangView extends JPanel {
                         toppingName = toppingName.substring(0, 12) + "...";
                     }
                     
-                    detail.append(String.format("║ %-3d │ %-22s │ %-17s │ %-8d │ %-12s │ %-13s ║\n",
+                    detail.append(String.format("║ %-3d │ %-22s │ %-17s │ %-8d │ %-12s ║\n",
                         stt++,
                         tenMon,
                         toppingName,
                         chiTiet.getSoLuong(),
-                        String.format("%,d VNĐ", chiTiet.getGiaMon() + chiTiet.getGiaTopping()),
-                        String.format("%,d VNĐ", thanhTien)
+                        String.format("%,d VNĐ", chiTiet.getGiaMon() + chiTiet.getGiaTopping())
                     ));
                 }
                 
                 detail.append("╠══════════════════════════════════════════════════════════════════════════════════════╣\n");
-                detail.append("║ ").append("                                ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                                ").append(" ║\n");
+                detail.append("║ ").append("                         ").append("TỔNG TIỀN: ").append(String.format("%-20s", String.format("%,d VNĐ", tongTien))).append("                        ").append(" ║\n");
             }
             
             detail.append("╚══════════════════════════════════════════════════════════════════════════════════════╝\n");
@@ -544,14 +540,8 @@ public class DonHangView extends JPanel {
             printButton.setFocusPainted(false);
             printButton.addActionListener(e -> printInvoice(detail.toString(), maDon));
             
-            JButton exportButton = new JButton("💾 Xuất file");
-            exportButton.setBackground(new Color(34, 139, 34));
-            exportButton.setForeground(Color.BLACK);
-            exportButton.setFocusPainted(false);
-            exportButton.addActionListener(e -> exportInvoice(detail.toString(), maDon));
-            
+
             buttonPanel.add(printButton);
-            buttonPanel.add(exportButton);
             
             mainPanel.add(buttonPanel, BorderLayout.SOUTH);
             
@@ -848,28 +838,22 @@ public class DonHangView extends JPanel {
             // Tạo một JTextArea để in
             JTextArea printArea = new JTextArea(content);
             printArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
-            printArea.print();
             
-            JOptionPane.showMessageDialog(this, "In hóa đơn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            // Sử dụng PrinterJob để kiểm tra xem người dùng có hủy in hay không
+            java.awt.print.PrinterJob job = java.awt.print.PrinterJob.getPrinterJob();
+            java.awt.print.PageFormat pageFormat = job.defaultPage();
+            job.setPrintable(printArea.getPrintable(null, null), pageFormat);
+            
+            if (job.printDialog()) {
+                // Người dùng đã chọn in và không hủy
+                job.print();
+                JOptionPane.showMessageDialog(this, "In hóa đơn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+            }
+            // Nếu người dùng hủy, không hiển thị thông báo gì
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi khi in hóa đơn: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
-    private void exportInvoice(String content, int maDon) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Xuất hóa đơn");
-        fileChooser.setSelectedFile(new java.io.File("HoaDon_" + maDon + "_" + 
-            new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date()) + ".txt"));
-        
-        int result = fileChooser.showSaveDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            try (java.io.FileWriter writer = new java.io.FileWriter(fileChooser.getSelectedFile())) {
-                writer.write(content);
-                JOptionPane.showMessageDialog(this, "Xuất hóa đơn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-            } catch (java.io.IOException e) {
-                JOptionPane.showMessageDialog(this, "Lỗi khi xuất file: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
+   
 }

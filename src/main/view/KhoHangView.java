@@ -3,9 +3,10 @@ package view;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.sql.*;
-import database.DBUtil;
+import java.util.List;
 import database.Session;
+import dao.KhoHangDAO;
+import dto.KhoHangDTO;
 
 public class KhoHangView extends JPanel {
     private JTable table;
@@ -13,9 +14,11 @@ public class KhoHangView extends JPanel {
     private JTextField searchField;
     private JComboBox<String> searchCombo;
     private MainFrameInterface parent;
+    private KhoHangDAO khoHangDAO;
     
     public KhoHangView(MainFrameInterface parent) {
         this.parent = parent;
+        this.khoHangDAO = new KhoHangDAO();
         initializeComponents();
         setupLayout();
         setupEventHandlers();
@@ -143,23 +146,18 @@ public class KhoHangView extends JPanel {
     
     private void loadData() {
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(
-                 "SELECT nl.MaNL, nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) AS SoLuong " +
-                 "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL " +
-                 "ORDER BY nl.MaNL")) {
-
-            while (rs.next()) {
+        try {
+            List<KhoHangDTO> danhSach = khoHangDAO.layTatCaTonKhoVoiNguyenLieu();
+            for (KhoHangDTO khoHang : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaNL"),
-                    rs.getString("TenNL"),
-                    rs.getString("DonVi"),
-                    rs.getInt("SoLuong")
+                    khoHang.getMaMon(),
+                    khoHang.getTenMon(),
+                    khoHang.getTenDonVi(),
+                    khoHang.getSoLuong()
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -169,39 +167,21 @@ public class KhoHangView extends JPanel {
         String searchType = (String) searchCombo.getSelectedItem();
         
         tableModel.setRowCount(0);
-        try (Connection conn = DBUtil.getConnection()) {
-            String sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) AS SoLuong " +
-                        "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL WHERE ";
-            PreparedStatement ps;
-
-            if (searchText.isEmpty()) {
-                sql = "SELECT nl.MaNL, nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) AS SoLuong " +
-                      "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL ORDER BY nl.MaNL";
-                ps = conn.prepareStatement(sql);
-            } else if (searchType.equals("Mã NL")) {
-                sql += "nl.MaNL = ? ORDER BY nl.MaNL";
-                ps = conn.prepareStatement(sql);
-                ps.setInt(1, Integer.parseInt(searchText));
-            } else {
-                sql += "nl.TenNL LIKE ? ORDER BY nl.MaNL";
-                ps = conn.prepareStatement(sql);
-                ps.setString(1, "%" + searchText + "%");
-            }
-
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
+        try {
+            List<KhoHangDTO> danhSach = khoHangDAO.timKiemTonKhoVoiNguyenLieu(searchType, searchText);
+            for (KhoHangDTO khoHang : danhSach) {
                 Object[] row = {
-                    rs.getInt("MaNL"),
-                    rs.getString("TenNL"),
-                    rs.getString("DonVi"),
-                    rs.getInt("SoLuong")
+                    khoHang.getMaMon(),
+                    khoHang.getTenMon(),
+                    khoHang.getTenDonVi(),
+                    khoHang.getSoLuong()
                 };
                 tableModel.addRow(row);
             }
-        } catch (SQLException e) {
-            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, "Mã NL phải là số!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Lỗi tìm kiếm: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -239,23 +219,18 @@ public class KhoHangView extends JPanel {
     }
     
     private void showLowStockDialog() {
-        try (Connection conn = DBUtil.getConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(
-                 "SELECT nl.TenNL, nl.DonVi, COALESCE(k.SoLuong, 0) as SoLuong " +
-                 "FROM nguyenlieu nl LEFT JOIN khohang k ON nl.MaNL = k.MaNL " +
-                 "WHERE COALESCE(k.SoLuong, 0) <= 1000 " +
-                 "ORDER BY COALESCE(k.SoLuong, 0) ASC")) {
+        try {
+            List<KhoHangDTO> danhSach = khoHangDAO.layNguyenLieuSapHetVoiNguyenLieu(1000);
             
             StringBuilder lowStock = new StringBuilder();
             lowStock.append("DANH SÁCH HÀNG SẮP HẾT/ĐÃ HẾT (≤ 1000):\n\n");
             
             boolean hasLowStock = false;
-            while (rs.next()) {
+            for (KhoHangDTO khoHang : danhSach) {
                 hasLowStock = true;
-                lowStock.append("• ").append(rs.getString("TenNL"))
-                       .append(" - Còn: ").append(rs.getInt("SoLuong"))
-                       .append(" ").append(rs.getString("DonVi")).append("\n");
+                lowStock.append("• ").append(khoHang.getTenMon())
+                       .append(" - Còn: ").append(khoHang.getSoLuong())
+                       .append(" ").append(khoHang.getTenDonVi()).append("\n");
             }
             
             if (!hasLowStock) {
@@ -271,7 +246,7 @@ public class KhoHangView extends JPanel {
             
             JOptionPane.showMessageDialog(this, scrollPane, "Hàng sắp hết", JOptionPane.WARNING_MESSAGE);
             
-        } catch (SQLException e) {
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Lỗi tải dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -357,41 +332,16 @@ public class KhoHangView extends JPanel {
                 return;
             }
             
-            try (Connection conn = DBUtil.getConnection()) {
-                System.out.println("Kết nối database thành công");
-                
-                // Kiểm tra xem đã có record trong khohang chưa
-                boolean exists = false;
-                try (PreparedStatement ps = conn.prepareStatement("SELECT 1 FROM khohang WHERE MaNL = ?")) {
-                    ps.setInt(1, maNL);
-                    ResultSet rs = ps.executeQuery();
-                    exists = rs.next();
-                }
-                
-                if (exists) {
-                    // Cập nhật
-                    try (PreparedStatement ps = conn.prepareStatement("UPDATE khohang SET SoLuong = ? WHERE MaNL = ?")) {
-                        ps.setInt(1, soLuongMoi);
-                        ps.setInt(2, maNL);
-                        int result = ps.executeUpdate();
-                    }
+            try {
+                if (khoHangDAO.capNhatSoLuongTonKhoVoiInsert(maNL, soLuongMoi)) {
+                    JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+                    dataChanged = true;
+                    dispose();
                 } else {
-                    // Thêm mới
-                    try (PreparedStatement ps = conn.prepareStatement("INSERT INTO khohang (MaNL, SoLuong) VALUES (?, ?)")) {
-                        ps.setInt(1, maNL);
-                        ps.setInt(2, soLuongMoi);
-                        int result = ps.executeUpdate();
-                    }
+                    JOptionPane.showMessageDialog(this, "Không thể cập nhật số lượng!", "Lỗi", JOptionPane.ERROR_MESSAGE);
                 }
-                
-                JOptionPane.showMessageDialog(this, "Cập nhật thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-                dataChanged = true;
-                dispose();
-            } catch (SQLException e) {
-                System.err.println("Lỗi kết nối database: " + e.getMessage());
-                JOptionPane.showMessageDialog(this, "Lỗi cập nhật dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, "Lỗi không xác định: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Lỗi cập nhật dữ liệu: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
             }
         }
         
