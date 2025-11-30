@@ -2,12 +2,12 @@
 - Đồ án môn Phân tích thiết kế hệ thống thông tin
 - Sử dụng ngôn ngữ Java + JDBC
 ### Thành viên trong nhóm
-| Họ Tên  | MSSV | % Công việc | Phân công                    | 
-| ------------- | ------------- | ------------- |------------------------------|
-| Hồ Phạm Hữu Bình  | 3123411033  | 25 | Code chính                   |
-| Nguyễn Văn Phát  | 3123411220  | 25 | Vẽ báo cáo                   |
-| Nguyễn Minh  | 3123411188  | 25 | Code phụ + Vẽ                |
-| Võ Lê Chí Dũng  | 3123411051  | 25 | Tester + Fix + Báo cáo |
+| Họ Tên  | MSSV |
+| ------------- | ------------- | 
+| Hồ Phạm Hữu Bình  | 3123411033  |
+| Nguyễn Văn Phát  | 3123411220  | 
+| Nguyễn Minh  | 3123411188  | 
+| Võ Lê Chí Dũng  | 3123411051  | 25 |
 
 # Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
