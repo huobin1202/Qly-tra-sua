@@ -1,4 +1,3 @@
-<!-- author: hgbaodev -->
 # Quản lý quán trà sữa
 - Đồ án môn Phân tích thiết kế hệ thống thông tin
 - Sử dụng ngôn ngữ Java + JDBC
