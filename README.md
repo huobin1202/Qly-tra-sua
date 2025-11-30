@@ -7,7 +7,7 @@
 | Hồ Phạm Hữu Bình  | 3123411033  |
 | Nguyễn Văn Phát  | 3123411220  | 
 | Nguyễn Minh  | 3123411188  | 
-| Võ Lê Chí Dũng  | 3123411051  | 25 |
+| Võ Lê Chí Dũng  | 3123411051  |
 
 # Xây dựng hệ thống quản lý quán trà sữa, hỗ trợ:
 
