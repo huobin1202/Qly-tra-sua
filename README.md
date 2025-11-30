@@ -27,8 +27,10 @@
    ```bash
    git clone https://github.com/huobin1202/Qly-tra-sua.git
    ```
-2. Mở xampp và vào trang http://localhost/phpmyadmin/ tạo 1 database mới có tên là bants và import cơ sở dữ liệu bants.sql trong folder src->resources trong source code.
+2. Mở xampp và vào trang http://localhost/phpmyadmin/ tạo 1 database mới có tên là bants và import cơ sở dữ liệu bants.sql trong folder src -> resources trong source code.
 
-3. Vào src->main chạy Runner.java
+3. Cài thư viện src -> resources -> library -> mysql-connector-j-9.4.0.jar
+
+4. Vào src -> main chạy Runner.java
 
 
